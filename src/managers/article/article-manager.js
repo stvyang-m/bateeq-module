@@ -1,7 +1,7 @@
 'use strict';
 
 // external deps 
-var ObjectId = require('mongodb').ObjectId; 
+var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 var Manager = require('mean-toolkit').Manager;
@@ -29,5 +29,31 @@ module.exports = class ArticleManager extends Manager {
         this.user = user;
         this.articleCollection = this.db.use(map.article.Article);
         this.articleApprovalCollection = this.db.use(map.article.ArticleApproval);
-    } 
+    }
+
+    create(article) {
+        return new Promise((resolve, reject) => {
+            this._validate(article)
+                .then(validArticle => {
+
+                    this.articleCollection.insert(validArticle)
+                        .catch(id => {
+
+                        })
+                        .catch(e => {
+                            reject(e);
+                        })
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
+    }
+
+
+    _validate(article) {
+        return new Promise((resolve, reject) => {
+            resolve(article);
+        });
+    }
 };
