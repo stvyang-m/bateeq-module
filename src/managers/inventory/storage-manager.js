@@ -8,35 +8,22 @@ var Manager = require('mean-toolkit').Manager;
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.article.ArticleApproval;
-var Article = BateeqModels.article.Article;
-var ArticleColor = BateeqModels.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.article.ArticleCostCalculation;
-var ArticleMotif = BateeqModels.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.article.ArticleSeason;
-var ArticleSize = BateeqModels.article.ArticleSize;
-var ArticleStyle = BateeqModels.article.ArticleStyle;
-var ArticleSubCategory = BateeqModels.article.ArticleSubCategory;
-var ArticleType = BateeqModels.article.ArticleType;
-var ArticleVariant = BateeqModels.article.ArticleVariant;
-var Article = BateeqModels.article.Article;
+var Storage = BateeqModels.inventory.Storage; 
+ 
 
-module.exports = class ArticleManager extends Manager {
+module.exports = class StorageManager extends Manager {
     constructor(db, user) {
         super(db);
         this.user = user;
-        this.articleCollection = this.db.use(map.article.Article);
-        this.articleApprovalCollection = this.db.use(map.article.ArticleApproval);
-    } 
+        this.storageCollection = this.db.use(map.inventory.Storage);
+    }
     
     read() {
         return new Promise((resolve, reject) => {
-            this.articleCollection
+            this.storageCollection
                 .execute()
-                .then(articles => {
-                    resolve(articles);
+                .then(storages => {
+                    resolve(storages);
                 })
                 .catch(e => {
                     reject(e);
@@ -50,8 +37,8 @@ module.exports = class ArticleManager extends Manager {
                 _id: new ObjectId(id)
             };
             this.getSingleByQuery(query)
-                .then(article => {
-                    resolve(article);
+                .then(storage => {
+                    resolve(storage);
                 })
                 .catch(e => {
                     reject(e);
@@ -61,10 +48,10 @@ module.exports = class ArticleManager extends Manager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleCollection
+            this.storageCollection
                 .single(query)
-                .then(article => {
-                    resolve(article);
+                .then(storage => {
+                    resolve(storage);
                 })
                 .catch(e => {
                     reject(e);
@@ -72,12 +59,12 @@ module.exports = class ArticleManager extends Manager {
         })
     }
 
-    create(article) {
+    create(storage) {
         return new Promise((resolve, reject) => {
-            this._validate(article)
-                .then(validArticle => {
+            this._validate(storage)
+                .then(validStorage => {
 
-                    this.articleCollection.insert(validArticle)
+                    this.storageCollection.insert(validStorage)
                         .then(id => {
                             resolve(id);
                         })
@@ -91,11 +78,30 @@ module.exports = class ArticleManager extends Manager {
         });
     }
 
-    update(article) {
+    update(storage) {
         return new Promise((resolve, reject) => {
-            this._validate(article)
-                .then(validArticle => {
-                    this.articleCollection.update(validArticle)
+            this._validate(storage)
+                .then(validStorage => {
+                    this.storageCollection.update(validStorage)
+                        .then(id => {
+                            resolve(id);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        })
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
+    } 
+
+    delete(storage) {
+        return new Promise((resolve, reject) => {
+            this._validate(storage)
+                .then(validStorage => {
+                    validStorage._deleted = true;
+                    this.storageCollection.update(validStorage)
                         .then(id => {
                             resolve(id);
                         })
@@ -109,31 +115,12 @@ module.exports = class ArticleManager extends Manager {
         });
     }
 
-    delete(article) {
-        return new Promise((resolve, reject) => {
-            this._validate(article)
-                .then(validArticle => {
-                    validArticle._deleted = true;
-                    this.articleCollection.update(validArticle)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
 
-
-    _validate(article) {
-        return new Promise((resolve, reject) => {
-            var valid = new Article(article);
+    _validate(storage) {
+        return new Promise((resolve, reject) => { 
+            var valid = new Storage(storage);
             valid.stamp(this.user.username,'manager');
-            resolve(valid);      
+            resolve(valid);
         });
     }
 };

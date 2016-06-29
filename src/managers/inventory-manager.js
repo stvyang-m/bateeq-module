@@ -17,5 +17,5 @@ module.exports = class InventoryManager extends Manager {
         this.stockOutCollection = this.db.use(map.inventory.StockOut);
         this.stockInCollection = this.db.use(map.inventory.StockIn);
         this.storageCollection = this.db.use(map.inventory.Storage);
-    }
+    } 
 }

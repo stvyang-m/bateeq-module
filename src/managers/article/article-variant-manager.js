@@ -9,7 +9,7 @@ var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
 var ArticleApproval = BateeqModels.article.ArticleApproval;
-var Article = BateeqModels.article.Article;
+var ArticleCategory = BateeqModels.article.ArticleCategory;
 var ArticleColor = BateeqModels.article.ArticleColor;
 var ArticleCostCalculationDetail = BateeqModels.article.ArticleCostCalculationDetail;
 var ArticleCostCalculation = BateeqModels.article.ArticleCostCalculation;
@@ -23,20 +23,19 @@ var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
 
-module.exports = class ArticleManager extends Manager {
+module.exports = class ArticleVariantManager extends Manager {
     constructor(db, user) {
         super(db);
         this.user = user;
-        this.articleCollection = this.db.use(map.article.Article);
-        this.articleApprovalCollection = this.db.use(map.article.ArticleApproval);
-    } 
-    
+        this.articleVariantCollection = this.db.use(map.article.ArticleVariant);
+    }
+
     read() {
         return new Promise((resolve, reject) => {
-            this.articleCollection
+            this.articleVariantCollection
                 .execute()
-                .then(articles => {
-                    resolve(articles);
+                .then(articleCategories => {
+                    resolve(articleCategories);
                 })
                 .catch(e => {
                     reject(e);
@@ -50,8 +49,8 @@ module.exports = class ArticleManager extends Manager {
                 _id: new ObjectId(id)
             };
             this.getSingleByQuery(query)
-                .then(article => {
-                    resolve(article);
+                .then(articleVariant => {
+                    resolve(articleVariant);
                 })
                 .catch(e => {
                     reject(e);
@@ -61,10 +60,10 @@ module.exports = class ArticleManager extends Manager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleCollection
+            this.articleVariantCollection
                 .single(query)
-                .then(article => {
-                    resolve(article);
+                .then(articleVariant => {
+                    resolve(articleVariant);
                 })
                 .catch(e => {
                     reject(e);
@@ -72,12 +71,12 @@ module.exports = class ArticleManager extends Manager {
         })
     }
 
-    create(article) {
+    create(articleVariant) {
         return new Promise((resolve, reject) => {
-            this._validate(article)
-                .then(validArticle => {
+            this._validate(articleVariant)
+                .then(validArticleVariant => {
 
-                    this.articleCollection.insert(validArticle)
+                    this.articleVariantCollection.insert(validArticleVariant)
                         .then(id => {
                             resolve(id);
                         })
@@ -91,11 +90,11 @@ module.exports = class ArticleManager extends Manager {
         });
     }
 
-    update(article) {
+    update(articleVariant) {
         return new Promise((resolve, reject) => {
-            this._validate(article)
-                .then(validArticle => {
-                    this.articleCollection.update(validArticle)
+            this._validate(articleVariant)
+                .then(validArticleVariant => {
+                    this.articleVariantCollection.update(validArticleVariant)
                         .then(id => {
                             resolve(id);
                         })
@@ -109,12 +108,12 @@ module.exports = class ArticleManager extends Manager {
         });
     }
 
-    delete(article) {
+    delete(articleVariant) {
         return new Promise((resolve, reject) => {
-            this._validate(article)
-                .then(validArticle => {
-                    validArticle._deleted = true;
-                    this.articleCollection.update(validArticle)
+            this._validate(articleVariant)
+                .then(validArticleVariant => {
+                    validArticleVariant._deleted = true;
+                    this.articleVariantCollection.update(validArticleVariant)
                         .then(id => {
                             resolve(id);
                         })
@@ -129,9 +128,9 @@ module.exports = class ArticleManager extends Manager {
     }
 
 
-    _validate(article) {
+    _validate(articleVariant) {
         return new Promise((resolve, reject) => {
-            var valid = new Article(article);
+            var valid = new ArticleVariant(articleVariant);
             valid.stamp(this.user.username,'manager');
             resolve(valid);      
         });
