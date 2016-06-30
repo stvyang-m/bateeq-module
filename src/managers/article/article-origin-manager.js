@@ -30,9 +30,18 @@ module.exports = class ArticleOriginManager extends Manager {
         this.articleOriginCollection = this.db.use(map.article.ArticleOrigin);
     }
 
-    read() {
+    read(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: '_id',
+            asc: true
+        }, paging);
+        
         return new Promise((resolve, reject) => {
             this.articleOriginCollection
+                .page(_paging.page, _paging.size)
+                .orderBy(_paging.order, _paging.asc)
                 .execute()
                 .then(articleOrigins => {
                     resolve(articleOrigins);
@@ -70,7 +79,7 @@ module.exports = class ArticleOriginManager extends Manager {
                 });
         })
     }
- 
+
     create(articleOrigin) {
         return new Promise((resolve, reject) => {
             this._validate(articleOrigin)
@@ -106,7 +115,7 @@ module.exports = class ArticleOriginManager extends Manager {
                     reject(e);
                 })
         });
-    } 
+    }
 
     delete(articleOrigin) {
         return new Promise((resolve, reject) => {
@@ -131,8 +140,8 @@ module.exports = class ArticleOriginManager extends Manager {
     _validate(articleOrigin) {
         return new Promise((resolve, reject) => {
             var valid = new ArticleOrigin(articleOrigin);
-            valid.stamp(this.user.username,'manager');
-            resolve(valid);    
+            valid.stamp(this.user.username, 'manager');
+            resolve(valid);
         });
     }
 };
