@@ -18,7 +18,7 @@
   "homepage": "https://github.com/moonlay/bateeq-module#readme",
   "dependencies": {
     "bateeq-models": "git+https://git@github.com/moonlay/bateeq-models.git",
-    "mean-toolkit": "git+https://git@github.com/pinkgorilla/mean-toolkit.git"
+    "mongodb-toolkit": "git+https://github.com/pinkgorilla/mongodb-toolkit.git"
   },
   "devDependencies": {
     "mocha": "^2.5.3",

@@ -4,7 +4,7 @@
 var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
-var Manager = require('mean-toolkit').Manager;
+require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
@@ -23,9 +23,9 @@ var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
 
-module.exports = class ArticleSeasonManager extends Manager {
+module.exports = class ArticleSeasonManager{
     constructor(db, user) {
-        super(db);
+        this.db = db;
         this.user = user;
         this.articleSeasonCollection = this.db.use(map.article.ArticleSeason);
     }

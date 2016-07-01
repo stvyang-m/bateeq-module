@@ -4,16 +4,16 @@
 var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
-var Manager = require('mean-toolkit').Manager;
+require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
 var Storage = BateeqModels.inventory.Storage; 
  
 
-module.exports = class StorageManager extends Manager {
+module.exports = class StorageManager {
     constructor(db, user) {
-        super(db);
+        this.db = db;
         this.user = user;
         this.storageCollection = this.db.use(map.inventory.Storage);
     }

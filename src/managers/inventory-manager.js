@@ -3,14 +3,14 @@
 var ObjectId = require('mongodb').ObjectId; 
 
 // internal deps
-var Manager = require('mean-toolkit').Manager;
+require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
  
-module.exports = class InventoryManager extends Manager {
+module.exports = class InventoryManager{
     constructor(db, user) {
-        super(db);
+        this.db = db;
         this.user = user;
         this.inventoryCollection = this.db.use(map.inventory.Inventory);
         this.inventoryMovementCollection = this.db.use(map.inventory.InventoryMovement);
