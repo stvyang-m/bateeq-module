@@ -1,12 +1,15 @@
 module.exports = {
     article: {
+        ArticleBrandManager: require('./src/managers/article/article-brand-manager'),
         ArticleCategoryManager: require('./src/managers/article/article-category-manager'),
+        ArticleCounterManager: require('./src/managers/article/article-counter-manager'),
+        ArticleMaterialManager: require('./src/managers/article/article-material-manager'),
         ArticleManager: require('./src/managers/article/article-manager'),
         ArticleMotifManager: require('./src/managers/article/article-motif-manager'),
         ArticleOriginManager: require('./src/managers/article/article-origin-manager'),
         ArticleSeasonManager: require('./src/managers/article/article-season-manager'),
-        ArticleStyleManager: require('./src/managers/article/article-style-manager'),
-        ArticleSubCategoryManager: require('./src/managers/article/article-sub-category-manager'),
+        ArticleSubCounterManager: require('./src/managers/article/article-sub-counter-manager'),
+        ArticleThemeManager: require('./src/managers/article/article-theme-manager'),
         ArticleTypeManager: require('./src/managers/article/article-type-manager'),
         ArticleVariantManager: require('./src/managers/article/article-variant-manager')
     },
