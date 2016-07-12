@@ -43,6 +43,7 @@ module.exports = class ArticleMotifManager{
         
         return new Promise((resolve, reject) => {
             this.articleMotifCollection
+                .where({_deleted:false})
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()

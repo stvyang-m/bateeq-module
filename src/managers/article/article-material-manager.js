@@ -43,6 +43,7 @@ module.exports = class ArticleMaterialManager{
         
         return new Promise((resolve, reject) => {
             this.articleMaterialCollection
+                .where({_deleted:false})
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()

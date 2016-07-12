@@ -43,6 +43,7 @@ module.exports = class ArticleThemeManager{
         
         return new Promise((resolve, reject) => {
             this.articleThemeCollection
+                .where({_deleted:false})
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
