@@ -43,8 +43,7 @@ module.exports = class ArticleOriginManager{
         
         return new Promise((resolve, reject) => {
             this.articleOriginCollection
-                .where({_deleted:false})
-                .query({_deleted:false})
+                .where({_deleted:false}) 
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
