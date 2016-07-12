@@ -4,25 +4,25 @@ var validate = require('bateeq-models').validator.article;
 var manager;
 
 function getData() {
-    var ArticleStyle = require('bateeq-models').article.ArticleStyle;
-    var articleStyle = new ArticleStyle();
+    var ArticleBrand = require('bateeq-models').article.ArticleBrand;
+    var articleBrand = new ArticleBrand();
 
     var now = new Date();
     var stamp = now / 1000 | 0;
     var code = stamp.toString(36);
 
-    articleStyle.code = code;
-    articleStyle.name = `name[${code}]`;
-    articleStyle.description = `description for ${code}`;
+    articleBrand.code = code;
+    articleBrand.name = `name[${code}]`;
+    articleBrand.description = `description for ${code}`;
 
-    return articleStyle;
+    return articleBrand;
 }
 
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var ArticleStyleManager = require('../../src/managers/article/article-style-manager');
-            manager = new ArticleStyleManager(db, {
+            var ArticleBrandManager = require('../../src/managers/article/article-brand-manager');
+            manager = new ArticleBrandManager(db, {
                 username: 'unit-test'
             });
             done();
@@ -50,7 +50,7 @@ var createdData;
 it(`#02. should success when get created data with id`, function(done) {
     manager.getById(createdId)
         .then(data => {
-            validate.articleStyle(data);
+            validate.articleBrand(data);
             createdData = data;
             done();
         })
@@ -78,7 +78,7 @@ it(`#03. should success when update created data`, function(done) {
 it(`#04. should success when get updated data with id`, function(done) {
     manager.getById(createdId)
         .then(data => {
-            validate.articleStyle(data);
+            validate.articleBrand(data);
             data.code.should.equal(createdData.code);
             data.name.should.equal(createdData.name);
             data.description.should.equal(createdData.description);
@@ -103,7 +103,7 @@ it(`#05. should success when delete data`, function(done) {
 it(`#06. should _deleted=true`, function(done) {
     manager.getById(createdId)
         .then(data => {
-            validate.articleStyle(data);
+            validate.articleBrand(data);
             data._deleted.should.be.Boolean();
             data._deleted.should.equal(true);
             done();

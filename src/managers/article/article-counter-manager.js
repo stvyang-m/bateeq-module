@@ -26,11 +26,11 @@ var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
 
-module.exports = class ArticleMotifManager{
+module.exports = class ArticleCounterManager{
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleMotifCollection = this.db.use(map.article.ArticleMotif);
+        this.articleCounterCollection = this.db.use(map.article.ArticleCounter);
     }
 
     read(paging) {
@@ -42,27 +42,27 @@ module.exports = class ArticleMotifManager{
         }, paging);
         
         return new Promise((resolve, reject) => {
-            this.articleMotifCollection
+            this.articleCounterCollection
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleMotifs => {
-                    resolve(articleMotifs);
+                .then(articleCounters => {
+                    resolve(articleCounters);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
     }  
-    
+
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id)
             };
             this.getSingleByQuery(query)
-                .then(articleMotif => {
-                    resolve(articleMotif);
+                .then(articleCounter => {
+                    resolve(articleCounter);
                 })
                 .catch(e => {
                     reject(e);
@@ -72,10 +72,10 @@ module.exports = class ArticleMotifManager{
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleMotifCollection
+            this.articleCounterCollection
                 .single(query)
-                .then(articleMotif => {
-                    resolve(articleMotif);
+                .then(articleCounter => {
+                    resolve(articleCounter);
                 })
                 .catch(e => {
                     reject(e);
@@ -83,12 +83,12 @@ module.exports = class ArticleMotifManager{
         })
     }
 
-    create(articleMotif) {
+    create(articleCounter) {
         return new Promise((resolve, reject) => {
-            this._validate(articleMotif)
-                .then(validArticleMotif => {
+            this._validate(articleCounter)
+                .then(validArticleCounter => {
 
-                    this.articleMotifCollection.insert(validArticleMotif)
+                    this.articleCounterCollection.insert(validArticleCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -102,11 +102,11 @@ module.exports = class ArticleMotifManager{
         });
     }
 
-    update(articleMotif) {
+    update(articleCounter) {
         return new Promise((resolve, reject) => {
-            this._validate(articleMotif)
-                .then(validArticleMotif => {
-                    this.articleMotifCollection.update(validArticleMotif)
+            this._validate(articleCounter)
+                .then(validArticleCounter => {
+                    this.articleCounterCollection.update(validArticleCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -118,14 +118,14 @@ module.exports = class ArticleMotifManager{
                     reject(e);
                 })
         });
-    } 
+    }
 
-    delete(articleMotif) {
+    delete(articleCounter) {
         return new Promise((resolve, reject) => {
-            this._validate(articleMotif)
-                .then(validArticleMotif => {
-                    validArticleMotif._deleted = true;
-                    this.articleMotifCollection.update(validArticleMotif)
+            this._validate(articleCounter)
+                .then(validArticleCounter => {
+                    validArticleCounter._deleted = true;
+                    this.articleCounterCollection.update(validArticleCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -140,11 +140,11 @@ module.exports = class ArticleMotifManager{
     }
 
 
-    _validate(articleMotif) {
+    _validate(articleCounter) {
         return new Promise((resolve, reject) => {
-            var valid = new ArticleMotif(articleMotif);
+            var valid = new ArticleCounter(articleCounter);
             valid.stamp(this.user.username,'manager');
-            resolve(valid);     
+            resolve(valid);      
         });
     }
 };

@@ -9,16 +9,19 @@ var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
 var ArticleApproval = BateeqModels.article.ArticleApproval;
+var ArticleBrand = BateeqModels.article.ArticleBrand;
 var ArticleCategory = BateeqModels.article.ArticleCategory;
 var ArticleColor = BateeqModels.article.ArticleColor;
 var ArticleCostCalculationDetail = BateeqModels.article.ArticleCostCalculationDetail;
 var ArticleCostCalculation = BateeqModels.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.article.ArticleMaterial;
 var ArticleMotif = BateeqModels.article.ArticleMotif;
 var ArticleOrigin = BateeqModels.article.ArticleOrigin;
 var ArticleSeason = BateeqModels.article.ArticleSeason;
 var ArticleSize = BateeqModels.article.ArticleSize;
-var ArticleStyle = BateeqModels.article.ArticleStyle;
-var ArticleSubCategory = BateeqModels.article.ArticleSubCategory;
+var ArticleSubCounter = BateeqModels.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.article.ArticleTheme;
 var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
@@ -29,19 +32,28 @@ module.exports = class ArticleVariantManager{
         this.user = user;
         this.articleVariantCollection = this.db.use(map.article.ArticleVariant);
     }
-
-    read() {
+    
+    read(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: '_id',
+            asc: true
+        }, paging);
+        
         return new Promise((resolve, reject) => {
             this.articleVariantCollection
+                .page(_paging.page, _paging.size)
+                .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleCategories => {
-                    resolve(articleCategories);
+                .then(articleVariants => {
+                    resolve(articleVariants);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
-    }
+    }  
 
     getById(id) {
         return new Promise((resolve, reject) => {

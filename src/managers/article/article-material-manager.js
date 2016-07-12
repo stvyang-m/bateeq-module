@@ -9,39 +9,51 @@ var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
 var ArticleApproval = BateeqModels.article.ArticleApproval;
+var ArticleBrand = BateeqModels.article.ArticleBrand;
 var ArticleCategory = BateeqModels.article.ArticleCategory;
 var ArticleColor = BateeqModels.article.ArticleColor;
 var ArticleCostCalculationDetail = BateeqModels.article.ArticleCostCalculationDetail;
 var ArticleCostCalculation = BateeqModels.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.article.ArticleMaterial;
 var ArticleMotif = BateeqModels.article.ArticleMotif;
 var ArticleOrigin = BateeqModels.article.ArticleOrigin;
 var ArticleSeason = BateeqModels.article.ArticleSeason;
 var ArticleSize = BateeqModels.article.ArticleSize;
-var ArticleStyle = BateeqModels.article.ArticleStyle;
-var ArticleSubCategory = BateeqModels.article.ArticleSubCategory;
+var ArticleSubCounter = BateeqModels.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.article.ArticleTheme;
 var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
 
-module.exports = class ArticleStyleManager{
+module.exports = class ArticleMaterialManager{
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleStyleCollection = this.db.use(map.article.ArticleStyle);
+        this.articleMaterialCollection = this.db.use(map.article.ArticleMaterial);
     }
-    
-    read() {
+
+    read(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: '_id',
+            asc: true
+        }, paging);
+        
         return new Promise((resolve, reject) => {
-            this.articleStyleCollection
+            this.articleMaterialCollection
+                .page(_paging.page, _paging.size)
+                .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleStyles => {
-                    resolve(articleStyles);
+                .then(articleMaterials => {
+                    resolve(articleMaterials);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
-    }
+    } 
 
     getById(id) {
         return new Promise((resolve, reject) => {
@@ -49,8 +61,8 @@ module.exports = class ArticleStyleManager{
                 _id: new ObjectId(id)
             };
             this.getSingleByQuery(query)
-                .then(articleStyle => {
-                    resolve(articleStyle);
+                .then(articleMaterial => {
+                    resolve(articleMaterial);
                 })
                 .catch(e => {
                     reject(e);
@@ -60,23 +72,23 @@ module.exports = class ArticleStyleManager{
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleStyleCollection
+            this.articleMaterialCollection
                 .single(query)
-                .then(articleStyle => {
-                    resolve(articleStyle);
+                .then(articleMaterial => {
+                    resolve(articleMaterial);
                 })
                 .catch(e => {
                     reject(e);
                 });
         })
-    } 
+    }
 
-    create(articleStyle) {
+    create(articleMaterial) {
         return new Promise((resolve, reject) => {
-            this._validate(articleStyle)
-                .then(validArticleStyle => {
+            this._validate(articleMaterial)
+                .then(validArticleMaterial => {
 
-                    this.articleStyleCollection.insert(validArticleStyle)
+                    this.articleMaterialCollection.insert(validArticleMaterial)
                         .then(id => {
                             resolve(id);
                         })
@@ -90,11 +102,11 @@ module.exports = class ArticleStyleManager{
         });
     }
 
-    update(articleStyle) {
+    update(articleMaterial) {
         return new Promise((resolve, reject) => {
-            this._validate(articleStyle)
-                .then(validArticleStyle => {
-                    this.articleStyleCollection.update(validArticleStyle)
+            this._validate(articleMaterial)
+                .then(validArticleMaterial => {
+                    this.articleMaterialCollection.update(validArticleMaterial)
                         .then(id => {
                             resolve(id);
                         })
@@ -106,14 +118,14 @@ module.exports = class ArticleStyleManager{
                     reject(e);
                 })
         });
-    } 
+    }
 
-    delete(articleStyle) {
+    delete(articleMaterial) {
         return new Promise((resolve, reject) => {
-            this._validate(articleStyle)
-                .then(validArticleStyle => {
-                    validArticleStyle._deleted = true;
-                    this.articleStyleCollection.update(validArticleStyle)
+            this._validate(articleMaterial)
+                .then(validArticleMaterial => {
+                    validArticleMaterial._deleted = true;
+                    this.articleMaterialCollection.update(validArticleMaterial)
                         .then(id => {
                             resolve(id);
                         })
@@ -128,11 +140,11 @@ module.exports = class ArticleStyleManager{
     }
 
 
-    _validate(articleStyle) {
+    _validate(articleMaterial) {
         return new Promise((resolve, reject) => {
-            var valid = new ArticleStyle(articleStyle);
+            var valid = new ArticleMaterial(articleMaterial);
             valid.stamp(this.user.username,'manager');
-            resolve(valid);  
+            resolve(valid);      
         });
     }
 };

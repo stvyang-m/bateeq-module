@@ -4,25 +4,25 @@ var validate = require('bateeq-models').validator.article;
 var manager;
 
 function getData() {
-    var ArticleSubCategory = require('bateeq-models').article.ArticleSubCategory;
-    var articleSubCategory = new ArticleSubCategory();
+    var ArticleCounter = require('bateeq-models').article.ArticleCounter;
+    var articleCounter = new ArticleCounter();
 
     var now = new Date();
     var stamp = now / 1000 | 0;
     var code = stamp.toString(36);
 
-    articleSubCategory.code = code;
-    articleSubCategory.name = `name[${code}]`;
-    articleSubCategory.description = `description for ${code}`;
+    articleCounter.code = code;
+    articleCounter.name = `name[${code}]`;
+    articleCounter.description = `description for ${code}`;
 
-    return articleSubCategory;
+    return articleCounter;
 }
 
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var ArticleSubCategoryManager = require('../../src/managers/article/article-sub-category-manager');
-            manager = new ArticleSubCategoryManager(db, {
+            var ArticleCounterManager = require('../../src/managers/article/article-counter-manager');
+            manager = new ArticleCounterManager(db, {
                 username: 'unit-test'
             });
             done();
@@ -50,7 +50,7 @@ var createdData;
 it(`#02. should success when get created data with id`, function(done) {
     manager.getById(createdId)
         .then(data => {
-            validate.articleSubCategory(data);
+            validate.articleCounter(data);
             createdData = data;
             done();
         })
@@ -78,7 +78,7 @@ it(`#03. should success when update created data`, function(done) {
 it(`#04. should success when get updated data with id`, function(done) {
     manager.getById(createdId)
         .then(data => {
-            validate.articleSubCategory(data);
+            validate.articleCounter(data);
             data.code.should.equal(createdData.code);
             data.name.should.equal(createdData.name);
             data.description.should.equal(createdData.description);
@@ -103,7 +103,7 @@ it(`#05. should success when delete data`, function(done) {
 it(`#06. should _deleted=true`, function(done) {
     manager.getById(createdId)
         .then(data => {
-            validate.articleSubCategory(data);
+            validate.articleCounter(data);
             data._deleted.should.be.Boolean();
             data._deleted.should.equal(true);
             done();

@@ -26,11 +26,11 @@ var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
 
-module.exports = class ArticleMotifManager{
+module.exports = class ArticleThemeManager{
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleMotifCollection = this.db.use(map.article.ArticleMotif);
+        this.articleThemeCollection = this.db.use(map.article.ArticleTheme);
     }
 
     read(paging) {
@@ -42,27 +42,27 @@ module.exports = class ArticleMotifManager{
         }, paging);
         
         return new Promise((resolve, reject) => {
-            this.articleMotifCollection
+            this.articleThemeCollection
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleMotifs => {
-                    resolve(articleMotifs);
+                .then(articleThemes => {
+                    resolve(articleThemes);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
     }  
-    
+
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id)
             };
             this.getSingleByQuery(query)
-                .then(articleMotif => {
-                    resolve(articleMotif);
+                .then(articleStyle => {
+                    resolve(articleStyle);
                 })
                 .catch(e => {
                     reject(e);
@@ -72,23 +72,23 @@ module.exports = class ArticleMotifManager{
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleMotifCollection
+            this.articleThemeCollection
                 .single(query)
-                .then(articleMotif => {
-                    resolve(articleMotif);
+                .then(articleStyle => {
+                    resolve(articleStyle);
                 })
                 .catch(e => {
                     reject(e);
                 });
         })
-    }
+    } 
 
-    create(articleMotif) {
+    create(articleStyle) {
         return new Promise((resolve, reject) => {
-            this._validate(articleMotif)
-                .then(validArticleMotif => {
+            this._validate(articleStyle)
+                .then(validArticleTheme => {
 
-                    this.articleMotifCollection.insert(validArticleMotif)
+                    this.articleThemeCollection.insert(validArticleTheme)
                         .then(id => {
                             resolve(id);
                         })
@@ -102,11 +102,11 @@ module.exports = class ArticleMotifManager{
         });
     }
 
-    update(articleMotif) {
+    update(articleStyle) {
         return new Promise((resolve, reject) => {
-            this._validate(articleMotif)
-                .then(validArticleMotif => {
-                    this.articleMotifCollection.update(validArticleMotif)
+            this._validate(articleStyle)
+                .then(validArticleTheme => {
+                    this.articleThemeCollection.update(validArticleTheme)
                         .then(id => {
                             resolve(id);
                         })
@@ -120,12 +120,12 @@ module.exports = class ArticleMotifManager{
         });
     } 
 
-    delete(articleMotif) {
+    delete(articleStyle) {
         return new Promise((resolve, reject) => {
-            this._validate(articleMotif)
-                .then(validArticleMotif => {
-                    validArticleMotif._deleted = true;
-                    this.articleMotifCollection.update(validArticleMotif)
+            this._validate(articleStyle)
+                .then(validArticleTheme => {
+                    validArticleTheme._deleted = true;
+                    this.articleThemeCollection.update(validArticleTheme)
                         .then(id => {
                             resolve(id);
                         })
@@ -140,11 +140,11 @@ module.exports = class ArticleMotifManager{
     }
 
 
-    _validate(articleMotif) {
+    _validate(articleStyle) {
         return new Promise((resolve, reject) => {
-            var valid = new ArticleMotif(articleMotif);
+            var valid = new ArticleTheme(articleStyle);
             valid.stamp(this.user.username,'manager');
-            resolve(valid);     
+            resolve(valid);  
         });
     }
 };
