@@ -20,4 +20,6 @@ describe('#bateeq-module', function(done) {
     test('@manager/article-manager', './managers/article-manager-test');
     test('@manager/article-variant-manager', './managers/article-variant-manager-test');
     test('@manager/storage-manager', './managers/storage-manager-test');
+    test('@manager/transfer-out-doc-manager', './managers/transfer-out-doc-manager-test');
+    test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
 })

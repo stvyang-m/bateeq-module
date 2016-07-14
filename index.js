@@ -14,6 +14,8 @@ module.exports = {
         ArticleVariantManager: require('./src/managers/article/article-variant-manager')
     },
     inventory: {
-        StorageManager: require('./src/managers/inventory/storage-manager')
+        StorageManager: require('./src/managers/inventory/storage-manager'),
+        TransferInDocManager: require('./src/managers/inventory/tranfer-in-doc-manager'),
+        TransferOutDocManager: require('./src/managers/inventory/transfer-out-doc-manager')
     }
 }
