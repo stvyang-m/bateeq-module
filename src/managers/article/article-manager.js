@@ -26,13 +26,13 @@ var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
 
-module.exports = class ArticleManager{
+module.exports = class ArticleManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
         this.articleCollection = this.db.use(map.article.Article);
         this.articleApprovalCollection = this.db.use(map.article.ArticleApproval);
-    } 
+    }
 
     read(paging) {
         var _paging = Object.assign({
@@ -41,10 +41,29 @@ module.exports = class ArticleManager{
             order: '_id',
             asc: true
         }, paging);
-        
+
         return new Promise((resolve, reject) => {
+            var deleted: {
+                _deleted: false
+            };
+            var query = _paging.keyword ? {
+                '$and': [deleted]
+            } : {
+                _deleted: deleted
+            };
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
+                query.push({
+                    'name': {
+                        '$regex': regex
+                    }
+                });
+            }
+
+
             this.articleCollection
-                .where({_deleted:false})
+                .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
@@ -145,8 +164,8 @@ module.exports = class ArticleManager{
     _validate(article) {
         return new Promise((resolve, reject) => {
             var valid = new Article(article);
-            valid.stamp(this.user.username,'manager');
-            resolve(valid);      
+            valid.stamp(this.user.username, 'manager');
+            resolve(valid);
         });
     }
 };
