@@ -15,7 +15,7 @@ module.exports = {
     },
     inventory: {
         StorageManager: require('./src/managers/inventory/storage-manager'),
-        TransferInDocManager: require('./src/managers/inventory/tranfer-in-doc-manager'),
+        TransferInDocManager: require('./src/managers/inventory/transfer-in-doc-manager'),
         TransferOutDocManager: require('./src/managers/inventory/transfer-out-doc-manager')
     }
 }
