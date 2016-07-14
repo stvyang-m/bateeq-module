@@ -33,9 +33,7 @@ module.exports = class TransferInDocManager {
             };
             var query = _paging.keyword ? {
                 '$and': [deleted]
-            } : {
-                _deleted: deleted
-            };
+            } : deleted;
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
