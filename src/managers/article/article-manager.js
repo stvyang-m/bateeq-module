@@ -43,7 +43,7 @@ module.exports = class ArticleManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-            var deleted: {
+            var deleted = {
                 _deleted: false
             };
             var query = _paging.keyword ? {
@@ -54,11 +54,11 @@ module.exports = class ArticleManager {
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                query.push({
-                    'name': {
-                        '$regex': regex
-                    }
-                });
+                var filterCode = {'code':{'$regex': regex}};
+                var filterName = {'name':{'$regex': regex}};
+                var $or = {'$or':[filterCode, filterName]};
+                
+                query['$and'].push($or);
             }
 
 

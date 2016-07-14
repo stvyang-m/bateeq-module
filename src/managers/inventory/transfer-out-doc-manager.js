@@ -28,8 +28,26 @@ module.exports = class TransferOutDocManager {
         }, paging);
         
         return new Promise((resolve, reject) => {
+            var deleted = {
+                _deleted: false
+            };
+            var query = _paging.keyword ? {
+                '$and': [deleted]
+            } : {
+                _deleted: deleted
+            };
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
+                var filterCode = {'code':{'$regex': regex}}; 
+                var $or = {'$or':[filterCode]};
+                
+                query['$and'].push($or);
+            }
+
+
             this.transferOutDocCollection
-                .where({_deleted:false})
+                .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()

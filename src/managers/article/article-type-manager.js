@@ -43,8 +43,27 @@ module.exports = class ArticleTypeManager{
         }, paging);
         
         return new Promise((resolve, reject) => {
+            var deleted = {
+                _deleted: false
+            };
+            var query = _paging.keyword ? {
+                '$and': [deleted]
+            } : {
+                _deleted: deleted
+            };
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
+                var filterCode = {'code':{'$regex': regex}};
+                var filterName = {'name':{'$regex': regex}};
+                var $or = {'$or':[filterCode, filterName]};
+                
+                query['$and'].push($or);
+            }
+
+
             this.articleTypeCollection
-                .where({_deleted:false})
+                .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
