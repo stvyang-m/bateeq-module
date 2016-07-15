@@ -17,6 +17,14 @@ module.exports = class TransferOutDocManager {
         this.db = db;
         this.user = user;
         this.transferOutDocCollection = this.db.use(map.inventory.TransferOutDoc);
+        var StorageManager = require('./storage-manager');
+        this.storageManager = new StorageManager(db, user);
+
+        var ArticleVariantManager = require('../article/article-variant-manager');
+        this.articleVariantManager = new ArticleVariantManager(db, user);
+
+        var InventoryManager = require('./inventory-manager');
+        this.inventoryManager = new InventoryManager(db, user);
     }
 
     read(paging) {
@@ -97,9 +105,15 @@ module.exports = class TransferOutDocManager {
         return new Promise((resolve, reject) => {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
+                    var tasks = [this.transferOutDocCollection.insert(validTransferOutDoc)];
+                    
+                    for (var item of validTransferOutDoc.items) {
+                        tasks.push(this.inventoryManager.out(validTransferOutDoc.sourceId, validTransferOutDoc.code, item.articleVariantId, item.quantity, item.remark))
+                    }
 
-                    this.transferOutDocCollection.insert(validTransferOutDoc)
-                        .then(id => {
+                    Promise.all(tasks)
+                        .then(results => {
+                            var id = results[0];
                             resolve(id);
                         })
                         .catch(e => {
@@ -153,8 +167,43 @@ module.exports = class TransferOutDocManager {
     _validate(transferOutDoc) {
         return new Promise((resolve, reject) => {
             var valid = new TransferOutDoc(transferOutDoc);
-            valid.stamp(this.user.username, 'manager');
-            resolve(valid);
+
+            var getSource = this.storageManager.getById(transferOutDoc.sourceId);
+            var getDestination = this.storageManager.getById(transferOutDoc.destinationId);
+            
+            var getItems = [];
+            for (var item of valid.items) {
+                getItems.push(this.articleVariantManager.getById(item.articleVariantId));
+            }
+
+            Promise.all([getSource, getDestination].concat(getItems))
+                .then(results => {
+                    var source = results[0];
+                    var destination = results[1];
+                    
+                    valid.sourceId = source._id;
+                    valid.source = source;
+                    
+                    valid.destinationId = destination._id;
+                    valid.destination = destination;
+
+                    if (results.length > 2) {
+                        var articleVariants = results.slice(2, results.length)
+                        for(var variant of articleVariants)
+                        {
+                            var index = articleVariants.indexOf(variant);
+                            var item = valid.items[index];
+                            item.articleVariantId = variant._id;
+                            item.articleVariant = variant;
+                        }
+                    }
+                    
+                    valid.stamp(this.user.username, 'manager');
+                    resolve(valid)
+                })
+                .catch(e => {
+                    reject(e);
+                });
         });
     }
 };

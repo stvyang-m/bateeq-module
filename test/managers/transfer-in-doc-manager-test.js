@@ -15,12 +15,14 @@ function getData() {
     transferInDoc.code = code;
     transferInDoc.date = now;
     
+    transferInDoc.sourceId = '57738435e8a64fc532cd5bf1';
+    transferInDoc.destinationId = '57738460d53dae9234ae0ae1';
+    
     transferInDoc.reference = `reference[${code}]`;
     
     transferInDoc.remark = `remark for ${code}`;
     
-    transferInDoc.items.push(new TransferInItem());
-    transferInDoc.items.push(new TransferInItem());
+    transferInDoc.items.push(new TransferInItem({articleVariantId:"578855c4964302281454fa51", quantity: 5, remark:'transferInDoc.test'}));
 
     return transferInDoc;
 }
@@ -72,7 +74,7 @@ it(`#03. should success when update created data`, function(done) {
     createdData.remark += '[updated]';
     
     var TransferInItem = require('bateeq-models').inventory.TransferInItem;
-    createdData.items.push(new TransferInItem());
+    // createdData.items.push(new TransferInItem());
 
     manager.update(createdData)
         .then(id => {
@@ -90,7 +92,7 @@ it(`#04. should success when get updated data with id`, function(done) {
             validate.transferInDoc(data);
             data.remark.should.equal(createdData.remark);
             data.reference.should.equal(createdData.reference); 
-            data.items.length.should.equal(3);
+            data.items.length.should.equal(1);
             done();
         })
         .catch(e => {

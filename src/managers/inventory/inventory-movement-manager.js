@@ -8,23 +8,20 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var TransferInDoc = BateeqModels.inventory.TransferInDoc;
-var TransferInItem = BateeqModels.inventory.TransferInItem;
+var InventoryMovement = BateeqModels.inventory.InventoryMovement;
 
 
-module.exports = class TransferInDocManager {
+module.exports = class InventoryMovementManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
+        this.inventoryMovementCollection = this.db.use(map.inventory.InventoryMovement);
+        
         var StorageManager = require('./storage-manager');
         this.storageManager = new StorageManager(db, user);
 
         var ArticleVariantManager = require('../article/article-variant-manager');
         this.articleVariantManager = new ArticleVariantManager(db, user);
-
-        var InventoryManager = require('./inventory-manager');
-        this.inventoryManager = new InventoryManager(db, user);
     }
 
     read(paging) {
@@ -45,26 +42,31 @@ module.exports = class TransferInDocManager {
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
+                var filterArticleName = {
+                    'articleVariant.name': {
+                        '$regex': regex
+                    }
+                };
+                var filterStorageName = {
+                    'storage.name': {
                         '$regex': regex
                     }
                 };
                 var $or = {
-                    '$or': [filterCode]
+                    '$or': [filterArticleName, filterStorageName]
                 };
 
                 query['$and'].push($or);
             }
 
 
-            this.transferInDocCollection
+            this.inventoryMovementCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(transferInDocs => {
-                    resolve(transferInDocs);
+                .then(inventoryMovements => {
+                    resolve(inventoryMovements);
                 })
                 .catch(e => {
                     reject(e);
@@ -79,8 +81,8 @@ module.exports = class TransferInDocManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(inventoryMovement => {
+                    resolve(inventoryMovement);
                 })
                 .catch(e => {
                     reject(e);
@@ -90,10 +92,10 @@ module.exports = class TransferInDocManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.transferInDocCollection
+            this.inventoryMovementCollection
                 .single(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(inventoryMovement => {
+                    resolve(inventoryMovement);
                 })
                 .catch(e => {
                     reject(e);
@@ -101,36 +103,12 @@ module.exports = class TransferInDocManager {
         })
     }
 
-    create(transferInDoc) {
+    create(inventoryMovement) {
         return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    var tasks = [this.transferInDocCollection.insert(validTransferInDoc)];
+            this._validate(inventoryMovement)
+                .then(validInventoryMovement => {
 
-                    for (var item of validTransferInDoc.items) {
-                        tasks.push(this.inventoryManager.in(validTransferInDoc.destinationId, validTransferInDoc.code, item.articleVariantId, item.quantity, item.remark));
-                    }
-
-                    Promise.all(tasks)
-                        .then(results => {
-                            var id = results[0];
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    update(transferInDoc) {
-        return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    this.transferInDocCollection.update(validTransferInDoc)
+                    this.inventoryMovementCollection.insert(validInventoryMovement)
                         .then(id => {
                             resolve(id);
                         })
@@ -144,12 +122,30 @@ module.exports = class TransferInDocManager {
         });
     }
 
-    delete(transferInDoc) {
+    update(inventoryMovement) {
         return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    validTransferInDoc._deleted = true;
-                    this.transferInDocCollection.update(validTransferInDoc)
+            this._validate(inventoryMovement)
+                .then(validInventoryMovement => {
+                    this.inventoryMovementCollection.update(validInventoryMovement)
+                        .then(id => {
+                            resolve(id);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        })
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
+    }
+
+    delete(inventoryMovement) {
+        return new Promise((resolve, reject) => {
+            this._validate(inventoryMovement)
+                .then(validInventoryMovement => {
+                    validInventoryMovement._deleted = true;
+                    this.inventoryMovementCollection.update(validInventoryMovement)
                         .then(id => {
                             resolve(id);
                         })
@@ -164,38 +160,24 @@ module.exports = class TransferInDocManager {
     }
 
 
-    _validate(transferInDoc) {
+    _validate(inventoryMovement) {
         return new Promise((resolve, reject) => {
-            var valid = new TransferInDoc(transferInDoc);
+            var valid = new InventoryMovement(inventoryMovement); 
+            
+            var getStorage = this.storageManager.getById(inventoryMovement.storageId);
+            var getArticleVariant = this.articleVariantManager.getById(inventoryMovement.articleVariantId);
+ 
 
-            var getSource = this.storageManager.getById(transferInDoc.sourceId);
-            var getDestination = this.storageManager.getById(transferInDoc.destinationId);
-
-            var getItems = [];
-            for (var item of valid.items) {
-                getItems.push(this.articleVariantManager.getById(item.articleVariantId));
-            }
-
-            Promise.all([getSource, getDestination].concat(getItems))
+            Promise.all([getStorage, getArticleVariant])
                 .then(results => {
-                    var source = results[0];
-                    var destination = results[1];
+                    var storage = results[0];
+                    var articleVariant = results[1];
 
-                    valid.sourceId = source._id;
-                    valid.source = source;
+                    valid.storageId = storage._id;
+                    valid.storage = storage;
 
-                    valid.destinationId = destination._id;
-                    valid.destination = destination;
-
-                    if (results.length > 2) {
-                        var articleVariants = results.slice(2, results.length)
-                        for (var variant of articleVariants) {
-                            var index = articleVariants.indexOf(variant);
-                            var item = valid.items[index];
-                            item.articleVariantId = variant._id;
-                            item.articleVariant = variant;
-                        }
-                    }
+                    valid.articleVariantId = articleVariant._id;
+                    valid.articleVariant = articleVariant; 
 
                     valid.stamp(this.user.username, 'manager');
                     resolve(valid)
