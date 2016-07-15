@@ -8,8 +8,8 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var Storage = BateeqModels.inventory.Storage; 
- 
+var Storage = BateeqModels.inventory.Storage;
+
 
 module.exports = class StorageManager {
     constructor(db, user) {
@@ -17,7 +17,7 @@ module.exports = class StorageManager {
         this.user = user;
         this.storageCollection = this.db.use(map.inventory.Storage);
     }
-    
+
     read(paging) {
         var _paging = Object.assign({
             page: 1,
@@ -25,7 +25,7 @@ module.exports = class StorageManager {
             order: '_id',
             asc: true
         }, paging);
-        
+
         return new Promise((resolve, reject) => {
             var deleted = {
                 _deleted: false
@@ -36,10 +36,20 @@ module.exports = class StorageManager {
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {'code':{'$regex': regex}};
-                var filterName = {'name':{'$regex': regex}};
-                var $or = {'$or':[filterCode, filterName]};
-                
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterName = {
+                    'name': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterName]
+                };
+
                 query['$and'].push($or);
             }
 
@@ -56,12 +66,13 @@ module.exports = class StorageManager {
                     reject(e);
                 });
         });
-    }   
+    }
 
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
-                _id: new ObjectId(id)
+                _id: new ObjectId(id),
+                _deleted: false
             };
             this.getSingleByQuery(query)
                 .then(storage => {
@@ -121,7 +132,7 @@ module.exports = class StorageManager {
                     reject(e);
                 })
         });
-    } 
+    }
 
     delete(storage) {
         return new Promise((resolve, reject) => {
@@ -144,9 +155,9 @@ module.exports = class StorageManager {
 
 
     _validate(storage) {
-        return new Promise((resolve, reject) => { 
+        return new Promise((resolve, reject) => {
             var valid = new Storage(storage);
-            valid.stamp(this.user.username,'manager');
+            valid.stamp(this.user.username, 'manager');
             resolve(valid);
         });
     }

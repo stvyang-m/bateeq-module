@@ -26,7 +26,7 @@ var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
 
-module.exports = class ArticleSeasonManager{
+module.exports = class ArticleSeasonManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
@@ -40,7 +40,7 @@ module.exports = class ArticleSeasonManager{
             order: '_id',
             asc: true
         }, paging);
-        
+
         return new Promise((resolve, reject) => {
             var deleted = {
                 _deleted: false
@@ -51,10 +51,20 @@ module.exports = class ArticleSeasonManager{
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {'code':{'$regex': regex}};
-                var filterName = {'name':{'$regex': regex}};
-                var $or = {'$or':[filterCode, filterName]};
-                
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterName = {
+                    'name': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterName]
+                };
+
                 query['$and'].push($or);
             }
 
@@ -71,12 +81,13 @@ module.exports = class ArticleSeasonManager{
                     reject(e);
                 });
         });
-    }   
+    }
 
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
-                _id: new ObjectId(id)
+                _id: new ObjectId(id),
+                _deleted: false
             };
             this.getSingleByQuery(query)
                 .then(articleSeason => {
@@ -100,7 +111,7 @@ module.exports = class ArticleSeasonManager{
                 });
         })
     }
- 
+
     create(articleSeason) {
         return new Promise((resolve, reject) => {
             this._validate(articleSeason)
@@ -135,7 +146,7 @@ module.exports = class ArticleSeasonManager{
                     reject(e);
                 })
         });
-    } 
+    }
 
     delete(articleSeason) {
         return new Promise((resolve, reject) => {
@@ -160,8 +171,8 @@ module.exports = class ArticleSeasonManager{
     _validate(articleSeason) {
         return new Promise((resolve, reject) => {
             var valid = new ArticleSeason(articleSeason);
-            valid.stamp(this.user.username,'manager');
-            resolve(valid);   
+            valid.stamp(this.user.username, 'manager');
+            resolve(valid);
         });
     }
 };

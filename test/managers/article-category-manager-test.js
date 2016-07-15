@@ -48,7 +48,7 @@ it('#01. should success when create new data', function(done) {
 
 var createdData;
 it(`#02. should success when get created data with id`, function(done) {
-    manager.getById(createdId)
+    manager.getSingleByQuery({_id:createdId})
         .then(data => {
             validate.articleCategory(data);
             createdData = data;
@@ -76,7 +76,7 @@ it(`#03. should success when update created data`, function(done) {
 });
 
 it(`#04. should success when get updated data with id`, function(done) {
-    manager.getById(createdId)
+    manager.getSingleByQuery({_id:createdId})
         .then(data => {
             validate.articleCategory(data);
             data.code.should.equal(createdData.code);
@@ -101,7 +101,7 @@ it(`#05. should success when delete data`, function(done) {
 });
 
 it(`#06. should _deleted=true`, function(done) {
-    manager.getById(createdId)
+    manager.getSingleByQuery({_id:createdId})
         .then(data => {
             validate.articleCategory(data);
             data._deleted.should.be.Boolean();

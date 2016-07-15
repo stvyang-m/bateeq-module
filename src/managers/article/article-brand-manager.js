@@ -26,7 +26,7 @@ var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
 
-module.exports = class ArticleBrandManager{
+module.exports = class ArticleBrandManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
@@ -41,7 +41,7 @@ module.exports = class ArticleBrandManager{
             order: '_id',
             asc: true
         }, paging);
-        
+
         return new Promise((resolve, reject) => {
             var deleted = {
                 _deleted: false
@@ -52,10 +52,20 @@ module.exports = class ArticleBrandManager{
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {'code':{'$regex': regex}};
-                var filterName = {'name':{'$regex': regex}};
-                var $or = {'$or':[filterCode, filterName]};
-                
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterName = {
+                    'name': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterName]
+                };
+
                 query['$and'].push($or);
             }
 
@@ -72,12 +82,13 @@ module.exports = class ArticleBrandManager{
                     reject(e);
                 });
         });
-    } 
+    }
 
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
-                _id: new ObjectId(id)
+                _id: new ObjectId(id),
+                _deleted: false
             };
             this.getSingleByQuery(query)
                 .then(articleBrand => {
@@ -162,8 +173,8 @@ module.exports = class ArticleBrandManager{
     _validate(articleBrand) {
         return new Promise((resolve, reject) => {
             var valid = new ArticleBrand(articleBrand);
-            valid.stamp(this.user.username,'manager');
-            resolve(valid);      
+            valid.stamp(this.user.username, 'manager');
+            resolve(valid);
         });
     }
 };

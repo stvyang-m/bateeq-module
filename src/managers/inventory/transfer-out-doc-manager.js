@@ -10,7 +10,7 @@ var map = BateeqModels.map;
 
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
- 
+
 
 module.exports = class TransferOutDocManager {
     constructor(db, user) {
@@ -18,7 +18,7 @@ module.exports = class TransferOutDocManager {
         this.user = user;
         this.transferOutDocCollection = this.db.use(map.inventory.TransferOutDoc);
     }
-    
+
     read(paging) {
         var _paging = Object.assign({
             page: 1,
@@ -26,7 +26,7 @@ module.exports = class TransferOutDocManager {
             order: '_id',
             asc: true
         }, paging);
-        
+
         return new Promise((resolve, reject) => {
             var deleted = {
                 _deleted: false
@@ -37,9 +37,15 @@ module.exports = class TransferOutDocManager {
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {'code':{'$regex': regex}}; 
-                var $or = {'$or':[filterCode]};
-                
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode]
+                };
+
                 query['$and'].push($or);
             }
 
@@ -56,12 +62,13 @@ module.exports = class TransferOutDocManager {
                     reject(e);
                 });
         });
-    }   
+    }
 
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
-                _id: new ObjectId(id)
+                _id: new ObjectId(id),
+                _deleted: false
             };
             this.getSingleByQuery(query)
                 .then(transferOutDoc => {
@@ -121,7 +128,7 @@ module.exports = class TransferOutDocManager {
                     reject(e);
                 })
         });
-    } 
+    }
 
     delete(transferOutDoc) {
         return new Promise((resolve, reject) => {
@@ -144,9 +151,9 @@ module.exports = class TransferOutDocManager {
 
 
     _validate(transferOutDoc) {
-        return new Promise((resolve, reject) => { 
+        return new Promise((resolve, reject) => {
             var valid = new TransferOutDoc(transferOutDoc);
-            valid.stamp(this.user.username,'manager');
+            valid.stamp(this.user.username, 'manager');
             resolve(valid);
         });
     }

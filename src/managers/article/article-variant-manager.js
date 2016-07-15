@@ -26,13 +26,13 @@ var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
 
-module.exports = class ArticleVariantManager{
+module.exports = class ArticleVariantManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
         this.articleVariantCollection = this.db.use(map.article.ArticleVariant);
     }
-    
+
     read(paging) {
         var _paging = Object.assign({
             page: 1,
@@ -40,7 +40,7 @@ module.exports = class ArticleVariantManager{
             order: '_id',
             asc: true
         }, paging);
-        
+
         return new Promise((resolve, reject) => {
             var deleted = {
                 _deleted: false
@@ -51,10 +51,20 @@ module.exports = class ArticleVariantManager{
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {'code':{'$regex': regex}};
-                var filterName = {'name':{'$regex': regex}};
-                var $or = {'$or':[filterCode, filterName]};
-                
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterName = {
+                    'name': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterName]
+                };
+
                 query['$and'].push($or);
             }
 
@@ -71,12 +81,13 @@ module.exports = class ArticleVariantManager{
                     reject(e);
                 });
         });
-    }  
+    }
 
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
-                _id: new ObjectId(id)
+                _id: new ObjectId(id),
+                _deleted: false
             };
             this.getSingleByQuery(query)
                 .then(articleVariant => {
@@ -161,8 +172,8 @@ module.exports = class ArticleVariantManager{
     _validate(articleVariant) {
         return new Promise((resolve, reject) => {
             var valid = new ArticleVariant(articleVariant);
-            valid.stamp(this.user.username,'manager');
-            resolve(valid);      
+            valid.stamp(this.user.username, 'manager');
+            resolve(valid);
         });
     }
 };

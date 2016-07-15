@@ -52,10 +52,20 @@ module.exports = class ArticleManager {
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {'code':{'$regex': regex}};
-                var filterName = {'name':{'$regex': regex}};
-                var $or = {'$or':[filterCode, filterName]};
-                
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterName = {
+                    'name': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterName]
+                };
+
                 query['$and'].push($or);
             }
 
@@ -77,7 +87,8 @@ module.exports = class ArticleManager {
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
-                _id: new ObjectId(id)
+                _id: new ObjectId(id),
+                _deleted: false
             };
             this.getSingleByQuery(query)
                 .then(article => {

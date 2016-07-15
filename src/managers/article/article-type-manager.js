@@ -25,15 +25,15 @@ var ArticleTheme = BateeqModels.article.ArticleTheme;
 var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
- 
 
-module.exports = class ArticleTypeManager{
+
+module.exports = class ArticleTypeManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
         this.articleTypeCollection = this.db.use(map.article.ArticleType);
     }
-    
+
     read(paging) {
         var _paging = Object.assign({
             page: 1,
@@ -41,7 +41,7 @@ module.exports = class ArticleTypeManager{
             order: '_id',
             asc: true
         }, paging);
-        
+
         return new Promise((resolve, reject) => {
             var deleted = {
                 _deleted: false
@@ -52,10 +52,20 @@ module.exports = class ArticleTypeManager{
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {'code':{'$regex': regex}};
-                var filterName = {'name':{'$regex': regex}};
-                var $or = {'$or':[filterCode, filterName]};
-                
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterName = {
+                    'name': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterName]
+                };
+
                 query['$and'].push($or);
             }
 
@@ -72,12 +82,13 @@ module.exports = class ArticleTypeManager{
                     reject(e);
                 });
         });
-    } 
+    }
 
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
-                _id: new ObjectId(id)
+                _id: new ObjectId(id),
+                _deleted: false
             };
             this.getSingleByQuery(query)
                 .then(articleType => {
@@ -137,7 +148,7 @@ module.exports = class ArticleTypeManager{
                     reject(e);
                 })
         });
-    } 
+    }
 
     delete(articleType) {
         return new Promise((resolve, reject) => {
@@ -160,9 +171,9 @@ module.exports = class ArticleTypeManager{
 
 
     _validate(articleType) {
-        return new Promise((resolve, reject) => { 
+        return new Promise((resolve, reject) => {
             var valid = new ArticleType(articleType);
-            valid.stamp(this.user.username,'manager');
+            valid.stamp(this.user.username, 'manager');
             resolve(valid);
         });
     }

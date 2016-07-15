@@ -26,13 +26,13 @@ var ArticleType = BateeqModels.article.ArticleType;
 var ArticleVariant = BateeqModels.article.ArticleVariant;
 var Article = BateeqModels.article.Article;
 
-module.exports = class ArticleSubCounterManager{
+module.exports = class ArticleSubCounterManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
         this.articleSubCounterCollection = this.db.use(map.article.ArticleSubCounter);
     }
-    
+
     read(paging) {
         var _paging = Object.assign({
             page: 1,
@@ -40,7 +40,7 @@ module.exports = class ArticleSubCounterManager{
             order: '_id',
             asc: true
         }, paging);
-        
+
         return new Promise((resolve, reject) => {
             var deleted = {
                 _deleted: false
@@ -51,10 +51,20 @@ module.exports = class ArticleSubCounterManager{
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {'code':{'$regex': regex}};
-                var filterName = {'name':{'$regex': regex}};
-                var $or = {'$or':[filterCode, filterName]};
-                
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterName = {
+                    'name': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterName]
+                };
+
                 query['$and'].push($or);
             }
 
@@ -76,7 +86,8 @@ module.exports = class ArticleSubCounterManager{
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
-                _id: new ObjectId(id)
+                _id: new ObjectId(id),
+                _deleted: false
             };
             this.getSingleByQuery(query)
                 .then(articleSubCategory => {
@@ -99,8 +110,8 @@ module.exports = class ArticleSubCounterManager{
                     reject(e);
                 });
         })
-    } 
- 
+    }
+
     create(articleSubCategory) {
         return new Promise((resolve, reject) => {
             this._validate(articleSubCategory)
@@ -136,7 +147,7 @@ module.exports = class ArticleSubCounterManager{
                     reject(e);
                 })
         });
-    } 
+    }
 
     delete(articleSubCategory) {
         return new Promise((resolve, reject) => {
@@ -161,8 +172,8 @@ module.exports = class ArticleSubCounterManager{
     _validate(articleSubCategory) {
         return new Promise((resolve, reject) => {
             var valid = new ArticleSubCounter(articleSubCategory);
-            valid.stamp(this.user.username,'manager');
-            resolve(valid); 
+            valid.stamp(this.user.username, 'manager');
+            resolve(valid);
         });
     }
 };
