@@ -47,13 +47,66 @@ module.exports = class InventoryManager {
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
+                var filterArticleName = {
+                    'articleVariant.name': {
+                        '$regex': regex
+                    }
+                };
+                var filterStorageName = {
+                    'storage.name': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterArticleName, filterStorageName]
+                };
+
+                query['$and'].push($or);
+            }
+
+
+            this.inventoryCollection
+                .where(query)
+                .page(_paging.page, _paging.size)
+                .orderBy(_paging.order, _paging.asc)
+                .execute()
+                .then(inventorys => {
+                    resolve(inventorys);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    readByStorageId(storageId, paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: '_id',
+            asc: true
+        }, paging);
+
+        return new Promise((resolve, reject) => {
+            var deleted = {
+                _deleted: false
+            };
+            var storage = {
+                storageId: new ObjectId(storageId)
+            };
+            var query = {
+                '$and': [deleted, storage]
+            };
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
                 var filterCode = {
-                    'code': {
+                    'articleVariant.code': {
                         '$regex': regex
                     }
                 };
                 var filterName = {
-                    'name': {
+                    'articleVariant.name': {
                         '$regex': regex
                     }
                 };
@@ -83,6 +136,23 @@ module.exports = class InventoryManager {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(inventory => {
+                    resolve(inventory);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getByStorageIdAndArticleVarianId(storageId, articleVariantId) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                storageId: new ObjectId(storageId),
+                articleVariantId: new ObjectId(articleVariantId),
                 _deleted: false
             };
             this.getSingleByQuery(query)

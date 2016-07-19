@@ -16,7 +16,7 @@ module.exports = class InventoryMovementManager {
         this.db = db;
         this.user = user;
         this.inventoryMovementCollection = this.db.use(map.inventory.InventoryMovement);
-        
+
         var StorageManager = require('./storage-manager');
         this.storageManager = new StorageManager(db, user);
 
@@ -74,6 +74,62 @@ module.exports = class InventoryMovementManager {
         });
     }
 
+    readByStorageIdAndArticleVariantId(storageId, articleVariantId, paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: '_id',
+            asc: true
+        }, paging);
+
+        return new Promise((resolve, reject) => {
+            var deleted = {
+                _deleted: false
+            };
+            var storage = {
+                storageId: new ObjectId(storageId)
+            };
+            var articleVariant = {
+                articleVariantId: new ObjectId(articleVariantId)
+            };
+            var query = {
+                '$and': [deleted, storage, articleVariant]
+            };
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
+                var filterArticleName = {
+                    'articleVariant.name': {
+                        '$regex': regex
+                    }
+                };
+                var filterStorageName = {
+                    'storage.name': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterArticleName, filterStorageName]
+                };
+
+                query['$and'].push($or);
+            }
+
+
+            this.inventoryMovementCollection
+                .where(query)
+                .page(_paging.page, _paging.size)
+                .orderBy(_paging.order, _paging.asc)
+                .execute()
+                .then(inventoryMovements => {
+                    resolve(inventoryMovements);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
@@ -88,7 +144,7 @@ module.exports = class InventoryMovementManager {
                     reject(e);
                 });
         });
-    }
+    } 
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
@@ -162,11 +218,11 @@ module.exports = class InventoryMovementManager {
 
     _validate(inventoryMovement) {
         return new Promise((resolve, reject) => {
-            var valid = new InventoryMovement(inventoryMovement); 
-            
+            var valid = new InventoryMovement(inventoryMovement);
+
             var getStorage = this.storageManager.getById(inventoryMovement.storageId);
             var getArticleVariant = this.articleVariantManager.getById(inventoryMovement.articleVariantId);
- 
+
 
             Promise.all([getStorage, getArticleVariant])
                 .then(results => {
@@ -177,7 +233,7 @@ module.exports = class InventoryMovementManager {
                     valid.storage = storage;
 
                     valid.articleVariantId = articleVariant._id;
-                    valid.articleVariant = articleVariant; 
+                    valid.articleVariant = articleVariant;
 
                     valid.stamp(this.user.username, 'manager');
                     resolve(valid)
