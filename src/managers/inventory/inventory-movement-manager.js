@@ -145,7 +145,26 @@ module.exports = class InventoryMovementManager {
                 });
         });
     } 
-
+    
+    getByStorageIdAndArticleVarianIdAndId(storageId, articleVariantId, id)
+    {
+        return new Promise((resolve, reject) => {
+            var query = {
+                _id: new ObjectId(id),
+                storageId: new ObjectId(storageId),
+                articleVariantId: new ObjectId(articleVariantId),
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(inventoryMovement => {
+                    resolve(inventoryMovement);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+    
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.inventoryMovementCollection
