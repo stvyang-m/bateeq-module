@@ -203,18 +203,21 @@ module.exports = class ArticleCounterManager {
                     var itemHasError = false;
                     for (var item of valid.subCounters) {
                         var itemError = {};
-                        for (var i = valid.subCounters.indexOf(item) + 1; i < valid.subCounters.length; i++) {
-                            var otherItem = valid.subCounters[i];
-                            if (!item.code || valid.code == '') {
-                                itemError["code"] = "code is required";
-                            }
-                            else if (item.code == otherItem.code) {
-                                itemError["code"] = "code already exists on another sub-counter";
-                            }
 
-                            if (!item.name || valid.name == '') {
-                                itemError["name"] = "name is required";
+                        if (!item.code || valid.code == '') {
+                            itemError["code"] = "code is required";
+                        }
+                        else {
+                            for (var i = valid.subCounters.indexOf(item) + 1; i < valid.subCounters.length; i++) {
+                                var otherItem = valid.subCounters[i];
+                                if (item.code == otherItem.code) {
+                                    itemError["code"] = "code already exists on another sub-counter";
+                                }
                             }
+                        }
+
+                        if (!item.name || valid.name == '') {
+                            itemError["name"] = "name is required";
                         }
                         itemErrors.push(itemError);
                     }
