@@ -190,13 +190,13 @@ module.exports = class ArticleCounterManager {
                 .then(results => {
                     var _articleCounter = results[0];
 
-                    if (valid.code == '')
+                    if (!valid.code || valid.code == '')
                         errors["code"] = "code is required";
                     else if (_articleCounter) {
                         errors["code"] = "code already exists";
                     }
 
-                    if (valid.name == '')
+                    if (!valid.name || valid.name == '')
                         errors["name"] = "name is required";
 
                     var itemErrors = [];
@@ -205,16 +205,28 @@ module.exports = class ArticleCounterManager {
                         var itemError = {};
                         for (var i = valid.subCounters.indexOf(item) + 1; i < valid.subCounters.length; i++) {
                             var otherItem = valid.subCounters[i];
-                            if (item.code == otherItem.code) {
+                            if (!item.code || valid.code == '') {
+                                itemError["code"] = "code is required";
+                            }
+                            else if (item.code == otherItem.code) {
                                 itemError["code"] = "code already exists on another sub-counter";
-                                itemHasError = true;
+                            }
+
+                            if (!item.name || valid.name == '') {
+                                itemError["name"] = "name is required";
                             }
                         }
                         itemErrors.push(itemError);
                     }
 
-                    if (itemHasError)
-                        errors.subCounters = itemErrors;
+                    for (var itemError of itemErrors) {
+                        for (var prop in itemError) {
+                            errors.subCounters = itemErrors;
+                            break;
+                        }
+                        if (errors.subCounters)
+                            break;
+                    }
 
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
