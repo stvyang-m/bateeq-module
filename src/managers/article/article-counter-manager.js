@@ -170,10 +170,63 @@ module.exports = class ArticleCounterManager {
 
 
     _validate(articleCounter) {
+
+        var errors = {};
+
         return new Promise((resolve, reject) => {
             var valid = new ArticleCounter(articleCounter);
-            valid.stamp(this.user.username, 'manager');
-            resolve(valid);
+
+            var getArticleCounter = this.articleCounterCollection.singleOrDefault({
+                "$and": [{
+                    _id: {
+                        '$ne': valid._id
+                    }
+                }, {
+                    code: valid.code
+                }]
+            });
+
+            Promise.all([getArticleCounter])
+                .then(results => {
+                    var _articleCounter = results[0];
+
+                    if (valid.code == '')
+                        errors["code"] = "code is required";
+                    else if (_articleCounter) {
+                        errors["code"] = "code already exists";
+                    }
+
+                    if (valid.name == '')
+                        errors["name"] = "name is required";
+
+                    var itemErrors = [];
+                    var itemHasError = false;
+                    for (var item of valid.subCounters) {
+                        var itemError = {};
+                        for (var i = valid.subCounters.indexOf(item) + 1; i < valid.subCounters.length; i++) {
+                            var otherItem = valid.subCounters[i];
+                            if (item.code == otherItem.code) {
+                                itemError["code"] = "code already exists on another sub-counter";
+                                itemHasError = true;
+                            }
+                        }
+                        itemErrors.push(itemError);
+                    }
+
+                    if (itemHasError)
+                        errors.subCounters = itemErrors;
+
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
+
+                    valid.stamp(this.user.username, 'manager');
+                    resolve(valid);
+                })
+                .catch(e => {
+                    reject(e);
+                })
         });
     }
 };

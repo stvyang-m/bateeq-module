@@ -48,7 +48,9 @@ it('#01. should success when create new data', function(done) {
 
 var createdData;
 it(`#02. should success when get created data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
             validate.articleCounter(data);
             createdData = data;
@@ -76,7 +78,9 @@ it(`#03. should success when update created data`, function(done) {
 });
 
 it(`#04. should success when get updated data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
             validate.articleCounter(data);
             data.code.should.equal(createdData.code);
@@ -89,7 +93,7 @@ it(`#04. should success when get updated data with id`, function(done) {
         })
 });
 
-it(`#05. should success when delete data`, function(done) { 
+it(`#05. should success when delete data`, function(done) {
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -101,7 +105,9 @@ it(`#05. should success when delete data`, function(done) {
 });
 
 it(`#06. should _deleted=true`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
             validate.articleCounter(data);
             data._deleted.should.be.Boolean();
@@ -110,5 +116,19 @@ it(`#06. should _deleted=true`, function(done) {
         })
         .catch(e => {
             done(e);
+        })
+});
+
+it('#07. should error when create new data with same code', function(done) {
+    var data = Object.assign({}, createdData);
+    delete data._id;
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to create data with same code");
+        })
+        .catch(e => {
+            done();
         })
 });
