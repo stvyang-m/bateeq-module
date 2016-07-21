@@ -179,7 +179,7 @@ module.exports = class ArticleCounterManager {
             var getArticleCounter = this.articleCounterCollection.singleOrDefault({
                 "$and": [{
                     _id: {
-                        '$ne': valid._id
+                        '$ne': new ObjectId(valid._id)
                     }
                 }, {
                     code: valid.code
