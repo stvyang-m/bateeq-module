@@ -112,3 +112,17 @@ it(`#06. should _deleted=true`, function(done) {
             done(e);
         })
 });
+
+it('#07. should error when create new data with same code', function(done) {
+    var data = Object.assign({}, createdData);
+    delete data._id;
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to create data with same code");
+        })
+        .catch(e => {
+            done();
+        })
+});

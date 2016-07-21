@@ -170,10 +170,81 @@ module.exports = class ArticleMotifManager {
 
 
     _validate(articleMotif) {
+        var errors={};
+        
         return new Promise((resolve, reject) => {
             var valid = new ArticleMotif(articleMotif);
-            valid.stamp(this.user.username, 'manager');
-            resolve(valid);
+           //1.begin: Declare promises.
+           var getArticleMotif=this.articleMotifCollection.singleOrDefault({
+               "$and": [{
+                    _id: {
+                        '$ne': new ObjectId(valid._id)
+                    }
+                }, {
+                    code: valid.code
+                }]
+           });
+           //1. end:Declare promises.
+           
+           //2.begin: Validation 
+            Promise.all([getArticleMotif])
+                .then(results => {
+                    var _articleMotif = results[0];
+
+                    if (!valid.code || valid.code == '')
+                        errors["code"] = "code is required";
+                    else if (_articleMotif) {
+                        errors["code"] = "code already exists";
+                    }
+
+                    if (!valid.name || valid.name == '')
+                        errors["name"] = "name is required";
+
+                    // 2a. begin: Validate error on item level.
+                    // var itemErrors = [];
+                    // for (var item of valid.subCounters) {
+                    //     var itemError = {};
+
+                    //     if (!item.code || item.code == '') {
+                    //         itemError["code"] = "code is required";
+                    //     }
+                    //     else {
+                    //         for (var i = valid.subCounters.indexOf(item) + 1; i < valid.subCounters.length; i++) {
+                    //             var otherItem = valid.subCounters[i];
+                    //             if (item.code == otherItem.code) {
+                    //                 itemError["code"] = "code already exists on another sub-counter";
+                    //             }
+                    //         }
+                    //     }
+
+                    //     if (!item.name || item.name == '') {
+                    //         itemError["name"] = "name is required";
+                    //     }
+                    //     itemErrors.push(itemError);
+                    // }
+                    // // 2a. end: Validate error on item level.
+                    // // 2b. add item level errors to parent error, if any.
+                    // for (var itemError of itemErrors) {
+                    //     for (var prop in itemError) {
+                    //         errors.subCounters = itemErrors;
+                    //         break;
+                    //     }
+                    //     if (errors.subCounters)
+                    //         break;
+                    // }
+
+                    // 2c. begin: check if data has any error, reject if it has.
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
+
+                    valid.stamp(this.user.username, 'manager');
+                    resolve(valid);
+                })
+                .catch(e => {
+                    reject(e);
+                })
         });
     }
 };
