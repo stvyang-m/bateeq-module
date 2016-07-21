@@ -137,38 +137,8 @@ it('#07. should error when create new data with same code', function(done) {
             done();
         })
 });
-
-it('#08. should error when create new data with Source ID not Found', function(done) {
-    var data =  Object.assign({}, createdData);
-    delete data._id;
-    data.sourceId = "578dd42b0b0aea003ebf0fff";
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Source ID not Found");
-        })
-        .catch(e => {
-            done();
-        })
-});
-
-it('#09. should error when create new data with Destination ID not Found', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id;
-    data.destinationId = "578dd42b0b0aea003ebf0fff";
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Destination ID not Found");
-        })
-        .catch(e => {
-            done();
-        })
-});
  
-it('#10. should error when create new data with Quantity less than 0', function(done) {
+it('#08. should error when create new data with Quantity less than 0', function(done) {
     var data = Object.assign({}, createdData);
     delete data._id;
     data.items[0].quantity = 0;
@@ -183,7 +153,7 @@ it('#10. should error when create new data with Quantity less than 0', function(
         })
 });
 
-it('#11. should error when create new data with Article Variant ID not Found', function(done) {
+it('#09. should error when create new data with Article Variant ID not Found', function(done) {
     var data = Object.assign({}, createdData);
     delete data._id; 
     data.items[0].articleVariantId = "578dd8a976d4f1003e0d7a3f";
@@ -198,7 +168,7 @@ it('#11. should error when create new data with Article Variant ID not Found', f
         })
 });
 
-it('#12. should error with property items must be one', function(done) { 
+it('#10. should error with property items must be one', function(done) { 
    manager.create({})
        .then(id => { 
            done("Should not be error with property items must be one");
@@ -219,10 +189,10 @@ it('#12. should error with property items must be one', function(done) {
        })
 });
 
-it('#13. should error with property items must grather one', function(done) { 
+it('#11. should error with property items must greather one', function(done) { 
    manager.create({items:[{}]})
        .then(id => { 
-           done("Should not be error with property items must grather one");
+           done("Should not be error with property items must greather one");
        })
        .catch(e => { 
           try
