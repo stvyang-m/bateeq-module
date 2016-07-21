@@ -197,3 +197,50 @@ it('#11. should error when create new data with Article Variant ID not Found', f
             done();
         })
 });
+
+it('#12. should error with property items must be one', function(done) { 
+   manager.create({})
+       .then(id => { 
+           done("Should not be error with property items must be one");
+       })
+       .catch(e => { 
+          try
+          {
+              e.errors.should.have.property('code');
+              e.errors.should.have.property('sourceId');
+              e.errors.should.have.property('destinationId');
+              e.errors.should.have.property('items');
+              e.errors.items.should.String();
+          }catch(ex)
+          {
+              done(ex);
+          }
+          done();
+       })
+});
+
+it('#13. should error with property items must grather one', function(done) { 
+   manager.create({items:[{}]})
+       .then(id => { 
+           done("Should not be error with property items must grather one");
+       })
+       .catch(e => { 
+          try
+          {
+             e.errors.should.have.property('code');
+              e.errors.should.have.property('sourceId');
+              e.errors.should.have.property('destinationId');
+              e.errors.should.have.property('items');
+              e.errors.items.should.Array();
+              for(var i of e.errors.items)
+              {
+                i.should.have.property('articleVariantId');
+                i.should.have.property('quantity');
+              }
+          }catch(ex)
+          {
+              done(ex);
+          }
+          done();
+       })
+});

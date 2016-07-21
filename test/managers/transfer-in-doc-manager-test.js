@@ -134,6 +134,13 @@ it('#07. should error when create new data with same code', function(done) {
             done("Should not be able to create data with same code");
         })
         .catch(e => {
+            try
+            {
+                e.errors.should.have.property('code');  
+            }
+            catch(xe){
+                done(xe);
+            };
             done();
         })
 });
@@ -149,7 +156,14 @@ it('#08. should error when create new data with Source ID not Found', function(d
             done("Should not be able to Create data with Source ID not Found");
         })
         .catch(e => {
-            done();
+            try
+            {
+                e.errors.should.have.property('sourceId');  
+            }
+            catch(xe){
+                done(xe);
+            };
+             done();
         })
 });
 
@@ -164,7 +178,14 @@ it('#09. should error when create new data with Destination ID not Found', funct
             done("Should not be able to Create data with Destination ID not Found");
         })
         .catch(e => {
-            done();
+            try
+            {
+                e.errors.should.have.property('destinationId'); 
+            }
+            catch(xe){
+                done(xe);
+            }; 
+                done();
         })
 });
  
@@ -196,4 +217,51 @@ it('#11. should error when create new data with Article Variant ID not Found', f
         .catch(e => {
             done();
         })
+});
+
+it('#12. should error with property items must be one', function(done) { 
+   manager.create({})
+       .then(id => { 
+           done("Should not be error with property items must be one");
+       })
+       .catch(e => { 
+          try
+          {
+              e.errors.should.have.property('code');
+              e.errors.should.have.property('sourceId');
+              e.errors.should.have.property('destinationId');
+              e.errors.should.have.property('items');
+              e.errors.items.should.String();
+          }catch(ex)
+          {
+              done(ex);
+          }
+          done();
+       })
+});
+
+it('#13. should error with property items must grather one', function(done) { 
+   manager.create({items:[{}]})
+       .then(id => { 
+           done("Should not be error with property items must grather one");
+       })
+       .catch(e => { 
+          try
+          {
+             e.errors.should.have.property('code');
+              e.errors.should.have.property('sourceId');
+              e.errors.should.have.property('destinationId');
+              e.errors.should.have.property('items');
+              e.errors.items.should.Array();
+              for(var i of e.errors.items)
+              {
+                i.should.have.property('articleVariantId');
+                i.should.have.property('quantity');
+              }
+          }catch(ex)
+          {
+              done(ex);
+          }
+          done();
+       })
 });
