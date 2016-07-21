@@ -198,42 +198,9 @@ module.exports = class ArticleMotifManager {
                     }
 
                     if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required";
-
-                    // 2a. begin: Validate error on item level.
-                    // var itemErrors = [];
-                    // for (var item of valid.subCounters) {
-                    //     var itemError = {};
-
-                    //     if (!item.code || item.code == '') {
-                    //         itemError["code"] = "code is required";
-                    //     }
-                    //     else {
-                    //         for (var i = valid.subCounters.indexOf(item) + 1; i < valid.subCounters.length; i++) {
-                    //             var otherItem = valid.subCounters[i];
-                    //             if (item.code == otherItem.code) {
-                    //                 itemError["code"] = "code already exists on another sub-counter";
-                    //             }
-                    //         }
-                    //     }
-
-                    //     if (!item.name || item.name == '') {
-                    //         itemError["name"] = "name is required";
-                    //     }
-                    //     itemErrors.push(itemError);
-                    // }
-                    // // 2a. end: Validate error on item level.
-                    // // 2b. add item level errors to parent error, if any.
-                    // for (var itemError of itemErrors) {
-                    //     for (var prop in itemError) {
-                    //         errors.subCounters = itemErrors;
-                    //         break;
-                    //     }
-                    //     if (errors.subCounters)
-                    //         break;
-                    // }
-
-                    // 2c. begin: check if data has any error, reject if it has.
+                        errors["name"] = "name is required"; 
+                   
+                    // 2a. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));

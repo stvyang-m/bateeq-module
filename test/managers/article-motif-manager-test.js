@@ -126,3 +126,33 @@ it('#07. should error when create new data with same code', function(done) {
             done();
         })
 });
+
+it('#08. should error when create new data with code is empty', function(done) {
+    var data = Object.assign({}, createdData);
+    delete data._id;
+    data.code='';
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to create data with code is empty");
+        })
+        .catch(e => {
+            done();
+        })
+});
+
+it('#09. should error when create new data with name is empty ', function(done) {
+    var data = Object.assign({}, createdData);
+    delete data._id;
+    data.name='';
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to create data with same code");
+        })
+        .catch(e => {
+            done();
+        })
+});
