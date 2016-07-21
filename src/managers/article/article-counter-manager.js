@@ -175,7 +175,7 @@ module.exports = class ArticleCounterManager {
 
         return new Promise((resolve, reject) => {
             var valid = new ArticleCounter(articleCounter);
-
+            // 1. begin: Declare promises.
             var getArticleCounter = this.articleCounterCollection.singleOrDefault({
                 "$and": [{
                     _id: {
@@ -185,7 +185,9 @@ module.exports = class ArticleCounterManager {
                     code: valid.code
                 }]
             });
+            // 1. end: Declare promises.
 
+            // 2. begin: Validation.
             Promise.all([getArticleCounter])
                 .then(results => {
                     var _articleCounter = results[0];
@@ -199,12 +201,12 @@ module.exports = class ArticleCounterManager {
                     if (!valid.name || valid.name == '')
                         errors["name"] = "name is required";
 
+                    // 2a. begin: Validate error on item level.
                     var itemErrors = [];
-                    var itemHasError = false;
                     for (var item of valid.subCounters) {
                         var itemError = {};
 
-                        if (!item.code || valid.code == '') {
+                        if (!item.code || item.code == '') {
                             itemError["code"] = "code is required";
                         }
                         else {
@@ -216,12 +218,13 @@ module.exports = class ArticleCounterManager {
                             }
                         }
 
-                        if (!item.name || valid.name == '') {
+                        if (!item.name || item.name == '') {
                             itemError["name"] = "name is required";
                         }
                         itemErrors.push(itemError);
                     }
-
+                    // 2a. end: Validate error on item level.
+                    // 2b. add item level errors to parent error, if any.
                     for (var itemError of itemErrors) {
                         for (var prop in itemError) {
                             errors.subCounters = itemErrors;
@@ -231,6 +234,7 @@ module.exports = class ArticleCounterManager {
                             break;
                     }
 
+                    // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
