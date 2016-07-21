@@ -123,3 +123,77 @@ it(`#06. should _deleted=true`, function(done) {
             done(e);
         })
 });
+ 
+it('#07. should error when create new data with same code', function(done) {
+    var data = Object.assign({}, createdData);
+    delete data._id;
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to create data with same code");
+        })
+        .catch(e => {
+            done();
+        })
+});
+
+it('#08. should error when create new data with Source ID not Found', function(done) {
+    var data =  Object.assign({}, createdData);
+    delete data._id;
+    data.sourceId = "578dd42b0b0aea003ebf0fff";
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to Create data with Source ID not Found");
+        })
+        .catch(e => {
+            done();
+        })
+});
+
+it('#09. should error when create new data with Destination ID not Found', function(done) {
+    var data = Object.assign({}, createdData);
+    delete data._id;
+    data.destinationId = "578dd42b0b0aea003ebf0fff";
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to Create data with Destination ID not Found");
+        })
+        .catch(e => {
+            done();
+        })
+});
+ 
+it('#10. should error when create new data with Quantity less than 0', function(done) {
+    var data = Object.assign({}, createdData);
+    delete data._id;
+    data.items[0].quantity = 0;
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to Create data with Quantity less than 0");
+        })
+        .catch(e => {
+            done();
+        })
+});
+
+it('#11. should error when create new data with Article Variant ID not Found', function(done) {
+    var data = Object.assign({}, createdData);
+    delete data._id; 
+    data.items[0].articleVariantId = "578dd8a976d4f1003e0d7a3f";
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to Create data with Article Variant ID ID not Found");
+        })
+        .catch(e => {
+            done();
+        })
+});

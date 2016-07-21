@@ -9,7 +9,7 @@ describe('#bateeq-module', function(done) {
     this.timeout(2 * 6000);
     // test('@manager/article-brand-manager', './managers/article-brand-manager-test');
     // test('@manager/article-category-manager', './managers/article-category-manager-test');
-    test('@manager/article-counter-manager', './managers/article-counter-manager-test');
+    // test('@manager/article-counter-manager', './managers/article-counter-manager-test');
     // test('@manager/article-material-manager', './managers/article-material-manager-test');
     // test('@manager/article-motif-manager', './managers/article-motif-manager-test');
     // test('@manager/article-origin-manager', './managers/article-origin-manager-test');
@@ -20,7 +20,7 @@ describe('#bateeq-module', function(done) {
     // test('@manager/article-manager', './managers/article-manager-test');
     // test('@manager/article-variant-manager', './managers/article-variant-manager-test');
     // test('@manager/storage-manager', './managers/storage-manager-test');
-    // test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
+     test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
     // test('@manager/transfer-out-doc-manager', './managers/transfer-out-doc-manager-test');
     // test('@manager/inventory-manager', './managers/inventory-manager-test');
 })
