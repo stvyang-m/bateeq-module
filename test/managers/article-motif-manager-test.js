@@ -123,36 +123,29 @@ it('#07. should error when create new data with same code', function(done) {
             done("Should not be able to create data with same code");
         })
         .catch(e => {
+               e.errors.should.have.property('code');
             done();
+        })
+}); 
+
+it('#9. should error with property code and name ', function(done) { 
+    manager.create({})
+        .then(id => { 
+            done("Should not be able error with property code and name");
+        })
+        .catch(e => { 
+           try
+           {
+               e.errors.should.have.property('code');
+               e.errors.should.have.property('name');  
+           }catch(ex)
+           {
+               done(ex);
+           }
+           done();
         })
 });
 
-it('#08. should error when create new data with code is empty', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id;
-    data.code='';
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to create data with code is empty");
-        })
-        .catch(e => {
-            done();
-        })
-});
 
-it('#09. should error when create new data with name is empty ', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id;
-    data.name='';
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to create data with same code");
-        })
-        .catch(e => {
-            done();
-        })
-});
+
+
