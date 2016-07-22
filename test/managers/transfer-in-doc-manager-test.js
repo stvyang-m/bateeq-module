@@ -14,20 +14,20 @@ function getData() {
 
     transferInDoc.code = code;
     transferInDoc.date = now;
-    
+
     transferInDoc.sourceId = '57738435e8a64fc532cd5bf1';
     transferInDoc.destinationId = '57738460d53dae9234ae0ae1';
-    
+
     transferInDoc.reference = `reference[${code}]`;
-    
+
     transferInDoc.remark = `remark for ${code}`;
-    
-    transferInDoc.items.push(new TransferInItem({articleVariantId:"578855c4964302281454fa51", quantity: 5, remark:'transferInDoc.test'}));
+
+    transferInDoc.items.push(new TransferInItem({ articleVariantId: "578855c4964302281454fa51", quantity: 5, remark: 'transferInDoc.test' }));
 
     return transferInDoc;
 }
 
-before('#00. connect db', function(done) {
+before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
             var TransferInDocManager = require('../../src/managers/inventory/transfer-in-doc-manager');
@@ -69,10 +69,10 @@ it(`#02. should success when get created data with id`, function(done) {
 });
 
 it(`#03. should success when update created data`, function(done) {
- 
+
     createdData.reference += '[updated]';
     createdData.remark += '[updated]';
-    
+
     var TransferInItem = require('bateeq-models').inventory.TransferInItem;
     // createdData.items.push(new TransferInItem());
 
@@ -134,66 +134,60 @@ it('#07. should error when create new data with same code', function(done) {
             done("Should not be able to create data with same code");
         })
         .catch(e => {
+            try
+            {
+                e.errors.should.have.property('code');  
+            }
+            catch(xe){
+                done(xe);
+            };
             done();
         })
 });
 
-it('#08. should error when create new data with Source ID not Found', function(done) {
-    var data =  Object.assign({}, createdData);
-    delete data._id;
-    data.sourceId = "578dd42b0b0aea003ebf0fff";
-    manager.create(data)
+it('#08. should error with property items minimum one', function (done) {
+    manager.create({})
         .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Source ID not Found");
+            done("Should not be error with property items minimum one");
         })
         .catch(e => {
-            done();
+            try {
+                e.errors.should.have.property('code');
+                e.errors.should.have.property('sourceId');
+                e.errors.should.have.property('destinationId');
+                e.errors.should.have.property('items');
+                e.errors.items.should.String();
+                done();
+            } catch (ex) {
+                done(ex);
+            }
         })
 });
 
-it('#09. should error when create new data with Destination ID not Found', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id;
-    data.destinationId = "578dd42b0b0aea003ebf0fff";
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Destination ID not Found");
-        })
-        .catch(e => {
-            done();
-        })
-});
- 
-it('#10. should error when create new data with Quantity less than 0', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id;
-    data.items[0].quantity = 0;
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Quantity less than 0");
-        })
-        .catch(e => {
-            done();
-        })
-});
-
-it('#11. should error when create new data with Article Variant ID not Found', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id; 
-    data.items[0].articleVariantId = "578dd8a976d4f1003e0d7a3f";
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Article Variant ID ID not Found");
-        })
-        .catch(e => {
-            done();
-        })
+it('#09. should error with property items must be greater one', function(done) { 
+   manager.create({items:[{},
+                          {articleVariantId:'578dd8a976d4f1003e0d7a3f'},
+                          {quantity:0}]})
+       .then(id => { 
+           done("Should not be error with property items must be greater one");
+       })
+       .catch(e => { 
+          try
+          {
+              e.errors.should.have.property('code');
+              e.errors.should.have.property('sourceId');
+              e.errors.should.have.property('destinationId');
+              e.errors.should.have.property('items');
+              e.errors.items.should.Array();
+              for(var i of e.errors.items)
+              {
+                i.should.have.property('articleVariantId');
+                i.should.have.property('quantity');
+              }
+               done();
+          }catch(ex)
+          {
+              done(ex);
+          } 
+       })
 });

@@ -70,6 +70,8 @@ module.exports = class StorageManager {
 
     getById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
@@ -83,9 +85,11 @@ module.exports = class StorageManager {
                 });
         });
     }
-    
+
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
@@ -112,7 +116,7 @@ module.exports = class StorageManager {
                 });
         })
     }
-    
+
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
             this.storageCollection
@@ -181,10 +185,9 @@ module.exports = class StorageManager {
                 })
         });
     }
-
-
-    _validate(storage) {  
-        var errors = {}; 
+ 
+    _validate(storage) {
+        var errors = {};
         return new Promise((resolve, reject) => {
             var valid = new Storage(storage);
             // 1. begin: Declare promises.
@@ -194,8 +197,8 @@ module.exports = class StorageManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                    code: valid.code
-                }]
+                        code: valid.code
+                    }]
             });
             // 1. end: Declare promises.
 
@@ -211,40 +214,7 @@ module.exports = class StorageManager {
                     }
 
                     if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required";
-
-                    // // 2a. begin: Validate error on item level.
-                    // var itemErrors = [];
-                    // for (var item of valid.subCounters) {
-                    //     var itemError = {};
-
-                    //     if (!item.code || item.code == '') {
-                    //         itemError["code"] = "code is required";
-                    //     }
-                    //     else {
-                    //         for (var i = valid.subCounters.indexOf(item) + 1; i < valid.subCounters.length; i++) {
-                    //             var otherItem = valid.subCounters[i];
-                    //             if (item.code == otherItem.code) {
-                    //                 itemError["code"] = "code already exists on another sub-counter";
-                    //             }
-                    //         }
-                    //     } 
-                    //     if (!item.name || item.name == '') {
-                    //         itemError["name"] = "name is required";
-                    //     }
-                    //     itemErrors.push(itemError);
-                    // }
-                    // // 2a. end: Validate error on item level.
-                    
-                    // // 2b. add item level errors to parent error, if any.
-                    // for (var itemError of itemErrors) {
-                    //     for (var prop in itemError) {
-                    //         errors.subCounters = itemErrors;
-                    //         break;
-                    //     }
-                    //     if (errors.subCounters)
-                    //         break;
-                    // }
+                        errors["name"] = "name is required"; 
 
                     // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {

@@ -13,7 +13,16 @@ function getData() {
 
     articleVariant.code = code;
     articleVariant.name = `name[${code}]`;
-    articleVariant.description = `description for ${code}`;
+    articleVariant.description = `description for ${code}`;  
+    articleVariant.size = `size[${code}]`;
+    articleVariant.domesticCOGS = 1;
+    articleVariant.domesticWholesale = 1;
+    articleVariant.domesticRetail = 1;
+    articleVariant.domesticSale = 1;
+    articleVariant.internationalCOGS = 1;
+    articleVariant.internationalWholesale = 1;
+    articleVariant.internationalRetail = 1;
+    articleVariant.internationalSale = 1;
 
     return articleVariant;
 }
@@ -111,4 +120,39 @@ it(`#06. should _deleted=true`, function(done) {
         .catch(e => {
             done(e);
         })
+});
+
+
+it('#07. should error when create new data with same code', function(done) {
+    var data = Object.assign({}, createdData);
+    delete data._id;
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to create data with same code");
+        })
+        .catch(e => {
+            e.errors.should.have.property('code');
+            done();
+        })
+});
+
+it('#08. should error with property code name and size ', function(done) { 
+   manager.create({})
+       .then(id => { 
+           done("Should not be error with property code and name");
+       })
+       .catch(e => { 
+          try
+          {
+              e.errors.should.have.property('code');
+              e.errors.should.have.property('name'); 
+              e.errors.should.have.property('size');  
+              done();
+          }catch(ex)
+          {
+              done(ex);
+          }
+       })
 });

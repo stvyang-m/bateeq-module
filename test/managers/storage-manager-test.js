@@ -129,6 +129,25 @@ it('#07. should error when create new data with same code', function(done) {
             done("Should not be able to create data with same code");
         })
         .catch(e => {
+            e.errors.should.have.property('code');
             done();
         })
+});
+
+it('#08. should error with property code and name ', function(done) { 
+   manager.create({})
+       .then(id => { 
+           done("Should not be error with property code and name");
+       })
+       .catch(e => { 
+          try
+          {
+              e.errors.should.have.property('code');
+              e.errors.should.have.property('name'); 
+              done();
+          }catch(ex)
+          {
+              done(ex);
+          } 
+       })
 });

@@ -136,64 +136,51 @@ it('#07. should error when create new data with same code', function(done) {
         .catch(e => {
             done();
         })
-});
+}); 
 
-it('#08. should error when create new data with Source ID not Found', function(done) {
-    var data =  Object.assign({}, createdData);
-    delete data._id;
-    data.sourceId = "578dd42b0b0aea003ebf0fff";
-    manager.create(data)
+it('#08. should error with property items minimum one', function (done) {
+    manager.create({})
         .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Source ID not Found");
+            done("Should not be error with property items minimum one");
         })
         .catch(e => {
-            done();
-        })
-});
-
-it('#09. should error when create new data with Destination ID not Found', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id;
-    data.destinationId = "578dd42b0b0aea003ebf0fff";
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Destination ID not Found");
-        })
-        .catch(e => {
-            done();
-        })
-});
- 
-it('#10. should error when create new data with Quantity less than 0', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id;
-    data.items[0].quantity = 0;
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Quantity less than 0");
-        })
-        .catch(e => {
-            done();
+            try {
+                e.errors.should.have.property('code');
+                e.errors.should.have.property('sourceId');
+                e.errors.should.have.property('destinationId');
+                e.errors.should.have.property('items');
+                e.errors.items.should.String();
+                done();
+            } catch (ex) {
+                done(ex);
+            }
         })
 });
 
-it('#11. should error when create new data with Article Variant ID not Found', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id; 
-    data.items[0].articleVariantId = "578dd8a976d4f1003e0d7a3f";
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Article Variant ID ID not Found");
-        })
-        .catch(e => {
-            done();
-        })
+it('#09. should error with property items must be greater one', function(done) { 
+   manager.create({items:[{},
+                          {articleVariantId:'578dd8a976d4f1003e0d7a3f'},
+                          {quantity:0}]})
+       .then(id => { 
+           done("Should not be error with property items must be greater one");
+       })
+       .catch(e => { 
+          try
+          {
+              e.errors.should.have.property('code');
+              e.errors.should.have.property('sourceId');
+              e.errors.should.have.property('destinationId');
+              e.errors.should.have.property('items');
+              e.errors.items.should.Array();
+              for(var i of e.errors.items)
+              {
+                i.should.have.property('articleVariantId');
+                i.should.have.property('quantity');
+              }
+               done();
+          }catch(ex)
+          {
+              done(ex);
+          } 
+       })
 });
