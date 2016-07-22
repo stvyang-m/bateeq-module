@@ -84,6 +84,8 @@ module.exports = class ArticleCounterManager {
     }
 
     getById(id) {
+        if (id === '')
+            resolve(null);
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
@@ -98,11 +100,41 @@ module.exports = class ArticleCounterManager {
                 });
         });
     }
+    getByIdOrDefault(id) {
+        if (id === '')
+            resolve(null);
+        return new Promise((resolve, reject) => {
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(articleCounter => {
+                    resolve(articleCounter);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.articleCounterCollection
                 .single(query)
+                .then(articleCounter => {
+                    resolve(articleCounter);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.articleCounterCollection
+                .singleOrDefault(query)
                 .then(articleCounter => {
                     resolve(articleCounter);
                 })
@@ -170,9 +202,7 @@ module.exports = class ArticleCounterManager {
 
 
     _validate(articleCounter) {
-
         var errors = {};
-
         return new Promise((resolve, reject) => {
             var valid = new ArticleCounter(articleCounter);
             // 1. begin: Declare promises.
@@ -182,8 +212,8 @@ module.exports = class ArticleCounterManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                    code: valid.code
-                }]
+                        code: valid.code
+                    }]
             });
             // 1. end: Declare promises.
 
