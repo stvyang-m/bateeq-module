@@ -99,10 +99,39 @@ module.exports = class ArticleThemeManager {
         });
     }
 
+    getByIdOrDefault(id) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(articleStyle => {
+                    resolve(articleStyle);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+    
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.articleThemeCollection
                 .single(query)
+                .then(articleStyle => {
+                    resolve(articleStyle);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+    
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.articleThemeCollection
+                .singleOrDefault(query)
                 .then(articleStyle => {
                     resolve(articleStyle);
                 })
@@ -167,13 +196,49 @@ module.exports = class ArticleThemeManager {
                 })
         });
     }
-
-
-    _validate(articleStyle) {
+ 
+    _validate(articleStyle) {  
+        var errors = {};
         return new Promise((resolve, reject) => {
             var valid = new ArticleTheme(articleStyle);
-            valid.stamp(this.user.username, 'manager');
-            resolve(valid);
+            // 1. begin: Declare promises.
+            var getArticleTheme = this.articleThemeCollection.singleOrDefault({
+                "$and": [{
+                    _id: {
+                        '$ne': new ObjectId(valid._id)
+                    }
+                }, {
+                        code: valid.code
+                    }]
+            });
+            // 1. end: Declare promises.
+
+            // 2. begin: Validation.
+            Promise.all([getArticleTheme])
+                .then(results => {
+                    var _articleTheme = results[0];
+
+                    if (!valid.code || valid.code == '')
+                        errors["code"] = "code is required";
+                    else if (_articleTheme) {
+                        errors["code"] = "code already exists";
+                    }
+
+                    if (!valid.name || valid.name == '')
+                        errors["name"] = "name is required"; 
+
+                    // 2c. begin: check if data has any error, reject if it has.
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
+
+                    valid.stamp(this.user.username, 'manager');
+                    resolve(valid);
+                })
+                .catch(e => {
+                    reject(e);
+                })
         });
     }
 };
