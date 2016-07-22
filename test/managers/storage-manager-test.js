@@ -144,10 +144,10 @@ it('#08. should error with property code and name ', function(done) {
           {
               e.errors.should.have.property('code');
               e.errors.should.have.property('name'); 
+              done();
           }catch(ex)
           {
               done(ex);
-          }
-          done();
+          } 
        })
 });
