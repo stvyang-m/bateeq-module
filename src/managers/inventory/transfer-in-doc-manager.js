@@ -88,10 +88,39 @@ module.exports = class TransferInDocManager {
         });
     }
 
+    getByIdOrDefault(id) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+    
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.transferInDocCollection
                 .single(query)
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+    
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.transferInDocCollection
+                .singleOrDefault(query)
                 .then(transferInDoc => {
                     resolve(transferInDoc);
                 })
@@ -161,13 +190,12 @@ module.exports = class TransferInDocManager {
                     reject(e);
                 })
         });
-    }
-
-
+    } 
+    
     _validate(transferInDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new TransferInDoc(transferInDoc);
+            var valid = transferInDoc;
 
             // 1. begin: Declare promises.
             var getTransferInDoc = this.transferInDocCollection.singleOrDefault({
@@ -176,115 +204,109 @@ module.exports = class TransferInDocManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                    code: valid.code
-                }]
+                        code: valid.code
+                    }]
             });
             // 1. end: Declare promises.
 
             var getSource = this.storageManager.getByIdOrDefault(transferInDoc.sourceId);
             var getDestination = this.storageManager.getByIdOrDefault(transferInDoc.destinationId);
             var getItems = [];
-            for (var item of valid.items) {
-                getItems.push(this.articleVariantManager.getByIdOrDefault(item.articleVariantId));
+
+            if (valid.items && valid.items.length > 0) {
+                for (var item of valid.items) {
+                    getItems.push(this.articleVariantManager.getByIdOrDefault(item.articleVariantId));
+                }
+            }
+            else {
+                errors["items"] = "items is required";
             }
 
-            Promise.all([getTransferInDoc,getSource, getDestination].concat(getItems))
+            Promise.all([getTransferInDoc, getSource, getDestination].concat(getItems))
                 .then(results => {
                     var _transferInDoc = results[0];
                     var source = results[1];
                     var destination = results[2];
-                    
+
                     if (!valid.code || valid.code == '')
                         errors["code"] = "code is required";
                     else if (_transferInDoc) {
                         errors["code"] = "code already exists";
                     }
-                    
+
                     if (!valid.sourceId || valid.sourceId == '')
                         errors["sourceId"] = "sourceId is required";
                     if (!source) {
                         errors["sourceId"] = "sourceId not found";
                     }
-                    else
-                    {
+                    else {
                         valid.sourceId = source._id;
                         valid.source = source;
                     }
-                    
+
                     if (!valid.destinationId || valid.destinationId == '')
                         errors["destinationId"] = "destinationId is required";
                     if (!destination) {
                         errors["destinationId"] = "destinationId not found";
                     }
-                    else
-                    {
+                    else {
                         valid.destinationId = destination._id;
                         valid.destination = destination;
-                    }
-                      
-                    // if (results.length > 3) {
-                    //     var articleVariants = results.slice(3, results.length)
-                    //     for (var variant of articleVariants) {
-                    //         var index = articleVariants.indexOf(variant);
-                    //         var item = valid.items[index];
-                    //         item.articleVariantId = variant._id;
-                    //         item.articleVariant = variant;
-                    //     }
-                    // }
-
+                    } 
+                    var articleVariants = results.slice(3, results.length)
                     // 2a. begin: Validate error on item level.
-                    var arrItem = 3;
-                    var itemErrors = [];
-                    for (var item of valid.items) {
-                        var _articleVariant = results[arrItem];
-                        arrItem++;
-                        var itemError = {};
+                    if (articleVariants.length > 0) {
+                        var itemErrors = [];
+                        for (var variant of articleVariants) {
+                            var index = articleVariants.indexOf(variant);
+                            var item = valid.items[index];
+                            var itemError = {};
 
-                        if (!item.articleVariantId || item.articleVariantId == '') {
-                            itemError["articleVariantId"] = "articleVariantId is required";
-                        } 
-                        else {
-                            for (var i = valid.items.indexOf(item) + 1; i < valid.items.length; i++) {
-                                var otherItem = valid.items[i];
-                                if (item.articleVariantId == otherItem.articleVariantId) {
-                                    itemError["articleVariantId"] = "articleVariantId already exists on another detail";
+                            if (!item.articleVariantId || item.articleVariantId == '') {
+                                itemError["articleVariantId"] = "articleVariantId is required";
+                            }
+                            else {
+                                for (var i = valid.items.indexOf(item) + 1; i < valid.items.length; i++) {
+                                    var otherItem = valid.items[i];
+                                    if (item.articleVariantId == otherItem.articleVariantId) {
+                                        itemError["articleVariantId"] = "articleVariantId already exists on another detail";
+                                    }
                                 }
                             }
-                        } 
-                        if(!_articleVariant) {
-                            itemError["articleVariantId"] = "articleVariantId not found";
+                            if (!variant) {
+                                itemError["articleVariantId"] = "articleVariantId not found";
+                            }
+                            else {
+                                item.articleVariantId = variant._id;
+                                item.articleVariant = variant;
+                            }
+
+                            if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
+                                itemError["quantity"] = "quantity is required";
+                            }
+                            else if (parseInt(item.quantity) <= 0) {
+                                itemError["quantity"] = "quantity must be greater than 0";
+                            }
+                            itemErrors.push(itemError);
                         }
-                        else { 
-                            item.articleVariantId = _articleVariant._id;
-                            item.articleVariant = _articleVariant; 
-                        } 
-                         var qty ;
-                        qty= item.quantity.toString();
-                        if (qty == '') {
-                            itemError["quantity"] = "quantity is required";
+                        // 2a. end: Validate error on item level.
+                        // 2b. add item level errors to parent error, if any.
+                        for (var itemError of itemErrors) {
+                            for (var prop in itemError) {
+                                errors.items = itemErrors;
+                                break;
+                            }
+                            if (errors.items)
+                                break;
                         }
-                        else if(item.quantity <= 0) {
-                            itemError["quantity"] = "quantity must be greater than 0";
-                        }
-                        itemErrors.push(itemError);
                     }
-                    // 2a. end: Validate error on item level.
-                    // 2b. add item level errors to parent error, if any.
-                    for (var itemError of itemErrors) {
-                        for (var prop in itemError) {
-                            errors.items = itemErrors;
-                            break;
-                        }
-                        if (errors.items)
-                            break;
-                    }
-                     
+
                     // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
-                    
+                    valid = new TransferInDoc(valid);
                     valid.stamp(this.user.username, 'manager');
                     resolve(valid)
                 })
