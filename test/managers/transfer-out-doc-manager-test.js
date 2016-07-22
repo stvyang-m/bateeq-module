@@ -136,68 +136,38 @@ it('#07. should error when create new data with same code', function(done) {
         .catch(e => {
             done();
         })
-});
- 
-it('#08. should error when create new data with Quantity less than 0', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id;
-    data.items[0].quantity = 0;
-    manager.create(data)
+}); 
+
+it('#08. should error with property items minimum one', function (done) {
+    manager.create({})
         .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Quantity less than 0");
+            done("Should not be error with property items minimum one");
         })
         .catch(e => {
-            done();
+            try {
+                e.errors.should.have.property('code');
+                e.errors.should.have.property('sourceId');
+                e.errors.should.have.property('destinationId');
+                e.errors.should.have.property('items');
+                e.errors.items.should.String();
+                done();
+            } catch (ex) {
+                done(ex);
+            }
         })
 });
 
-it('#09. should error when create new data with Article Variant ID not Found', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id; 
-    data.items[0].articleVariantId = "578dd8a976d4f1003e0d7a3f";
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to Create data with Article Variant ID ID not Found");
-        })
-        .catch(e => {
-            done();
-        })
-});
-
-it('#10. should error with property items must be one', function(done) { 
-   manager.create({})
+it('#09. should error with property items must be greater one', function(done) { 
+   manager.create({items:[{},
+                          {articleVariantId:'578dd8a976d4f1003e0d7a3f'},
+                          {quantity:0}]})
        .then(id => { 
-           done("Should not be error with property items must be one");
+           done("Should not be error with property items must be greater one");
        })
        .catch(e => { 
           try
           {
               e.errors.should.have.property('code');
-              e.errors.should.have.property('sourceId');
-              e.errors.should.have.property('destinationId');
-              e.errors.should.have.property('items');
-              e.errors.items.should.String();
-          }catch(ex)
-          {
-              done(ex);
-          }
-          done();
-       })
-});
-
-it('#11. should error with property items must greather one', function(done) { 
-   manager.create({items:[{}]})
-       .then(id => { 
-           done("Should not be error with property items must greather one");
-       })
-       .catch(e => { 
-          try
-          {
-             e.errors.should.have.property('code');
               e.errors.should.have.property('sourceId');
               e.errors.should.have.property('destinationId');
               e.errors.should.have.property('items');
@@ -207,10 +177,10 @@ it('#11. should error with property items must greather one', function(done) {
                 i.should.have.property('articleVariantId');
                 i.should.have.property('quantity');
               }
+               done();
           }catch(ex)
           {
               done(ex);
-          }
-          done();
+          } 
        })
 });
