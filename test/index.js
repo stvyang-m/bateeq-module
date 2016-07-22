@@ -22,6 +22,6 @@ describe('#bateeq-module', function(done) {
     // test('@manager/storage-manager', './managers/storage-manager-test');
     // test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
     // test('@manager/transfer-out-doc-manager', './managers/transfer-out-doc-manager-test');
-    // test('@manager/inventory-manager', './managers/inventory-manager-test');
-     test('@manager/inventory-movement-manager', './managers/inventory-movement-manager-test');
+     test('@manager/inventory-manager', './managers/inventory-manager-test');
+
 })
