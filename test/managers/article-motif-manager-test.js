@@ -128,7 +128,7 @@ it('#07. should error when create new data with same code', function(done) {
         })
 }); 
 
-it('#9. should error with property code and name ', function(done) { 
+it('#08. should error with property code and name ', function(done) { 
     manager.create({})
         .then(id => { 
             done("Should not be able error with property code and name");
@@ -138,11 +138,11 @@ it('#9. should error with property code and name ', function(done) {
            {
                e.errors.should.have.property('code');
                e.errors.should.have.property('name');  
+               done();
            }catch(ex)
            {
                done(ex);
-           }
-           done();
+           } 
         })
 });
 

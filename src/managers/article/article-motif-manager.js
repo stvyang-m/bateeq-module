@@ -84,6 +84,26 @@ module.exports = class ArticleMotifManager {
     }
 
     getById(id) {
+        if (id === '')
+            resolve(null);
+        return new Promise((resolve, reject) => {
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(articleMotif => {
+                    resolve(articleMotif);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getByIdOrDefault(id) {
+        if (id === '')
+            resolve(null);
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
@@ -103,6 +123,19 @@ module.exports = class ArticleMotifManager {
         return new Promise((resolve, reject) => {
             this.articleMotifCollection
                 .single(query)
+                .then(articleMotif => {
+                    resolve(articleMotif);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.articleMotifCollection
+                .singleOrDefault(query)
                 .then(articleMotif => {
                     resolve(articleMotif);
                 })
@@ -170,23 +203,23 @@ module.exports = class ArticleMotifManager {
 
 
     _validate(articleMotif) {
-        var errors={};
-        
+        var errors = {};
+
         return new Promise((resolve, reject) => {
             var valid = new ArticleMotif(articleMotif);
-           //1.begin: Declare promises.
-           var getArticleMotif=this.articleMotifCollection.singleOrDefault({
-               "$and": [{
+            //1.begin: Declare promises.
+            var getArticleMotif = this.articleMotifCollection.singleOrDefault({
+                "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                    code: valid.code
-                }]
-           });
-           //1. end:Declare promises.
-           
-           //2.begin: Validation 
+                        code: valid.code
+                    }]
+            });
+            //1. end:Declare promises.
+
+            //2.begin: Validation 
             Promise.all([getArticleMotif])
                 .then(results => {
                     var _articleMotif = results[0];
@@ -198,8 +231,8 @@ module.exports = class ArticleMotifManager {
                     }
 
                     if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required"; 
-                   
+                        errors["name"] = "name is required";
+
                     // 2a. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
