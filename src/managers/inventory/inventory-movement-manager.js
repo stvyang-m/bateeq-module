@@ -132,6 +132,8 @@ module.exports = class InventoryMovementManager {
 
     getById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
@@ -145,10 +147,29 @@ module.exports = class InventoryMovementManager {
                 });
         });
     } 
-    
-    getByStorageIdAndArticleVarianIdAndId(storageId, articleVariantId, id)
-    {
+     
+    getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(inventoryMovement => {
+                    resolve(inventoryMovement);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    } 
+    
+    getByStorageIdAndArticleVarianIdAndId(storageId, articleVariantId, id) {
+        return new Promise((resolve, reject) => {
+            if (id === ''|| storageId ==='' || articleVariantId ==='')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 storageId: new ObjectId(storageId),
@@ -165,10 +186,43 @@ module.exports = class InventoryMovementManager {
         });
     }
     
+    getByStorageIdAndArticleVarianIdAndIdOrDefault(storageId, articleVariantId, id) {
+        return new Promise((resolve, reject) => {
+            if (id === ''|| storageId ==='' || articleVariantId ==='')
+                resolve(null);
+            var query = {
+                _id: new ObjectId(id),
+                storageId: new ObjectId(storageId),
+                articleVariantId: new ObjectId(articleVariantId),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(inventoryMovement => {
+                    resolve(inventoryMovement);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+    
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.inventoryMovementCollection
                 .single(query)
+                .then(inventoryMovement => {
+                    resolve(inventoryMovement);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+    
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.inventoryMovementCollection
+                .singleOrDefault(query)
                 .then(inventoryMovement => {
                     resolve(inventoryMovement);
                 })
@@ -232,28 +286,84 @@ module.exports = class InventoryMovementManager {
                     reject(e);
                 })
         });
-    }
-
-
+    } 
+    
     _validate(inventoryMovement) {
+        var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new InventoryMovement(inventoryMovement);
-
+            var valid = inventoryMovement;
+            // 1. begin: Declare promises.
+            var getInventoryMovementDoc = this.inventoryMovementCollection.singleOrDefault({
+                "$and": [{
+                    _id: {
+                        '$ne': new ObjectId(valid._id)
+                    }
+                }, {
+                        //code: valid.code
+                    }]
+            });
+            // 1. end: Declare promises.
             var getStorage = this.storageManager.getById(inventoryMovement.storageId);
             var getArticleVariant = this.articleVariantManager.getById(inventoryMovement.articleVariantId);
-
-
-            Promise.all([getStorage, getArticleVariant])
+ 
+            Promise.all([getInventoryMovementDoc, getStorage, getArticleVariant])
                 .then(results => {
-                    var storage = results[0];
-                    var articleVariant = results[1];
+                    var _inventoryMovement = results[0];
+                    var storage = results[1];
+                    var articleVariant = results[2];
 
-                    valid.storageId = storage._id;
-                    valid.storage = storage;
-
-                    valid.articleVariantId = articleVariant._id;
-                    valid.articleVariant = articleVariant;
-
+                    if (!valid.storageId || valid.storageId == '')
+                        errors["storageId"] = "storageId is required";
+                    if (!storage) {
+                        errors["storageId"] = "storageId not found";
+                    }
+                    else {
+                        valid.storageId = storage._id;
+                        valid.storage = storage;
+                    } 
+                    if (!valid.articleVariantId || valid.articleVariantId == '')
+                        errors["articleVariantId"] = "articleVariantId is required";
+                    if (!articleVariant) {
+                        errors["articleVariantId"] = "articleVariantId not found";
+                    }
+                    else {
+                        valid.articleVariantId = articleVariant._id;
+                        valid.articleVariant = articleVariant;
+                    } 
+                     
+                    if (!valid.type || valid.type == '')
+                        errors["type"] = "type is required";  
+                        
+                    if (valid.date == undefined || (valid.date && valid.date == '')) {
+                        errors["date"] = "date is required";
+                    }  
+                        
+                    if (valid.quantity == undefined || (valid.quantity && valid.quantity == '')) {
+                        errors["quantity"] = "quantity is required";
+                    }
+                    // else if (parseInt(valid.quantity) <= 0) {
+                    //     errors["quantity"] = "quantity must be greater than 0";
+                    // }
+                    
+                    if (valid.before == undefined || (valid.before && valid.before == '')) {
+                        errors["before"] = "before is required";
+                    }
+                    else if (parseInt(valid.before) <= 0) {
+                        errors["before"] = "before must be greater than 0";
+                    }
+                    
+                    if (valid.after == undefined || (valid.after && valid.after == '')) {
+                        errors["after"] = "after is required";
+                    }
+                    else if (parseInt(valid.after) <= 0) {
+                        errors["after"] = "after must be greater than 0";
+                    }
+                    
+                     // 2c. begin: check if data has any error, reject if it has.
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
                     valid.stamp(this.user.username, 'manager');
                     resolve(valid)
                 })

@@ -134,6 +134,8 @@ module.exports = class InventoryManager {
 
     getById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
@@ -147,9 +149,29 @@ module.exports = class InventoryManager {
                 });
         });
     }
+    
+    getByIdOrDefault(id) {
+        return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(inventory => {
+                    resolve(inventory);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
 
     getByStorageIdAndArticleVarianId(storageId, articleVariantId) {
         return new Promise((resolve, reject) => {
+            if (storageId === '' || articleVariantId ==='')
+                resolve(null);
             var query = {
                 storageId: new ObjectId(storageId),
                 articleVariantId: new ObjectId(articleVariantId),
@@ -165,10 +187,42 @@ module.exports = class InventoryManager {
         });
     }
 
+    getByStorageIdAndArticleVarianIdOrDefault(storageId, articleVariantId) {
+        return new Promise((resolve, reject) => {
+            if (storageId === '' || articleVariantId ==='')
+                resolve(null);
+            var query = {
+                storageId: new ObjectId(storageId),
+                articleVariantId: new ObjectId(articleVariantId),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(inventory => {
+                    resolve(inventory);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+    
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.inventoryCollection
                 .single(query)
+                .then(inventory => {
+                    resolve(inventory);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+     
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.inventoryCollection
+                .singleOrDefault(query)
                 .then(inventory => {
                     resolve(inventory);
                 })
@@ -329,26 +383,62 @@ module.exports = class InventoryManager {
                 });
         });
     }
-
-
+  
     _validate(inventory) {
+        var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new Inventory(inventory);
-
+            var valid = new Inventory(inventory); 
+            // 1. begin: Declare promises.
+            var getInventoryDoc = this.inventoryCollection.singleOrDefault({
+                "$and": [{
+                    _id: {
+                        '$ne': new ObjectId(valid._id)
+                    }
+                }, {
+                        //code: valid.code
+                    }]
+            });
+            // 1. end: Declare promises.
             var getStorage = this.storageManager.getById(inventory.storageId);
             var getArticleVariant = this.articleVariantManager.getById(inventory.articleVariantId);
 
-            Promise.all([getStorage, getArticleVariant])
+            Promise.all([getInventoryDoc, getStorage, getArticleVariant])
                 .then(results => {
-                    var storage = results[0];
-                    var articleVariant = results[1];
+                    var _inventory = results[0];
+                    var storage = results[1];
+                    var articleVariant = results[2];
 
-                    valid.storageId = storage._id;
-                    valid.storage = storage;
-
-                    valid.articleVariantId = articleVariant._id;
-                    valid.articleVariant = articleVariant;
-
+                    if (!valid.storageId || valid.storageId == '')
+                        errors["storageId"] = "storageId is required";
+                    if (!storage) {
+                        errors["storageId"] = "storageId not found";
+                    }
+                    else {
+                        valid.storageId = storage._id;
+                        valid.storage = storage;
+                    } 
+                    if (!valid.articleVariantId || valid.articleVariantId == '')
+                        errors["articleVariantId"] = "articleVariantId is required";
+                    if (!articleVariant) {
+                        errors["articleVariantId"] = "articleVariantId not found";
+                    }
+                    else {
+                        valid.articleVariantId = articleVariant._id;
+                        valid.articleVariant = articleVariant;
+                    }
+                    
+                    if (valid.quantity == undefined || (valid.quantity && valid.quantity == '')) {
+                        errors["quantity"] = "quantity is required";
+                    }
+                    else if (parseInt(valid.quantity) <= 0) {
+                        errors["quantity"] = "quantity must be greater than 0";
+                    }
+                    
+                    // 2c. begin: check if data has any error, reject if it has.
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
                     valid.stamp(this.user.username, 'manager');
                     resolve(valid)
                 })
