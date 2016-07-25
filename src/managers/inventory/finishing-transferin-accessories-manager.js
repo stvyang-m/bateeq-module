@@ -189,43 +189,24 @@ module.exports = class FinishingTransferInAccessoryManager {
     } 
     
     _validate(transferInDoc) {
-        var errors = {};
         return new Promise((resolve, reject) => {
             var valid = transferInDoc;
-
-            // 1. begin: Declare promises.
-            var getTransferInDoc = this.transferInDocCollection.singleOrDefault({
-                "$and": [{
-                    _id: {
-                        '$ne': new ObjectId(valid._id)
-                    }
-                }, {
-                        code: valid.code
-                    }]
-            });
-            // 1. end: Declare promises. 
-             
-            Promise.all([getTransferInDoc])
-                .then(results => {
-                    var _transferInDoc = results[0]; 
-  
-                    if (valid.sourceId != "57738435e8a64fc532cd5bf1")
-                        errors["sourceId"] = "sourceId is not wrong";
-                
-                    if (valid.destinationId != "57738460d53dae9234ae0ae1")
-                        errors["destinationId"] = "destinationId is not wrong";
-                
-                    // 2c. begin: check if data has any error, reject if it has.
-                    for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
-                        reject(new ValidationError('data does not pass validation', errors));
-                    }
+            this.moduleManager.getByCode(moduleId)
+                .then(module => {
+                    var config = module.config; 
+                    var now = new Date();
+                    var stamp = now / 1000 | 0;
+                    var code = stamp.toString(36);
+                    
+                    valid.code = `FIN-${code}-ACC`;
+                    valid.sourceId = config.sourceId;
+                    valid.destinationId = config.destinationId;
                     valid = new TransferInDoc(valid);
                     valid.stamp(this.user.username, 'manager');
-                    resolve(valid)
+                    resolve(valid);
                 })
                 .catch(e => {
-                    reject(e);
+                    reject (new Error(`Unable to load module:${moduleId}`));
                 });
         });
     }
