@@ -22,5 +22,8 @@ module.exports = {
         AccessoryTransferOutFinishingManager: require('./src/managers/inventory/accessories-transferout-finishing-manager'),
         FinishingTransferInAccessoryManager: require('./src/managers/inventory/finishing-transferin-accessories-manager')
     },
-    ValidationError : require('./src/validation-error')
+    core: {
+        ModuleManager: require('./src/core/module-manager')
+    },
+    ValidationError: require('./src/validation-error')
 }
