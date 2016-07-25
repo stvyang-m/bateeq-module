@@ -430,7 +430,7 @@ module.exports = class InventoryManager {
                     if (valid.quantity == undefined || (valid.quantity && valid.quantity == '')) {
                         errors["quantity"] = "quantity is required";
                     }
-                    else if (parseInt(valid.quantity) <= 0) {
+                    else if (parseInt(valid.quantity) < 0) {
                         errors["quantity"] = "quantity must be greater than 0";
                     }
                     

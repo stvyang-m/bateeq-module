@@ -165,13 +165,13 @@ it('#08. should error with property items minimum one', function (done) {
 });
 
 it('#09. should error with property items must be greater one', function(done) { 
-   manager.create({items:[{},
+  manager.create({items:[{},
                           {articleVariantId:'578dd8a976d4f1003e0d7a3f'},
                           {quantity:0}]})
-       .then(id => { 
-           done("Should not be error with property items must be greater one");
-       })
-       .catch(e => { 
+      .then(id => { 
+          done("Should not be error with property items must be greater one");
+      })
+      .catch(e => { 
           try
           {
               e.errors.should.have.property('code');
@@ -184,10 +184,10 @@ it('#09. should error with property items must be greater one', function(done) {
                 i.should.have.property('articleVariantId');
                 i.should.have.property('quantity');
               }
-               done();
+              done();
           }catch(ex)
           {
               done(ex);
           } 
-       })
+      })
 });

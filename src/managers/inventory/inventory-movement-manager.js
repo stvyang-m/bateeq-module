@@ -348,14 +348,14 @@ module.exports = class InventoryMovementManager {
                     if (valid.before == undefined || (valid.before && valid.before == '')) {
                         errors["before"] = "before is required";
                     }
-                    else if (parseInt(valid.before) <= 0) {
+                    else if (parseInt(valid.before) < 0) {
                         errors["before"] = "before must be greater than 0";
                     }
                     
                     if (valid.after == undefined || (valid.after && valid.after == '')) {
                         errors["after"] = "after is required";
                     }
-                    else if (parseInt(valid.after) <= 0) {
+                    else if (parseInt(valid.after) < 0) {
                         errors["after"] = "after must be greater than 0";
                     }
                     
