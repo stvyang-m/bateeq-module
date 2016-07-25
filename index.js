@@ -18,7 +18,9 @@ module.exports = {
         TransferInDocManager: require('./src/managers/inventory/transfer-in-doc-manager'),
         TransferOutDocManager: require('./src/managers/inventory/transfer-out-doc-manager'),
         InventoryManager: require('./src/managers/inventory/inventory-manager'),
-        InventoryMovementManager: require('./src/managers/inventory/inventory-movement-manager')
+        InventoryMovementManager: require('./src/managers/inventory/inventory-movement-manager'),
+        AccessoryTransferOutFinishingManager: require('./src/managers/inventory/accessories-transferout-finishing-manager'),
+        FinishingTransferInAccessoryManager: require('./src/managers/inventory/finishing-transferin-accessories-manager')
     },
     ValidationError : require('./src/validation-error')
 }
