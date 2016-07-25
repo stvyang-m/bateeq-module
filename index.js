@@ -20,5 +20,8 @@ module.exports = {
         InventoryManager: require('./src/managers/inventory/inventory-manager'),
         InventoryMovementManager: require('./src/managers/inventory/inventory-movement-manager')
     },
-    ValidationError : require('./src/validation-error')
+    core: {
+        ModuleManager: require('./src/core/module-manager')
+    },
+    ValidationError: require('./src/validation-error')
 }
