@@ -11,10 +11,9 @@ var map = BateeqModels.map;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
-
-module.exports = class AccessoryTransferOutFinishingManager {
-    //const a = "ACC-TO-FIN";
+const moduleId = "ACCTOFIN";
     
+module.exports = class AccessoryTransferOutFinishingManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;

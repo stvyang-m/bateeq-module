@@ -11,10 +11,9 @@ var map = BateeqModels.map;
 var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
 
+const moduleId = "FINTIACC";
 
 module.exports = class FinishingTransferInAccessoryManager {
-    //const a = "FIN-TI-ACC";
-    
     constructor(db, user) {
         this.db = db;
         this.user = user;
