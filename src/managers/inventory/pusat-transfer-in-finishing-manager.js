@@ -8,14 +8,30 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var Module = BateeqModels.core.Module;
+var TransferInDoc = BateeqModels.inventory.TransferInDoc;
+var TransferInItem = BateeqModels.inventory.TransferInItem;
 
-
-module.exports = class ModuleManager {
+const moduleId = "PUSTIFIN";
+module.exports = class PusatTransferInDocFinishingManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.moduleCollection = this.db.use(map.core.Module);
+        this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
+        var StorageManager = require('./storage-manager');
+        this.storageManager = new StorageManager(db, user);
+
+        var ArticleVariantManager = require('../article/article-variant-manager');
+        this.articleVariantManager = new ArticleVariantManager(db, user);
+
+        var InventoryManager = require('./inventory-manager');
+        this.inventoryManager = new InventoryManager(db, user);
+
+        var TransferInDocManager = require('./transfer-in-doc-manager');
+        this.transferInDocManager = new TransferInDocManager(db, user);
+
+        var ModuleManager = require('../core/module-manager');
+        this.moduleManager = new ModuleManager(db, user);
+
     }
 
     read(paging) {
@@ -41,26 +57,21 @@ module.exports = class ModuleManager {
                         '$regex': regex
                     }
                 };
-                var filterName = {
-                    'name': {
-                        '$regex': regex
-                    }
-                };
                 var $or = {
-                    '$or': [filterCode, filterName]
+                    '$or': [filterCode]
                 };
 
                 query['$and'].push($or);
             }
 
 
-            this.moduleCollection
+            this.transferInDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(modules => {
-                    resolve(modules);
+                .then(transferInDocs => {
+                    resolve(transferInDocs);
                 })
                 .catch(e => {
                     reject(e);
@@ -70,15 +81,13 @@ module.exports = class ModuleManager {
 
     getById(id) {
         return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(module => {
-                    resolve(module);
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -86,35 +95,17 @@ module.exports = class ModuleManager {
         });
     }
 
-    getByCode(code) {
-        return new Promise((resolve, reject) => {
-            if (code === '')
-                resolve(null);
-            var query = {
-                code: code,
-                _deleted: false
-            };
-            this.getSingleByQuery(query)
-                .then(module => {
-                    resolve(module);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
+
 
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
-                .then(module => {
-                    resolve(module);
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -124,10 +115,10 @@ module.exports = class ModuleManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.moduleCollection
+            this.transferInDocCollection
                 .single(query)
-                .then(module => {
-                    resolve(module);
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -137,10 +128,10 @@ module.exports = class ModuleManager {
 
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.moduleCollection
+            this.transferInDocCollection
                 .singleOrDefault(query)
-                .then(module => {
-                    resolve(module);
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -148,12 +139,11 @@ module.exports = class ModuleManager {
         })
     }
 
-    create(module) {
+    create(transferInDoc) {
         return new Promise((resolve, reject) => {
-            this._validate(module)
-                .then(validModule => {
-
-                    this.moduleCollection.insert(validModule)
+            this._validate(transferInDoc)
+                .then(validTransferInDoc => {
+                    this.transferInDocManager.create(transferInDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -167,11 +157,11 @@ module.exports = class ModuleManager {
         });
     }
 
-    update(module) {
+    update(transferInDoc) {
         return new Promise((resolve, reject) => {
-            this._validate(module)
-                .then(validModule => {
-                    this.moduleCollection.update(validModule)
+            this._validate(transferInDoc)
+                .then(validTransferInDoc => {
+                    this.transferInDocManager.update(validTransferInDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -185,12 +175,12 @@ module.exports = class ModuleManager {
         });
     }
 
-    delete(module) {
+    delete(transferInDoc) {
         return new Promise((resolve, reject) => {
-            this._validate(module)
-                .then(validModule => {
-                    validModule._deleted = true;
-                    this.moduleCollection.update(validModule)
+            this._validate(transferInDoc)
+                .then(validTransferInDoc => {
+                    validTransferInDoc._deleted = true;
+                    this.transferInDocManager.update(validTransferInDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -203,49 +193,29 @@ module.exports = class ModuleManager {
                 })
         });
     }
- 
-    _validate(module) {
-        var errors = {};
+
+    _validate(transferInDoc) {
         return new Promise((resolve, reject) => {
-            var valid = new Module(module);
-            // 1. begin: Declare promises.
-            var getModule = this.moduleCollection.singleOrDefault({
-                "$and": [{
-                    _id: {
-                        '$ne': new ObjectId(valid._id)
-                    }
-                }, {
-                        code: valid.code
-                    }]
-            });
-            // 1. end: Declare promises.
-
-            // 2. begin: Validation.
-            Promise.all([getModule])
-                .then(results => {
-                    var _module = results[0];
-
-                    if (!valid.code || valid.code == '')
-                        errors["code"] = "code is required";
-                    else if (_module) {
-                        errors["code"] = "code already exists";
-                    }
-
-                    if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required"; 
-
-                    // 2c. begin: check if data has any error, reject if it has.
-                    for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
-                        reject(new ValidationError('data does not pass validation', errors));
-                    }
-
+               var valid = transferInDoc;
+            this.moduleManager.getByCode(moduleId)
+                .then(module => {
+                    var config = module.config; 
+                    var now = new Date();
+                    var stamp = now / 1000 | 0;
+                    var code = stamp.toString(36);
+                    
+                    valid.code = `PUS-${code}-FIN`;
+                    valid.sourceId = config.sourceId;
+                    valid.destinationId = config.destinationId;
+                    valid = new TransferInDoc(valid);
                     valid.stamp(this.user.username, 'manager');
                     resolve(valid);
                 })
                 .catch(e => {
-                    reject(e);
-                })
+                   reject (new Error(`Unable to load module:${moduleId}`));
+                });
         });
     }
+
+    
 };
