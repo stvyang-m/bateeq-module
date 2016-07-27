@@ -15,14 +15,14 @@ function getData() {
     transferOutDoc.code = code;
     transferOutDoc.date = now;
     
-    transferOutDoc.sourceId = '57738460d53dae9234ae0ae1';
     transferOutDoc.destinationId = '57738435e8a64fc532cd5bf1';
+    transferOutDoc.sourceId = '57738460d53dae9234ae0ae1';
     
     transferOutDoc.reference = `reference[${code}]`;
     
     transferOutDoc.remark = `remark for ${code}`;
     
-    transferOutDoc.items.push(new TransferOutItem({articleVariantId:"578855c4964302281454fa51", quantity: 5, remark:'transferOutDoc.test'})); 
+    transferOutDoc.items.push(new TransferOutItem({articleVariantId:"578855c4964302281454fa51", quantity: 1, remark:'transferOutDoc.test'})); 
 
     return transferOutDoc;
 }
@@ -30,8 +30,8 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var TransferOutDocManager = require('../../src/managers/inventory/transfer-out-doc-manager');
-            manager = new TransferOutDocManager(db, {
+            var AccessoryTransferOutFinishingManager = require('../../src/managers/inventory/acc-out-fin-manager');
+            manager = new AccessoryTransferOutFinishingManager(db, {
                 username: 'unit-test'
             });
             done();
@@ -73,8 +73,7 @@ it(`#03. should success when update created data`, function(done) {
     createdData.reference += '[updated]';
     createdData.remark += '[updated]';
     
-    var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
-    // createdData.items.push(new TransferOutItem());
+    var TransferOutItem = require('bateeq-models').inventory.TransferOutItem; 
 
     manager.update(createdData)
         .then(id => {
@@ -124,30 +123,14 @@ it(`#06. should _deleted=true`, function(done) {
         })
 });
  
-it('#07. should error when create new data with same code', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id;
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to create data with same code");
-        })
-        .catch(e => {
-            done();
-        })
-}); 
 
-it('#08. should error with property items minimum one', function (done) {
+it('#07. should error with property items minimum one', function (done) {
     manager.create({})
         .then(id => {
             done("Should not be error with property items minimum one");
         })
         .catch(e => {
-            try {
-                e.errors.should.have.property('code');
-                e.errors.should.have.property('sourceId');
-                e.errors.should.have.property('destinationId');
+            try {  
                 e.errors.should.have.property('items');
                 e.errors.items.should.String();
                 done();
@@ -157,7 +140,7 @@ it('#08. should error with property items minimum one', function (done) {
         })
 });
 
-it('#09. should error with property items must be greater one', function(done) { 
+it('#08. should error with property items must be greater one', function(done) { 
    manager.create({items:[{},
                           {articleVariantId:'578dd8a976d4f1003e0d7a3f'},
                           {quantity:0}]})
@@ -166,10 +149,7 @@ it('#09. should error with property items must be greater one', function(done) {
        })
        .catch(e => { 
           try
-          {
-              e.errors.should.have.property('code');
-              e.errors.should.have.property('sourceId');
-              e.errors.should.have.property('destinationId');
+          { 
               e.errors.should.have.property('items');
               e.errors.items.should.Array();
               for(var i of e.errors.items)

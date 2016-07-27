@@ -22,7 +22,7 @@ function getData() {
 
     transferInDoc.remark = `remark for ${code}`;
 
-    transferInDoc.items.push(new TransferInItem({ articleVariantId: "578855c4964302281454fa51", quantity: 5, remark: 'transferInDoc.test' }));
+    transferInDoc.items.push(new TransferInItem({ articleVariantId: "578855c4964302281454fa51", quantity: 10, remark: 'transferInDoc.test' }));
 
     return transferInDoc;
 }
@@ -30,8 +30,8 @@ function getData() {
 before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
-            var TransferInDocManager = require('../../src/managers/inventory/transfer-in-doc-manager');
-            manager = new TransferInDocManager(db, {
+            var PusatTransferInDocFinishingManager = require('../../src/managers/inventory/pus-in-fin-manager');
+            manager = new PusatTransferInDocFinishingManager(db, {
                 username: 'unit-test'
             });
             done();
@@ -73,8 +73,7 @@ it(`#03. should success when update created data`, function(done) {
     createdData.reference += '[updated]';
     createdData.remark += '[updated]';
 
-    var TransferInItem = require('bateeq-models').inventory.TransferInItem;
-    // createdData.items.push(new TransferInItem());
+    var TransferInItem = require('bateeq-models').inventory.TransferInItem; 
 
     manager.update(createdData)
         .then(id => {
@@ -122,39 +121,15 @@ it(`#06. should _deleted=true`, function(done) {
         .catch(e => {
             done(e);
         })
-});
+}); 
 
-it('#07. should error when create new data with same code', function(done) {
-    var data = Object.assign({}, createdData);
-    delete data._id;
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done("Should not be able to create data with same code");
-        })
-        .catch(e => {
-            try
-            {
-                e.errors.should.have.property('code');  
-            }
-            catch(xe){
-                done(xe);
-            };
-            done();
-        })
-});
-
-it('#08. should error with property items minimum one', function (done) {
+it('#07. should error with property items minimum one', function (done) {
     manager.create({})
         .then(id => {
             done("Should not be error with property items minimum one");
         })
         .catch(e => {
-            try {
-                e.errors.should.have.property('code');
-                e.errors.should.have.property('sourceId');
-                e.errors.should.have.property('destinationId');
+            try {  
                 e.errors.should.have.property('items');
                 e.errors.items.should.String();
                 done();
@@ -164,7 +139,7 @@ it('#08. should error with property items minimum one', function (done) {
         })
 });
 
-it('#09. should error with property items must be greater one', function(done) { 
+it('#08. should error with property items must be greater one', function(done) { 
   manager.create({items:[{},
                           {articleVariantId:'578dd8a976d4f1003e0d7a3f'},
                           {quantity:0}]})
@@ -173,10 +148,7 @@ it('#09. should error with property items must be greater one', function(done) {
       })
       .catch(e => { 
           try
-          {
-              e.errors.should.have.property('code');
-              e.errors.should.have.property('sourceId');
-              e.errors.should.have.property('destinationId');
+          {  
               e.errors.should.have.property('items');
               e.errors.items.should.Array();
               for(var i of e.errors.items)

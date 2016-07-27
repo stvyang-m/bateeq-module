@@ -11,9 +11,9 @@ var map = BateeqModels.map;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
-var moduleId="FINTOPUS";
+var moduleId = "FINTOPUS";
 
-module.exports = class FinishingTransferOutDocPusatManager { 
+module.exports = class FinishingTransferOutDocPusatManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
@@ -26,12 +26,13 @@ module.exports = class FinishingTransferOutDocPusatManager {
 
         var InventoryManager = require('./inventory-manager');
         this.inventoryManager = new InventoryManager(db, user);
-        
-        var TransferOutDocManager= require('./transfer-out-doc-manager');
-        this.transferOutDocManager= new TransferOutDocManager(db,user);
-        
+
+        var TransferOutDocManager = require('./transfer-out-doc-manager');
+        this.transferOutDocManager = new TransferOutDocManager(db, user);
+
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db, user);
+        
     }
 
     read(paging) {
@@ -94,7 +95,7 @@ module.exports = class FinishingTransferOutDocPusatManager {
                 });
         });
     }
-    
+
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             var query = {
@@ -139,9 +140,9 @@ module.exports = class FinishingTransferOutDocPusatManager {
 
     create(transferOutDoc) {
         return new Promise((resolve, reject) => {
-            this._validate(transferOutDoc) 
+            this._validate(transferOutDoc)
                 .then(validTransferInDoc => {
-                    this.TransferOutDocManager.create(transferOutDoc)
+                   this.transferOutDocManager.create(validTransferInDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -159,7 +160,7 @@ module.exports = class FinishingTransferOutDocPusatManager {
         return new Promise((resolve, reject) => {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
-                    this.TransferOutDocManager.update(validTransferOutDoc)
+                    this.transferOutDocManager.update(validTransferOutDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -178,7 +179,7 @@ module.exports = class FinishingTransferOutDocPusatManager {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
                     validTransferOutDoc._deleted = true;
-                    this.TransferOutDocManager.update(validTransferOutDoc)
+                    this.transferOutDocManager.update(validTransferOutDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -191,26 +192,26 @@ module.exports = class FinishingTransferOutDocPusatManager {
                 })
         });
     }
-   
+
     _validate(transferOutDoc) {
         return new Promise((resolve, reject) => {
-               var valid = transferInDoc;
+            var valid = transferOutDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-                    var config = module.config; 
-                    var now = new Date();
-                    var stamp = now / 1000 | 0;
-                    var code = stamp.toString(36);
-                    
-                    valid.code = `PUS-${code}-FIN`;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
-                    valid = new transferOutDoc(valid);
-                    valid.stamp(this.user.username, 'manager');
+                    if (!valid._id) {
+                        var config = module.config;
+                        var now = new Date();
+                        var stamp = now / 1000 | 0;
+                        var code = stamp.toString(36);
+
+                        valid.code = `FIN-${code}-TO-PUS`;
+                        valid.sourceId = config.sourceId;
+                        valid.destinationId = config.destinationId;
+                    }
                     resolve(valid);
                 })
                 .catch(e => {
-                   reject (new Error(`Unable to load module:${moduleId}`));
+                    reject(new Error(`Unable to load module:${moduleId}`));
                 });
         });
     }

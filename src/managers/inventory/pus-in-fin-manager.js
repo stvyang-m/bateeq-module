@@ -143,7 +143,7 @@ module.exports = class PusatTransferInDocFinishingManager {
         return new Promise((resolve, reject) => {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
-                    this.transferInDocManager.create(transferInDoc)
+                    this.transferInDocManager.create(validTransferInDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -196,26 +196,26 @@ module.exports = class PusatTransferInDocFinishingManager {
 
     _validate(transferInDoc) {
         return new Promise((resolve, reject) => {
-               var valid = transferInDoc;
+            var valid = transferInDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-                    var config = module.config; 
-                    var now = new Date();
-                    var stamp = now / 1000 | 0;
-                    var code = stamp.toString(36);
-                    
-                    valid.code = `PUS-${code}-FIN`;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
-                    valid = new TransferInDoc(valid);
-                    valid.stamp(this.user.username, 'manager');
+                    if (!valid._id) {
+                        var config = module.config;
+                        var now = new Date();
+                        var stamp = now / 1000 | 0;
+                        var code = stamp.toString(36);
+
+                        valid.code = `PUS-${code}-TI-FIN`;
+                        valid.sourceId = config.sourceId;
+                        valid.destinationId = config.destinationId;
+                    }
                     resolve(valid);
                 })
                 .catch(e => {
-                   reject (new Error(`Unable to load module:${moduleId}`));
+                    reject(new Error(`Unable to load module:${moduleId}`));
                 });
         });
     }
 
-    
+
 };
