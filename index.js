@@ -23,7 +23,7 @@ module.exports = {
         FinishingTransferInAccessoryManager: require('./src/managers/inventory/finishing-transferin-accessories-manager')
     },
     core: {
-        ModuleManager: require('./src/core/module-manager')
+        ModuleManager: require('./src/managers/core/module-manager')
     },
     ValidationError: require('./src/validation-error')
 }
