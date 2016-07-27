@@ -1,3 +1,15 @@
+var inventoryMap = new Map();
+inventoryMap.set("storage", require('./src/managers/inventory/storage-manager'));
+inventoryMap.set("transfer-in-doc", require('./src/managers/inventory/transfer-in-doc-manager'));
+inventoryMap.set("transfer-out-doc", require('./src/managers/inventory/transfer-out-doc-manager'));
+inventoryMap.set("inventory", require('./src/managers/inventory/inventory-manager'));
+inventoryMap.set("inventory-movement", require('./src/managers/inventory/inventory-movement-manager'));
+inventoryMap.set("acc-out-fin", require('./src/managers/inventory/acc-out-fin-manager'));
+inventoryMap.set("fin-in-acc", require('./src/managers/inventory/fin-in-acc-manager'));
+inventoryMap.set("fin-out-pus", require('./src/managers/inventory/fin-out-pus-manager'));
+inventoryMap.set("pus-in-fin", require('./src/managers/inventory/pus-in-fin-manager'));
+
+
 module.exports = {
     article: {
         ArticleBrandManager: require('./src/managers/article/article-brand-manager'),
@@ -14,13 +26,16 @@ module.exports = {
         ArticleVariantManager: require('./src/managers/article/article-variant-manager')
     },
     inventory: {
-        StorageManager: require('./src/managers/inventory/storage-manager'),
-        TransferInDocManager: require('./src/managers/inventory/transfer-in-doc-manager'),
-        TransferOutDocManager: require('./src/managers/inventory/transfer-out-doc-manager'),
-        InventoryManager: require('./src/managers/inventory/inventory-manager'),
-        InventoryMovementManager: require('./src/managers/inventory/inventory-movement-manager'),
-        AccessoryTransferOutFinishingManager: require('./src/managers/inventory/accessories-transferout-finishing-manager'),
-        FinishingTransferInAccessoryManager: require('./src/managers/inventory/finishing-transferin-accessories-manager')
+        StorageManager: inventoryMap.get("storage"),
+        TransferInDocManager: inventoryMap.get("transfer-in-doc"),
+        TransferOutDocManager: inventoryMap.get("transfer-out-doc"),
+        InventoryManager: inventoryMap.get("inventory"),
+        InventoryMovementManager: inventoryMap.get("inventory-movement"),
+        AccessoryTransferOutFinishingManager: inventoryMap.get("acc-out-fin"),
+        FinishingTransferInAccessoryManager: inventoryMap.get("fin-in-acc"),
+        FinishingTransferOutDocPusatManager: inventoryMap.get("fin-out-pus"),
+        PusatTransferInDocFinishingManager: inventoryMap.get("pus-in-fin"),
+        map: inventoryMap
     },
     core: {
         ModuleManager: require('./src/managers/core/module-manager')

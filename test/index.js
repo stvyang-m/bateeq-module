@@ -19,14 +19,15 @@ describe('#bateeq-module', function(done) {
     test('@manager/article-type-manager', './managers/article-type-manager-test');
     test('@manager/article-manager', './managers/article-manager-test');
     test('@manager/article-variant-manager', './managers/article-variant-manager-test');
+    
     test('@manager/storage-manager', './managers/storage-manager-test');
     test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
     test('@manager/transfer-out-doc-manager', './managers/transfer-out-doc-manager-test');
     test('@manager/inventory-manager', './managers/inventory-manager-test');
     test('@manager/module-manager', './managers/module-manager-test'); 
-    test('@manager/accessories-transferout-finishing-manager', './managers/accessories-transferout-finishing-manager-test');
-    test('@manager/finishing-transferin-accessories-manager', './managers/finishing-transferin-accessories-manager-test');
-    test('@manager/finishing-transfer-out-pusat-manager', './managers/finishing-transfer-out-pusat-manager-test');
-    test('@manager/pusat-transfer-in-finishing-manager', './managers/pusat-transfer-in-finishing-manager-test');
+    test('@manager/acc-out-fin-manager', './managers/accessories-transferout-finishing-manager-test');
+    test('@manager/fin-in-acc-manager', './managers/finishing-transferin-accessories-manager-test');
+    test('@manager/fin-out-pus-manager', './managers/finishing-transfer-out-pusat-manager-test');
+    test('@manager/pus-in-fin-manager', './managers/pusat-transfer-in-finishing-manager-test');
 
 })
