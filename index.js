@@ -7,7 +7,11 @@ inventoryMap.set("inventory-movement", require('./src/managers/inventory/invento
 inventoryMap.set("acc-out-fin", require('./src/managers/inventory/acc-out-fin-manager'));
 inventoryMap.set("fin-in-acc", require('./src/managers/inventory/fin-in-acc-manager'));
 inventoryMap.set("fin-out-pus", require('./src/managers/inventory/fin-out-pus-manager'));
-inventoryMap.set("pus-in-fin", require('./src/managers/inventory/pus-in-fin-manager'));
+inventoryMap.set("pus-in-fin", require('./src/managers/inventory/pus-in-fin-manager'));  
+inventoryMap.set("acc-in-fin", require('./src/managers/inventory/acc-in-fin-manager'));
+inventoryMap.set("fin-out-acc", require('./src/managers/inventory/fin-out-acc-manager'));
+inventoryMap.set("fin-in-pus", require('./src/managers/inventory/fin-in-pus-manager'));
+inventoryMap.set("pus-out-fin", require('./src/managers/inventory/pus-out-fin-manager'));
 
 
 module.exports = {
