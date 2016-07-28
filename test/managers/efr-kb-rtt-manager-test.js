@@ -30,8 +30,8 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var PusatTransferOutFinishingManager = require('../../src/managers/inventory/pus-out-fin-manager');
-            manager = new PusatTransferOutFinishingManager(db, {
+            var TokoTransferStokManager = require('../../src/managers/inventory/efr-kb-rtt-manager');
+            manager = new TokoTransferStokManager(db, {
                 username: 'unit-test'
             });
             done();
@@ -130,7 +130,7 @@ it('#07. should error with property items minimum one', function (done) {
             done("Should not be error with property items minimum one");
         })
         .catch(e => {
-            try { 
+            try {  
                 e.errors.should.have.property('items');
                 e.errors.items.should.String();
                 done();

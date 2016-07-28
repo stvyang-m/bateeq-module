@@ -8,17 +8,16 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var TransferInDoc = BateeqModels.inventory.TransferInDoc;
-var TransferInItem = BateeqModels.inventory.TransferInItem;
+var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
+var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
-const moduleId = "ACCTIFIN";
+var moduleId = "PUSTOFIN";
 
-module.exports = class AccessoriesTransferInFinishingManager {
+module.exports = class TokoKirimBarangReturnManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
-
+        this.transferOutDocCollection = this.db.use(map.inventory.TransferOutDoc);
         var StorageManager = require('./storage-manager');
         this.storageManager = new StorageManager(db, user);
 
@@ -28,8 +27,8 @@ module.exports = class AccessoriesTransferInFinishingManager {
         var InventoryManager = require('./inventory-manager');
         this.inventoryManager = new InventoryManager(db, user);
 
-        var TransferInDocManager = require('./transfer-in-doc-manager');
-        this.transferInDocManager = new TransferInDocManager(db, user);
+        var TransferOutDocManager = require('./transfer-out-doc-manager');
+        this.transferOutDocManager = new TransferOutDocManager(db, user);
 
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db, user);
@@ -69,20 +68,19 @@ module.exports = class AccessoriesTransferInFinishingManager {
             }
 
 
-            this.transferInDocCollection
+            this.transferOutDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(transferInDocs => {
-                    resolve(transferInDocs);
+                .then(transferOutDocs => {
+                    resolve(transferOutDocs);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
     }
-
 
     getById(id) {
         return new Promise((resolve, reject) => {
@@ -91,16 +89,14 @@ module.exports = class AccessoriesTransferInFinishingManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
     }
-
-
 
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
@@ -109,8 +105,8 @@ module.exports = class AccessoriesTransferInFinishingManager {
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -120,10 +116,10 @@ module.exports = class AccessoriesTransferInFinishingManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.transferInDocCollection
+            this.transferOutDocCollection
                 .single(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -133,10 +129,10 @@ module.exports = class AccessoriesTransferInFinishingManager {
 
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.transferInDocCollection
+            this.transferOutDocCollection
                 .singleOrDefault(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -144,31 +140,24 @@ module.exports = class AccessoriesTransferInFinishingManager {
         })
     }
 
-    create(transferInDoc) {
+    create(transferOutDoc) {
         return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-
+            this._validate(transferOutDoc)
+                .then(validTransferOutDoc => {
                     var now = new Date();
                     var year = now.getFullYear();
                     var month = now.getMonth() + 1;
-
                     this.moduleSeedManager
                         .getModuleSeed(moduleId, year, month)
                         .then(moduleSeed => {
-
                             var number = ++moduleSeed.seed;
                             var zero = 4 - number.toString().length + 1;
                             var runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
-
                             zero = 2 - month.toString().length + 1;
                             var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
-
-                            validTransferInDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
-
-                            this.transferInDocManager.create(validTransferInDoc)
+                            validTransferOutDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
+                            this.transferOutDocManager.create(validTransferOutDoc)
                                 .then(id => {
-
                                     this.moduleSeedManager
                                         .update(moduleSeed)
                                         .then(seedId => {
@@ -192,11 +181,30 @@ module.exports = class AccessoriesTransferInFinishingManager {
         });
     }
 
-    update(transferInDoc) {
+    update(transferOutDoc) {
         return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    this.transferInDocManager.update(validTransferInDoc)
+            this._validate(transferOutDoc)
+                .then(validTransferOutDoc => {
+                    this.transferOutDocManager.update(validTransferOutDoc)
+                        .then(id => {
+                            resolve(id);
+                        })
+                        .catch(ex => {
+                            reject(ex);
+                        })
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
+    }
+
+    delete(transferOutDoc) {
+        return new Promise((resolve, reject) => {
+            this._validate(transferOutDoc)
+                .then(validTransferOutDoc => {
+                    validTransferOutDoc._deleted = true;
+                    this.transferOutDocManager.update(validTransferOutDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -210,35 +218,14 @@ module.exports = class AccessoriesTransferInFinishingManager {
         });
     }
 
-    delete(transferInDoc) {
+    _validate(transferOutDoc) {
         return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    validTransferInDoc._deleted = true;
-                    this.transferInDocManager.update(validTransferInDoc)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    _validate(transferInDoc) {
-        return new Promise((resolve, reject) => {
-            var valid = transferInDoc;
+            var valid = transferOutDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-
                     var config = module.config;
                     valid.sourceId = config.sourceId;
                     valid.destinationId = config.destinationId;
-
                     resolve(valid);
                 })
                 .catch(e => {
@@ -246,6 +233,4 @@ module.exports = class AccessoriesTransferInFinishingManager {
                 });
         });
     }
-
-
-};
+}; 

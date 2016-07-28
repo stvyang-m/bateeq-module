@@ -30,8 +30,8 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var FinishingTransferOutDocPusatManager = require('../../src/managers/inventory/fin-out-pus-manager');
-            manager = new FinishingTransferOutDocPusatManager(db, {
+            var PusatReturTokoKirimBarangReturManager = require('../../src/managers/inventory/efr-kb-rtf-manager');
+            manager = new PusatReturTokoKirimBarangReturManager(db, {
                 username: 'unit-test'
             });
             done();

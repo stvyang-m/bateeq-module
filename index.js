@@ -3,15 +3,15 @@ inventoryMap.set("storage", require('./src/managers/inventory/storage-manager'))
 inventoryMap.set("transfer-in-doc", require('./src/managers/inventory/transfer-in-doc-manager'));
 inventoryMap.set("transfer-out-doc", require('./src/managers/inventory/transfer-out-doc-manager'));
 inventoryMap.set("inventory", require('./src/managers/inventory/inventory-manager'));
-inventoryMap.set("inventory-movement", require('./src/managers/inventory/inventory-movement-manager'));
-inventoryMap.set("acc-out-fin", require('./src/managers/inventory/acc-out-fin-manager'));
-inventoryMap.set("fin-in-acc", require('./src/managers/inventory/fin-in-acc-manager'));
-inventoryMap.set("fin-out-pus", require('./src/managers/inventory/fin-out-pus-manager'));
-inventoryMap.set("pus-in-fin", require('./src/managers/inventory/pus-in-fin-manager'));  
-inventoryMap.set("acc-in-fin", require('./src/managers/inventory/acc-in-fin-manager'));
-inventoryMap.set("fin-out-acc", require('./src/managers/inventory/fin-out-acc-manager'));
-inventoryMap.set("fin-in-pus", require('./src/managers/inventory/fin-in-pus-manager'));
-inventoryMap.set("pus-out-fin", require('./src/managers/inventory/pus-out-fin-manager'));
+inventoryMap.set("inventory-movement", require('./src/managers/inventory/inventory-movement-manager')); 
+inventoryMap.set("efr-kb-rtt", require('./src/managers/inventory/efr-kb-rtt-manager')); 
+inventoryMap.set("efr-tb-acc", require('./src/managers/inventory/efr-tb-acc-manager')); 
+inventoryMap.set("efr-kb-fng", require('./src/managers/inventory/efr-kb-fng-manager'));
+inventoryMap.set("efr-tb-bjb", require('./src/managers/inventory/efr-tb-bjb-manager'));
+inventoryMap.set("efr-tb-bcd", require('./src/managers/inventory/efr-tb-bcd-manager'));
+inventoryMap.set("efr-kb-rtf", require('./src/managers/inventory/efr-kb-rtf-manager'));
+inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager')); 
+inventoryMap.set("efr-kb-rtp", require('./src/managers/inventory/efr-kb-rtp-manager')); 
 
 
 module.exports = {

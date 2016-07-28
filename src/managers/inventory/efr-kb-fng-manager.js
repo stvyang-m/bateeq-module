@@ -11,9 +11,9 @@ var map = BateeqModels.map;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
-const moduleId = "ACCTOFIN";
+var moduleId = "FINTOPUS";
 
-module.exports = class AccessoryTransferOutFinishingManager {
+module.exports = class FinishingKirimBarangBaruManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
@@ -27,11 +27,15 @@ module.exports = class AccessoryTransferOutFinishingManager {
         var InventoryManager = require('./inventory-manager');
         this.inventoryManager = new InventoryManager(db, user);
 
-        var TrasferOutManager = require('./transfer-out-doc-manager');
-        this.transferOutDocManager = new TrasferOutManager(db, user);
+        var TransferOutDocManager = require('./transfer-out-doc-manager');
+        this.transferOutDocManager = new TransferOutDocManager(db, user);
 
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db, user);
+
+        var ModuleSeedManager = require('../core/module-seed-manager');
+        this.moduleSeedManager = new ModuleSeedManager(db, user);
+
     }
 
     read(paging) {
@@ -141,13 +145,36 @@ module.exports = class AccessoryTransferOutFinishingManager {
         return new Promise((resolve, reject) => {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
-                    this.transferOutDocManager.create(validTransferOutDoc)
-                        .then(id => {
-                            resolve(id);
+                    var now = new Date();
+                    var year = now.getFullYear();
+                    var month = now.getMonth() + 1;
+                    this.moduleSeedManager
+                        .getModuleSeed(moduleId, year, month)
+                        .then(moduleSeed => {
+                            var number = ++moduleSeed.seed;
+                            var zero = 4 - number.toString().length + 1;
+                            var runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
+                            zero = 2 - month.toString().length + 1;
+                            var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
+                            validTransferOutDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
+                            this.transferOutDocManager.create(validTransferOutDoc)
+                                .then(id => {
+                                    this.moduleSeedManager
+                                        .update(moduleSeed)
+                                        .then(seedId => {
+                                            resolve(id);
+                                        })
+                                        .catch(e => {
+                                            reject(e);
+                                        })
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                })
                         })
-                        .catch(ex => {
-                            reject(ex);
-                        })
+                        .catch(e => {
+                            reject(e);
+                        });
                 })
                 .catch(e => {
                     reject(e);
@@ -163,8 +190,8 @@ module.exports = class AccessoryTransferOutFinishingManager {
                         .then(id => {
                             resolve(id);
                         })
-                        .catch(ex => {
-                            reject(ex);
+                        .catch(e => {
+                            reject(e);
                         })
                 })
                 .catch(e => {
@@ -173,7 +200,7 @@ module.exports = class AccessoryTransferOutFinishingManager {
         });
     }
 
-   delete(transferOutDoc) {
+    delete(transferOutDoc) {
         return new Promise((resolve, reject) => {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
@@ -197,16 +224,9 @@ module.exports = class AccessoryTransferOutFinishingManager {
             var valid = transferOutDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-                    if (!valid._id) {
-                        var config = module.config;
-                        var now = new Date();
-                        var stamp = now / 1000 | 0;
-                        var code = stamp.toString(36);
-
-                        valid.code = `ACC-${code}-TO-FIN`;
-                        valid.sourceId = config.sourceId;
-                        valid.destinationId = config.destinationId;
-                    }
+                    var config = module.config;
+                    valid.sourceId = config.sourceId;
+                    valid.destinationId = config.destinationId;
                     resolve(valid);
                 })
                 .catch(e => {

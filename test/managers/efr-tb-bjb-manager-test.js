@@ -30,8 +30,8 @@ function getData() {
 before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
-            var AccessoriesTransferInFinishingManager = require('../../src/managers/inventory/acc-in-fin-manager');
-            manager = new AccessoriesTransferInFinishingManager(db, {
+            var PusatBarangBaruTerimaBarangBaruManager = require('../../src/managers/inventory/efr-tb-bjb-manager');
+            manager = new PusatBarangBaruTerimaBarangBaruManager(db, {
                 username: 'unit-test'
             });
             done();
