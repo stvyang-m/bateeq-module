@@ -11,7 +11,7 @@ var map = BateeqModels.map;
 var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
 
-const moduleId = "PUSTIFIN";
+const moduleId = "EFR-TB/SWG";
 module.exports = class BarangJadiPusatTerimaBarangJadiManager {
     constructor(db, user) {
         this.db = db;

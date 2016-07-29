@@ -11,7 +11,7 @@ var map = BateeqModels.map;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
-var moduleId = "PUSTOFIN";
+var moduleId = "EFR-KB/RTP";
 
 module.exports = class TokoKirimBarangReturnManager {
     constructor(db, user) {

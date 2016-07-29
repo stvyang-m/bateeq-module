@@ -11,7 +11,7 @@ var map = BateeqModels.map;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
-const moduleId = "FINTOACC";
+const moduleId = "EFR-KB/RTF";
 
 module.exports = class PusatReturTokoKirimBarangReturManager {
     constructor(db, user) {

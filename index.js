@@ -35,10 +35,6 @@ module.exports = {
         TransferOutDocManager: inventoryMap.get("transfer-out-doc"),
         InventoryManager: inventoryMap.get("inventory"),
         InventoryMovementManager: inventoryMap.get("inventory-movement"),
-        AccessoryTransferOutFinishingManager: inventoryMap.get("acc-out-fin"),
-        FinishingTransferInAccessoryManager: inventoryMap.get("fin-in-acc"),
-        FinishingTransferOutDocPusatManager: inventoryMap.get("fin-out-pus"),
-        PusatTransferInDocFinishingManager: inventoryMap.get("pus-in-fin"),
         map: inventoryMap
     },
     core: {
