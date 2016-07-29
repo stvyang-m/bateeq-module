@@ -11,7 +11,7 @@ var map = BateeqModels.map;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
-var moduleId = "FINTOPUS";
+var moduleId = "EFR-KB/FNG";
 
 module.exports = class FinishingKirimBarangBaruManager {
     constructor(db, user) {

@@ -11,7 +11,7 @@ var map = BateeqModels.map;
 var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
 
-const moduleId = "FINTIPUS";
+const moduleId = "EFR-TB/BJB";
 
 module.exports = class PusatBarangBaruTerimaBarangBaruManager {
     constructor(db, user) {

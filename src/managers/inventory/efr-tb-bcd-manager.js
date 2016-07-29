@@ -11,7 +11,7 @@ var map = BateeqModels.map;
 var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
 
-const moduleId = "ACCTIFIN";
+const moduleId = "EFR-TB/BCD";
 
 module.exports = class FinishingTerimaBarcodeManager {
     constructor(db, user) {

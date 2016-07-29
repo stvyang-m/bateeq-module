@@ -11,7 +11,7 @@ var map = BateeqModels.map;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
-const moduleId = "ACCTOFIN";
+const moduleId = "EFR-KB/RTT";
 
 module.exports = class TokoTransferStokManager {
     constructor(db, user) {
