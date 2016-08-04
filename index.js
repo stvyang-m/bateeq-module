@@ -19,20 +19,15 @@ inventoryMap.set("efr-tb-bcd", require('./src/managers/inventory/efr-tb-bcd-mana
 inventoryMap.set("efr-tb-bjb", require('./src/managers/inventory/efr-tb-bjb-manager'));
 inventoryMap.set("efr-tb-bjr", require('./src/managers/inventory/efr-tb-bjr-manager')); 
 inventoryMap.set("efr-tb-brd", require('./src/managers/inventory/efr-tb-brd-manager')); 
-inventoryMap.set("efr-tb-brt", require('./src/managers/inventory/efr-tb-brt-manager'));
-<<<<<<< HEAD
+inventoryMap.set("efr-tb-brt", require('./src/managers/inventory/efr-tb-brt-manager')); 
 inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager'));  
 inventoryMap.set("efr-pk-pbj", require('./src/managers/merchandisher/efr-pk-pbj-manager')); 
 inventoryMap.set("efr-pk-pbr", require('./src/managers/merchandisher/efr-pk-pbr-manager')); 
-inventoryMap.set("efr-pk-pba", require('./src/managers/merchandisher/efr-pk-pba-manager')); 
-
-
-=======
+inventoryMap.set("efr-pk-pba", require('./src/managers/merchandisher/efr-pk-pba-manager'));   
 inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager')); 
 inventoryMap.set("efr-tb-sab", require('./src/managers/inventory/efr-tb-sab-manager'));  
 inventoryMap.set("efr-hp-fng", require('./src/managers/inventory/efr-hp-fng-manager')); 
- 
->>>>>>> adf5afa0f57ca85b2c06bb527bd4a681b8396ca4
+  
 module.exports = {
     article: {
         ArticleBrandManager: require('./src/managers/article/article-brand-manager'),
