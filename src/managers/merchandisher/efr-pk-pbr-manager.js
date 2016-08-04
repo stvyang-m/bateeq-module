@@ -154,8 +154,7 @@ module.exports = class SPKBarangJadiReturManager {
                             var formatteddate = Array(+(zero > 0 && zero)).join("0") + date;
                             validSpkDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
                             validSpkDoc.packingList = `${runningNumber}/EFR-PL/PBR/${formattedMonth}/${year}`;
-                            validSpkDoc.password = `${runningNumber}${formatteddate}${formattedMonth}${year}`;
-                            validSpkDoc.log = 1;
+                            validSpkDoc.password = `${runningNumber}${formatteddate}${formattedMonth}${year}`; 
                             this.SPKDocCollection.insert(validSpkDoc)
                                 .then(id => {
                                     this.moduleSeedManager
