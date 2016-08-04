@@ -20,7 +20,10 @@ inventoryMap.set("efr-tb-bjb", require('./src/managers/inventory/efr-tb-bjb-mana
 inventoryMap.set("efr-tb-bjr", require('./src/managers/inventory/efr-tb-bjr-manager')); 
 inventoryMap.set("efr-tb-brd", require('./src/managers/inventory/efr-tb-brd-manager')); 
 inventoryMap.set("efr-tb-brt", require('./src/managers/inventory/efr-tb-brt-manager'));
-inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager')); 
+inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager'));  
+inventoryMap.set("efr-pk-pbj", require('./src/managers/merchandisher/efr-pk-pbj-manager')); 
+inventoryMap.set("efr-pk-pbr", require('./src/managers/merchandisher/efr-pk-pbr-manager')); 
+inventoryMap.set("efr-pk-pba", require('./src/managers/merchandisher/efr-pk-pba-manager')); 
 
 
 module.exports = {
@@ -48,6 +51,11 @@ module.exports = {
     },
     core: {
         ModuleManager: require('./src/managers/core/module-manager')
+    },
+    merchandisher: {
+        SPKBarangJadiManager: require('./src/managers/merchandisher/efr-pk-pbj-manager'),
+        SPKBarangEmbalaseManager: require('./src/managers/merchandisher/efr-pk-pba-manager'),
+        SPKBarangJadiReturManager: require('./src/managers/merchandisher/efr-pk-pbr-manager')
     },
     ValidationError: require('./src/validation-error')
 }
