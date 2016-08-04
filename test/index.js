@@ -29,11 +29,11 @@ describe('#bateeq-module', function (done) {
     // test('@manager/efr-kb-fng-manager', './managers/efr-kb-fng-manager-test');  
     // test('@manager/efr-kb-rtp-manager', './managers/efr-kb-rtp-manager-test');  
     // test('@manager/efr-kb-rtf-manager', './managers/efr-kb-rtf-manager-test');  
-     
+
     // test('@manager/efr-kb-rtd-manager', './managers/efr-kb-rtd-manager-test');  
     // test('@manager/efr-kb-exb-manager', './managers/efr-kb-exb-manager-test');  
     // test('@manager/efr-kb-exr-manager', './managers/efr-kb-exr-manager-test');  
-       
+
     // test('@manager/efr-tb-acc-manager', './managers/efr-tb-acc-manager-test');   
     // test('@manager/efr-tb-bat-manager', './managers/efr-tb-bat-manager-test');   
     // test('@manager/efr-tb-bbt-manager', './managers/efr-tb-bbt-manager-test');   
@@ -42,8 +42,13 @@ describe('#bateeq-module', function (done) {
     // test('@manager/efr-tb-bjr-manager', './managers/efr-tb-bjr-manager-test');   
     // test('@manager/efr-tb-brd-manager', './managers/efr-tb-brd-manager-test');  
     // test('@manager/efr-tb-brt-manager', './managers/efr-tb-brt-manager-test');  
-    // test('@manager/efr-tb-swg-manager', './managers/efr-tb-swg-manager-test');
+    // test('@manager/efr-tb-swg-manager', './managers/efr-tb-swg-manager-test'); 
+
+   // test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test');
+    test('@manager/efr-pk-pbj-manager', './managers/efr-pk-pbj-manager-test');
+    test('@manager/efr-pk-pba-manager', './managers/efr-pk-pba-manager-test');
+    test('@manager/efr-pk-pbr-manager', './managers/efr-pk-pbr-manager-test'); 
      
     // test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test'); 
-     test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test');  
+     test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test');   
 })
