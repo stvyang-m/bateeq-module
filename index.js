@@ -27,6 +27,7 @@ inventoryMap.set("efr-hp-fng", require('./src/managers/inventory/efr-hp-fng-mana
 
 var merchandiserMap = new Map();
 
+merchandiserMap.set("efr-pk", require('./src/managers/merchandiser/efr-pk-manager'));  
 merchandiserMap.set("efr-pk-pbj", require('./src/managers/merchandiser/efr-pk-pbj-manager')); 
 merchandiserMap.set("efr-pk-pbr", require('./src/managers/merchandiser/efr-pk-pbr-manager')); 
 merchandiserMap.set("efr-pk-pba", require('./src/managers/merchandiser/efr-pk-pba-manager'));  
@@ -59,6 +60,7 @@ module.exports = {
         ModuleManager: require('./src/managers/core/module-manager')
     },
     merchandiser: {
+        SPKManager: require('./src/managers/merchandiser/efr-pk-manager'),
         SPKBarangJadiManager: require('./src/managers/merchandiser/efr-pk-pbj-manager'),
         SPKBarangEmbalaseManager: require('./src/managers/merchandiser/efr-pk-pba-manager'),
         SPKBarangJadiReturManager: require('./src/managers/merchandiser/efr-pk-pbr-manager'),
