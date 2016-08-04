@@ -54,14 +54,17 @@ module.exports = class SPKBarangEmbalaseManager {
                         '$regex': regex
                     }
                 };
+                var filterPackingList = {
+                    'packingList': {
+                        '$regex': regex
+                    }
+                };
                 var $or = {
-                    '$or': [filterCode]
+                    '$or': [filterCode, filterPackingList]
                 };
 
                 query['$and'].push($or);
-            }
-
-
+            } 
             this.SPKDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
@@ -153,8 +156,8 @@ module.exports = class SPKBarangEmbalaseManager {
                             var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
                             var formatteddate = Array(+(zero > 0 && zero)).join("0") + date;
                             validSpkDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
-                            validSpkDoc.packingList = `${runningNumber}/EFR-PL/PBA/${formattedMonth}/${year}`;
-                            validSpkDoc.password = `${runningNumber}${formatteddate}${formattedMonth}${year}`; 
+                            validSpkDoc.packingList = `${runningNumber}/EFR-KB/PBA/${formattedMonth}/${year}`;
+                            validSpkDoc.password = `${runningNumber}${formatteddate}${formattedMonth}${year}`;
                             this.SPKDocCollection.insert(validSpkDoc)
                                 .then(id => {
                                     this.moduleSeedManager
@@ -248,6 +251,7 @@ module.exports = class SPKBarangEmbalaseManager {
         var errors = {};
         return new Promise((resolve, reject) => {
             var valid = spkDoc;
+
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
                     // 1. begin: Declare promises.
@@ -272,6 +276,7 @@ module.exports = class SPKBarangEmbalaseManager {
 
                     var getDestination = this.storageManager.getByIdOrDefault(valid.destinationId);
                     var getItems = [];
+                    
 
                     if (valid.items && valid.items.length > 0) {
                         for (var item of valid.items) {
@@ -287,7 +292,14 @@ module.exports = class SPKBarangEmbalaseManager {
                             var source = results[1];
                             var destination = results[2];
 
-
+                            if (valid._id=='') {
+                                var getSPKDoc= this.SPKDocCollection.where(valid._id);
+                                if (getSPKDoc.isDraft==0) 
+                                {
+                                     errors["isDraft"] = "this doc can not update because status not draft";
+                                } 
+                            }
+                            
                             if (!source) {
                                 errors["sourceId"] = "sourceId in storage is not found";
                             }

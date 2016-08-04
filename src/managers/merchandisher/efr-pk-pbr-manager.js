@@ -153,8 +153,8 @@ module.exports = class SPKBarangJadiReturManager {
                             var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
                             var formatteddate = Array(+(zero > 0 && zero)).join("0") + date;
                             validSpkDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
-                            validSpkDoc.packingList = `${runningNumber}/EFR-PL/PBR/${formattedMonth}/${year}`;
-                            validSpkDoc.password = `${runningNumber}${formatteddate}${formattedMonth}${year}`; 
+                            validSpkDoc.packingList = `${runningNumber}/EFR-KB/PBR/${formattedMonth}/${year}`;
+                            validSpkDoc.password = `${runningNumber}${formatteddate}${formattedMonth}${year}`;
                             this.SPKDocCollection.insert(validSpkDoc)
                                 .then(id => {
                                     this.moduleSeedManager
@@ -286,7 +286,14 @@ module.exports = class SPKBarangJadiReturManager {
                             var _spkDoc = results[0];
                             var source = results[1];
                             var destination = results[2];
-
+                            
+                            if (valid._id=='') {
+                                var getSPKDoc= this.SPKDocCollection.where(valid._id);
+                                if (getSPKDoc.isDraft==0) 
+                                {
+                                     errors["isDraft"] = "this doc can not update because status not draft";
+                                } 
+                            }
 
                             if (!source) {
                                 errors["sourceId"] = "sourceId in storage is not found";
