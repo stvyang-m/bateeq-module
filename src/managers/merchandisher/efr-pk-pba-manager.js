@@ -133,53 +133,7 @@ module.exports = class SPKBarangEmbalaseManager {
                 });
         })
     }
- 
-    
-    createDraft(spkDoc) {
-        return new Promise((resolve, reject) => {
-            this._validate(spkDoc)
-                .then(validSpkDoc => {
-                    var now = new Date();
-                    var year = now.getFullYear();
-                    var month = now.getMonth() + 1;
-                    var date = now.getDay();
-                    this.moduleSeedManager
-                        .getModuleSeed(moduleId, year, month)
-                        .then(moduleSeed => {
-                            var number = ++moduleSeed.seed;
-                            var zero = 4 - number.toString().length + 1;
-                            var runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
-                            zero = 2 - month.toString().length + 1;
-                            var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
-                            var formatteddate = Array(+(zero > 0 && zero)).join("0") + date;
-                            validSpkDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
-                            validSpkDoc.packingList = `${runningNumber}/EFR-PL/PBA/${formattedMonth}/${year}`;
-                            validSpkDoc.password = `${runningNumber}${formatteddate}${formattedMonth}${year}`;
-                            validSpkDoc.log = 0;
-                            this.SPKDocCollection.insert(validSpkDoc)
-                                .then(id => {
-                                    this.moduleSeedManager
-                                        .update(moduleSeed)
-                                        .then(seedId => {
-                                            resolve(id);
-                                        })
-                                        .catch(e => {
-                                            reject(e);
-                                        })
-                                })
-                                .catch(e => {
-                                    reject(e);
-                                })
-                        })
-                        .catch(e => {
-                            reject(e);
-                        });
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
+
 
     create(spkDoc) {
         return new Promise((resolve, reject) => {
@@ -226,11 +180,24 @@ module.exports = class SPKBarangEmbalaseManager {
                 })
         });
     }
-    
+
+    createDraft(spkDoc) {
+        return new Promise((resolve, reject) => {
+            spkDoc.isDraft = 1;
+            this.create(spkDoc)
+                .then(id => {
+                    resolve(id);
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
+    }
+
     updateDraft(spkDoc) {
         return new Promise((resolve, reject) => {
             this._validate(spkDoc)
-                .then(validSpkDoc => { 
+                .then(validSpkDoc => {
                     this.SPKDocCollection.update(validSpkDoc)
                         .then(id => {
                             resolve(id);
@@ -247,21 +214,16 @@ module.exports = class SPKBarangEmbalaseManager {
 
     update(spkDoc) {
         return new Promise((resolve, reject) => {
-            this._validate(spkDoc)
-                .then(validSpkDoc => {
-                    validSpkDoc.log=1;
-                    this.SPKDocCollection.update(validSpkDoc)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
+            spkDoc.isDraft = 0;
+            this.updateDraft(spkDoc)
+                .then(id => {
+                    resolve(id);
                 })
                 .catch(e => {
                     reject(e);
                 })
         });
+
     }
 
     delete(spkDoc) {
@@ -308,7 +270,7 @@ module.exports = class SPKBarangEmbalaseManager {
                     //     if (destination[i]==ObjectId(valid.destinationId))
                     //         getDestination = this.storageManager.getByIdOrDefault(valid.destinationId);
                     // }
-                    
+
                     var getDestination = this.storageManager.getByIdOrDefault(valid.destinationId);
                     var getItems = [];
 
@@ -326,7 +288,7 @@ module.exports = class SPKBarangEmbalaseManager {
                             var source = results[1];
                             var destination = results[2];
 
-                          
+
                             if (!source) {
                                 errors["sourceId"] = "sourceId in storage is not found";
                             }
@@ -335,7 +297,7 @@ module.exports = class SPKBarangEmbalaseManager {
                                 valid.source = source;
                             }
 
-                          
+
                             if (!destination) {
                                 errors["destinationId"] = "destinationId in storage is not found";
                             }
@@ -343,7 +305,7 @@ module.exports = class SPKBarangEmbalaseManager {
                                 valid.destinationId = destination._id;
                                 valid.destination = destination;
                             }
-                            
+
                             var articleVariants = results.slice(3, results.length)
                             // 2a. begin: Validate error on item level.
                             if (articleVariants.length > 0) {
