@@ -44,6 +44,6 @@ describe('#bateeq-module', function (done) {
     // test('@manager/efr-tb-brt-manager', './managers/efr-tb-brt-manager-test');  
     // test('@manager/efr-tb-swg-manager', './managers/efr-tb-swg-manager-test');
      
-     test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test'); 
-    
+    // test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test'); 
+     test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test');  
 })

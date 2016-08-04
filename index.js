@@ -21,8 +21,9 @@ inventoryMap.set("efr-tb-bjr", require('./src/managers/inventory/efr-tb-bjr-mana
 inventoryMap.set("efr-tb-brd", require('./src/managers/inventory/efr-tb-brd-manager')); 
 inventoryMap.set("efr-tb-brt", require('./src/managers/inventory/efr-tb-brt-manager'));
 inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager')); 
-
-
+inventoryMap.set("efr-tb-sab", require('./src/managers/inventory/efr-tb-sab-manager'));  
+inventoryMap.set("efr-hp-fng", require('./src/managers/inventory/efr-hp-fng-manager')); 
+ 
 module.exports = {
     article: {
         ArticleBrandManager: require('./src/managers/article/article-brand-manager'),
@@ -44,6 +45,7 @@ module.exports = {
         TransferOutDocManager: inventoryMap.get("transfer-out-doc"),
         InventoryManager: inventoryMap.get("inventory"),
         InventoryMovementManager: inventoryMap.get("inventory-movement"),
+        FinishedGoodsManager: inventoryMap.get("efr-hp-fng"),
         map: inventoryMap
     },
     core: {
