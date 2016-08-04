@@ -21,7 +21,7 @@ function getData() {
 before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
-            var SPKBarangJadiReturManager = require('../../src/managers/merchandisher/efr-pk-pbr-manager');
+            var SPKBarangJadiReturManager = require('../../src/managers/merchandiser/efr-pk-pbr-manager');
             manager = new SPKBarangJadiReturManager(db, {
                 username: 'unit-test'
             });
