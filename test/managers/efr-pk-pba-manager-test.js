@@ -21,7 +21,7 @@ function getData() {
 before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
-            var SPKBarangEmbalaseManager = require('../../src/managers/merchandisher/efr-pk-pba-manager');
+            var SPKBarangEmbalaseManager = require('../../src/managers/merchandiser/efr-pk-pba-manager');
             manager = new SPKBarangEmbalaseManager(db, {
                 username: 'unit-test'
             });

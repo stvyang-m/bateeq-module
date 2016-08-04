@@ -20,14 +20,17 @@ inventoryMap.set("efr-tb-bjb", require('./src/managers/inventory/efr-tb-bjb-mana
 inventoryMap.set("efr-tb-bjr", require('./src/managers/inventory/efr-tb-bjr-manager')); 
 inventoryMap.set("efr-tb-brd", require('./src/managers/inventory/efr-tb-brd-manager')); 
 inventoryMap.set("efr-tb-brt", require('./src/managers/inventory/efr-tb-brt-manager')); 
-inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager'));  
-inventoryMap.set("efr-pk-pbj", require('./src/managers/merchandisher/efr-pk-pbj-manager')); 
-inventoryMap.set("efr-pk-pbr", require('./src/managers/merchandisher/efr-pk-pbr-manager')); 
-inventoryMap.set("efr-pk-pba", require('./src/managers/merchandisher/efr-pk-pba-manager'));   
+inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager'));   
 inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager')); 
 inventoryMap.set("efr-tb-sab", require('./src/managers/inventory/efr-tb-sab-manager'));  
 inventoryMap.set("efr-hp-fng", require('./src/managers/inventory/efr-hp-fng-manager')); 
-  
+
+var merchandiserMap = new Map();
+
+merchandiserMap.set("efr-pk-pbj", require('./src/managers/merchandiser/efr-pk-pbj-manager')); 
+merchandiserMap.set("efr-pk-pbr", require('./src/managers/merchandiser/efr-pk-pbr-manager')); 
+merchandiserMap.set("efr-pk-pba", require('./src/managers/merchandiser/efr-pk-pba-manager'));  
+
 module.exports = {
     article: {
         ArticleBrandManager: require('./src/managers/article/article-brand-manager'),
@@ -55,10 +58,11 @@ module.exports = {
     core: {
         ModuleManager: require('./src/managers/core/module-manager')
     },
-    merchandisher: {
-        SPKBarangJadiManager: require('./src/managers/merchandisher/efr-pk-pbj-manager'),
-        SPKBarangEmbalaseManager: require('./src/managers/merchandisher/efr-pk-pba-manager'),
-        SPKBarangJadiReturManager: require('./src/managers/merchandisher/efr-pk-pbr-manager')
+    merchandiser: {
+        SPKBarangJadiManager: require('./src/managers/merchandiser/efr-pk-pbj-manager'),
+        SPKBarangEmbalaseManager: require('./src/managers/merchandiser/efr-pk-pba-manager'),
+        SPKBarangJadiReturManager: require('./src/managers/merchandiser/efr-pk-pbr-manager'),
+        map:merchandiserMap
     },
     ValidationError: require('./src/validation-error')
 }
