@@ -42,10 +42,13 @@ describe('#bateeq-module', function (done) {
     // test('@manager/efr-tb-bjr-manager', './managers/efr-tb-bjr-manager-test');   
     // test('@manager/efr-tb-brd-manager', './managers/efr-tb-brd-manager-test');  
     // test('@manager/efr-tb-brt-manager', './managers/efr-tb-brt-manager-test');  
-    // test('@manager/efr-tb-swg-manager', './managers/efr-tb-swg-manager-test');
+    // test('@manager/efr-tb-swg-manager', './managers/efr-tb-swg-manager-test'); 
 
    // test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test');
     test('@manager/efr-pk-pbj-manager', './managers/efr-pk-pbj-manager-test');
     test('@manager/efr-pk-pba-manager', './managers/efr-pk-pba-manager-test');
-    test('@manager/efr-pk-pbr-manager', './managers/efr-pk-pbr-manager-test');
+    test('@manager/efr-pk-pbr-manager', './managers/efr-pk-pbr-manager-test'); 
+     
+    // test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test'); 
+     test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test');   
 })
