@@ -47,11 +47,17 @@ module.exports = class FinishingTerimaKomponenManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
+            var regexModuleId = new RegExp(moduleId, "i");
+            var filterCodeModuleId = {
+                'code': {
+                    '$regex': regexModuleId
+                }
+            }; 
             var deleted = {
                 _deleted: false
             };
             var query = _paging.keyword ? {
-                '$and': [deleted]
+                '$and': [filterCodeModuleId, deleted]
             } : deleted;
 
             if (_paging.keyword) {

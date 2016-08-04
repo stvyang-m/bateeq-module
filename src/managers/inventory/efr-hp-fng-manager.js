@@ -222,7 +222,7 @@ module.exports = class FinishedGoodsManager {
                              
                             //Create Transfer Out
                             var validTransferOutDoc = {};
-                            validTransferOutDoc.code = codeTransferIn;
+                            validTransferOutDoc.code = codeTransferOut;
                             validTransferOutDoc.reference = codeFinishedGood;
                             validTransferOutDoc.sourceId = finishedGoodDoc.sourceId;
                             validTransferOutDoc.destinationId = finishedGoodDoc.destinationId;

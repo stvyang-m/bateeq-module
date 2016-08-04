@@ -54,6 +54,7 @@ module.exports = {
         InventoryManager: inventoryMap.get("inventory"),
         InventoryMovementManager: inventoryMap.get("inventory-movement"),
         FinishedGoodsManager: inventoryMap.get("efr-hp-fng"),
+        ExpeditionsManager: inventoryMap.get("efr-kb-exb"),
         map: inventoryMap
     },
     core: {
