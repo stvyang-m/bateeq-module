@@ -8,8 +8,8 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var SPKDoc = BateeqModels.merchandisher.SPK;
-var SPKItem = BateeqModels.merchandisher.SPKItem;
+var SPKDoc = BateeqModels.merchandiser.SPK;
+var SPKItem = BateeqModels.merchandiser.SPKItem;
 
 var moduleId = "EFR-PK/PBR";
 
@@ -17,11 +17,11 @@ module.exports = class SPKBarangJadiReturManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.SPKDocCollection = this.db.use(map.merchandisher.SPKDoc);
+        this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
         var StorageManager = require('../inventory/storage-manager');
         this.storageManager = new StorageManager(db, user);
 
-        var ArticleVariantManager = require('../article/article-variant-manager');
+        var ArticleVariantManager = require('../core/article/article-variant-manager');
         this.articleVariantManager = new ArticleVariantManager(db, user);
 
         var ModuleManager = require('../core/module-manager');
@@ -182,7 +182,7 @@ module.exports = class SPKBarangJadiReturManager {
 
     createDraft(spkDoc) {
         return new Promise((resolve, reject) => {
-            spkDoc.isDraft = 1;
+            spkDoc.isDraft = true;
             this.create(spkDoc)
                 .then(id => {
                     resolve(id);
@@ -193,7 +193,7 @@ module.exports = class SPKBarangJadiReturManager {
         });
     }
 
-    updateDraft(spkDoc) {
+    update(spkDoc) {
         return new Promise((resolve, reject) => {
             this._validate(spkDoc)
                 .then(validSpkDoc => {
@@ -211,10 +211,24 @@ module.exports = class SPKBarangJadiReturManager {
         });
     }
 
-    update(spkDoc) {
+    updateDraft(spkDoc) {
         return new Promise((resolve, reject) => {
-            spkDoc.isDraft = 0;
-            this.updateDraft(spkDoc)
+            spkDoc.isDraft = true;
+            this.update(spkDoc)
+                .then(id => {
+                    resolve(id);
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
+
+    }
+    
+    updateNotDraft(spkDoc) {
+        return new Promise((resolve, reject) => {
+            spkDoc.isDraft = false;
+            this.update(spkDoc)
                 .then(id => {
                     resolve(id);
                 })

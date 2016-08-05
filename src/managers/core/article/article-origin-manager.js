@@ -8,29 +8,29 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.article.ArticleApproval;
-var ArticleBrand = BateeqModels.article.ArticleBrand;
-var ArticleCategory = BateeqModels.article.ArticleCategory;
-var ArticleColor = BateeqModels.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.article.ArticleCostCalculation;
-var ArticleCounter = BateeqModels.article.ArticleCounter;
-var ArticleMaterial = BateeqModels.article.ArticleMaterial;
-var ArticleMotif = BateeqModels.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.article.ArticleSeason;
-var ArticleSize = BateeqModels.article.ArticleSize;
-var ArticleSubCounter = BateeqModels.article.ArticleSubCounter;
-var ArticleTheme = BateeqModels.article.ArticleTheme;
-var ArticleType = BateeqModels.article.ArticleType;
-var ArticleVariant = BateeqModels.article.ArticleVariant;
-var Article = BateeqModels.article.Article;
+var ArticleApproval = BateeqModels.core.article.ArticleApproval;
+var ArticleBrand = BateeqModels.core.article.ArticleBrand;
+var ArticleCategory = BateeqModels.core.article.ArticleCategory;
+var ArticleColor = BateeqModels.core.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.core.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.core.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.core.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.core.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.core.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.core.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.core.article.ArticleSeason;
+var ArticleSize = BateeqModels.core.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.core.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.core.article.ArticleTheme;
+var ArticleType = BateeqModels.core.article.ArticleType;
+var ArticleVariant = BateeqModels.core.article.ArticleVariant;
+var Article = BateeqModels.core.article.Article;
 
 module.exports = class ArticleOriginManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleOriginCollection = this.db.use(map.article.ArticleOrigin);
+        this.articleOriginCollection = this.db.use(map.core.article.ArticleOrigin);
     }
 
     read(paging) {
@@ -84,9 +84,9 @@ module.exports = class ArticleOriginManager {
     }
 
     getById(id) {
-        if (id === '')
-            resolve(null);
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
@@ -102,9 +102,9 @@ module.exports = class ArticleOriginManager {
     }
 
     getByIdOrDefault(id) {
-        if (id === '')
-            resolve(null);
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
@@ -212,8 +212,8 @@ module.exports = class ArticleOriginManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: valid.code
+                }]
             });
             //1. end:Declare promises.
 
@@ -233,7 +233,7 @@ module.exports = class ArticleOriginManager {
 
                     // 2a. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
+                        var ValidationError = require('../../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 

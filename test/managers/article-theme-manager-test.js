@@ -4,7 +4,7 @@ var validate = require('bateeq-models').validator.article;
 var manager;
 
 function getData() {
-    var ArticleTheme = require('bateeq-models').article.ArticleTheme;
+    var ArticleTheme = require('bateeq-models').core.article.ArticleTheme;
     var articleTheme = new ArticleTheme();
 
     var now = new Date();
@@ -21,7 +21,7 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var ArticleThemeManager = require('../../src/managers/article/article-theme-manager');
+            var ArticleThemeManager = require('../../src/managers/core/article/article-theme-manager');
             manager = new ArticleThemeManager(db, {
                 username: 'unit-test'
             });
@@ -124,8 +124,13 @@ it('#07. should error when create new data with same code', function(done) {
             done("Should not be able to create data with same code");
         })
         .catch(e => {
-            e.errors.should.have.property('code');
-            done();
+            try {
+                e.errors.should.have.property('code');
+                done();
+            }
+            catch (e) {
+                done(e);
+            }
         })
 });
 

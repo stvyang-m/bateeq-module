@@ -8,30 +8,29 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.article.ArticleApproval;
-var ArticleBrand = BateeqModels.article.ArticleBrand;
-var ArticleCategory = BateeqModels.article.ArticleCategory;
-var ArticleColor = BateeqModels.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.article.ArticleCostCalculation;
-var ArticleCounter = BateeqModels.article.ArticleCounter;
-var ArticleMaterial = BateeqModels.article.ArticleMaterial;
-var ArticleMotif = BateeqModels.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.article.ArticleSeason;
-var ArticleSize = BateeqModels.article.ArticleSize;
-var ArticleSubCounter = BateeqModels.article.ArticleSubCounter;
-var ArticleTheme = BateeqModels.article.ArticleTheme;
-var ArticleType = BateeqModels.article.ArticleType;
-var ArticleVariant = BateeqModels.article.ArticleVariant;
-var Article = BateeqModels.article.Article;
+var ArticleApproval = BateeqModels.core.article.ArticleApproval;
+var ArticleBrand = BateeqModels.core.article.ArticleBrand;
+var ArticleCategory = BateeqModels.core.article.ArticleCategory;
+var ArticleColor = BateeqModels.core.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.core.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.core.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.core.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.core.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.core.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.core.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.core.article.ArticleSeason;
+var ArticleSize = BateeqModels.core.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.core.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.core.article.ArticleTheme;
+var ArticleType = BateeqModels.core.article.ArticleType;
+var ArticleVariant = BateeqModels.core.article.ArticleVariant;
+var Article = BateeqModels.core.article.Article;
 
-module.exports = class ArticleManager {
+module.exports = class ArticleMaterialManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleCollection = this.db.use(map.article.Article);
-        this.articleApprovalCollection = this.db.use(map.article.ArticleApproval);
+        this.articleMaterialCollection = this.db.use(map.core.article.ArticleMaterial);
     }
 
     read(paging) {
@@ -70,13 +69,13 @@ module.exports = class ArticleManager {
             }
 
 
-            this.articleCollection
+            this.articleMaterialCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articles => {
-                    resolve(articles);
+                .then(articleMaterials => {
+                    resolve(articleMaterials);
                 })
                 .catch(e => {
                     reject(e);
@@ -93,8 +92,8 @@ module.exports = class ArticleManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(article => {
-                    resolve(article);
+                .then(articleMaterial => {
+                    resolve(articleMaterial);
                 })
                 .catch(e => {
                     reject(e);
@@ -111,8 +110,8 @@ module.exports = class ArticleManager {
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
-                .then(article => {
-                    resolve(article);
+                .then(articleMaterial => {
+                    resolve(articleMaterial);
                 })
                 .catch(e => {
                     reject(e);
@@ -122,23 +121,22 @@ module.exports = class ArticleManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleCollection
+            this.articleMaterialCollection
                 .single(query)
-                .then(article => {
-                    resolve(article);
+                .then(articleMaterial => {
+                    resolve(articleMaterial);
                 })
                 .catch(e => {
                     reject(e);
                 });
         })
     }
-
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleCollection
+            this.articleMaterialCollection
                 .singleOrDefault(query)
-                .then(article => {
-                    resolve(article);
+                .then(articleMaterial => {
+                    resolve(articleMaterial);
                 })
                 .catch(e => {
                     reject(e);
@@ -146,12 +144,12 @@ module.exports = class ArticleManager {
         })
     }
 
-    create(article) {
+    create(articleMaterial) {
         return new Promise((resolve, reject) => {
-            this._validate(article)
-                .then(validArticle => {
+            this._validate(articleMaterial)
+                .then(validArticleMaterial => {
 
-                    this.articleCollection.insert(validArticle)
+                    this.articleMaterialCollection.insert(validArticleMaterial)
                         .then(id => {
                             resolve(id);
                         })
@@ -165,11 +163,11 @@ module.exports = class ArticleManager {
         });
     }
 
-    update(article) {
+    update(articleMaterial) {
         return new Promise((resolve, reject) => {
-            this._validate(article)
-                .then(validArticle => {
-                    this.articleCollection.update(validArticle)
+            this._validate(articleMaterial)
+                .then(validArticleMaterial => {
+                    this.articleMaterialCollection.update(validArticleMaterial)
                         .then(id => {
                             resolve(id);
                         })
@@ -183,12 +181,12 @@ module.exports = class ArticleManager {
         });
     }
 
-    delete(article) {
+    delete(articleMaterial) {
         return new Promise((resolve, reject) => {
-            this._validate(article)
-                .then(validArticle => {
-                    validArticle._deleted = true;
-                    this.articleCollection.update(validArticle)
+            this._validate(articleMaterial)
+                .then(validArticleMaterial => {
+                    validArticleMaterial._deleted = true;
+                    this.articleMaterialCollection.update(validArticleMaterial)
                         .then(id => {
                             resolve(id);
                         })
@@ -203,12 +201,12 @@ module.exports = class ArticleManager {
     }
 
 
-    _validate(article) {
+    _validate(articleMaterial) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new Article(article);
+            var valid = new ArticleMaterial(articleMaterial);
             //1.begin: Declare promises.
-            var getArticleMotif = this.articleCollection.singleOrDefault({
+            var getArticleMotif = this.articleMaterialCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
@@ -235,7 +233,7 @@ module.exports = class ArticleManager {
 
                     // 2a. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
+                        var ValidationError = require('../../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 

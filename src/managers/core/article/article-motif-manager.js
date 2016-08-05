@@ -8,31 +8,30 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.article.ArticleApproval;
-var ArticleBrand = BateeqModels.article.ArticleBrand;
-var ArticleCategory = BateeqModels.article.ArticleCategory;
-var ArticleColor = BateeqModels.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.article.ArticleCostCalculation;
-var ArticleCounter = BateeqModels.article.ArticleCounter;
-var ArticleMaterial = BateeqModels.article.ArticleMaterial;
-var ArticleMotif = BateeqModels.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.article.ArticleSeason;
-var ArticleSize = BateeqModels.article.ArticleSize;
-var ArticleSubCounter = BateeqModels.article.ArticleSubCounter;
-var ArticleTheme = BateeqModels.article.ArticleTheme;
-var ArticleType = BateeqModels.article.ArticleType;
-var ArticleVariant = BateeqModels.article.ArticleVariant;
-var Article = BateeqModels.article.Article;
+var ArticleApproval = BateeqModels.core.article.ArticleApproval;
+var ArticleBrand = BateeqModels.core.article.ArticleBrand;
+var ArticleCategory = BateeqModels.core.article.ArticleCategory;
+var ArticleColor = BateeqModels.core.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.core.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.core.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.core.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.core.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.core.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.core.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.core.article.ArticleSeason;
+var ArticleSize = BateeqModels.core.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.core.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.core.article.ArticleTheme;
+var ArticleType = BateeqModels.core.article.ArticleType;
+var ArticleVariant = BateeqModels.core.article.ArticleVariant;
+var Article = BateeqModels.core.article.Article;
 
-module.exports = class ArticleBrandManager {
+module.exports = class ArticleMotifManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleBrandCollection = this.db.use(map.article.ArticleBrand);
+        this.articleMotifCollection = this.db.use(map.core.article.ArticleMotif);
     }
-
 
     read(paging) {
         var _paging = Object.assign({
@@ -70,13 +69,13 @@ module.exports = class ArticleBrandManager {
             }
 
 
-            this.articleBrandCollection
+            this.articleMotifCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleBrands => {
-                    resolve(articleBrands);
+                .then(articleMotifs => {
+                    resolve(articleMotifs);
                 })
                 .catch(e => {
                     reject(e);
@@ -85,16 +84,16 @@ module.exports = class ArticleBrandManager {
     }
 
     getById(id) {
-        if (id === '')
-            resolve(null);
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(articleBrand => {
-                    resolve(articleBrand);
+                .then(articleMotif => {
+                    resolve(articleMotif);
                 })
                 .catch(e => {
                     reject(e);
@@ -103,16 +102,16 @@ module.exports = class ArticleBrandManager {
     }
 
     getByIdOrDefault(id) {
-        if (id === '')
-            resolve(null);
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
-                .then(articleBrand => {
-                    resolve(articleBrand);
+            this.getSingleByQuery(query)
+                .then(articleMotif => {
+                    resolve(articleMotif);
                 })
                 .catch(e => {
                     reject(e);
@@ -122,22 +121,23 @@ module.exports = class ArticleBrandManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleBrandCollection
+            this.articleMotifCollection
                 .single(query)
-                .then(articleBrand => {
-                    resolve(articleBrand);
+                .then(articleMotif => {
+                    resolve(articleMotif);
                 })
                 .catch(e => {
                     reject(e);
                 });
         })
     }
+
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleBrandCollection
+            this.articleMotifCollection
                 .singleOrDefault(query)
-                .then(articleBrand => {
-                    resolve(articleBrand);
+                .then(articleMotif => {
+                    resolve(articleMotif);
                 })
                 .catch(e => {
                     reject(e);
@@ -145,12 +145,12 @@ module.exports = class ArticleBrandManager {
         })
     }
 
-    create(articleBrand) {
+    create(articleMotif) {
         return new Promise((resolve, reject) => {
-            this._validate(articleBrand)
-                .then(validArticleBrand => {
+            this._validate(articleMotif)
+                .then(validArticleMotif => {
 
-                    this.articleBrandCollection.insert(validArticleBrand)
+                    this.articleMotifCollection.insert(validArticleMotif)
                         .then(id => {
                             resolve(id);
                         })
@@ -164,11 +164,11 @@ module.exports = class ArticleBrandManager {
         });
     }
 
-    update(articleBrand) {
+    update(articleMotif) {
         return new Promise((resolve, reject) => {
-            this._validate(articleBrand)
-                .then(validArticleBrand => {
-                    this.articleBrandCollection.update(validArticleBrand)
+            this._validate(articleMotif)
+                .then(validArticleMotif => {
+                    this.articleMotifCollection.update(validArticleMotif)
                         .then(id => {
                             resolve(id);
                         })
@@ -182,12 +182,12 @@ module.exports = class ArticleBrandManager {
         });
     }
 
-    delete(articleBrand) {
+    delete(articleMotif) {
         return new Promise((resolve, reject) => {
-            this._validate(articleBrand)
-                .then(validArticleBrand => {
-                    validArticleBrand._deleted = true;
-                    this.articleBrandCollection.update(validArticleBrand)
+            this._validate(articleMotif)
+                .then(validArticleMotif => {
+                    validArticleMotif._deleted = true;
+                    this.articleMotifCollection.update(validArticleMotif)
                         .then(id => {
                             resolve(id);
                         })
@@ -202,19 +202,20 @@ module.exports = class ArticleBrandManager {
     }
 
 
-    _validate(articleBrand) {
+    _validate(articleMotif) {
         var errors = {};
+
         return new Promise((resolve, reject) => {
-            var valid = new ArticleBrand(articleBrand);
+            var valid = new ArticleMotif(articleMotif);
             //1.begin: Declare promises.
-            var getArticleMotif = this.articleBrandCollection.singleOrDefault({
+            var getArticleMotif = this.articleMotifCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: valid.code
+                }]
             });
             //1. end:Declare promises.
 
@@ -234,7 +235,7 @@ module.exports = class ArticleBrandManager {
 
                     // 2a. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
+                        var ValidationError = require('../../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 

@@ -13,7 +13,7 @@ var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
-var ArticleVariant = BateeqModels.article.ArticleVariant;
+var ArticleVariant = BateeqModels.core.article.ArticleVariant;
 
 const moduleId = "EFR-HP/FNG";
 const moduleIdIn = "EFR-TB/FNG";
@@ -29,7 +29,7 @@ module.exports = class FinishedGoodsManager {
         var StorageManager = require('./storage-manager');
         this.storageManager = new StorageManager(db, user);
 
-        var ArticleVariantManager = require('../article/article-variant-manager');
+        var ArticleVariantManager = require('../core/article/article-variant-manager');
         this.articleVariantManager = new ArticleVariantManager(db, user);
 
         var InventoryManager = require('./inventory-manager');
