@@ -196,7 +196,7 @@ module.exports = class SPKBarangEmbalaseManager {
         });
     }
 
-    updateDraft(spkDoc) {
+    update(spkDoc) {
         return new Promise((resolve, reject) => {
             this._validate(spkDoc)
                 .then(validSpkDoc => {
@@ -214,10 +214,24 @@ module.exports = class SPKBarangEmbalaseManager {
         });
     }
 
-    update(spkDoc) {
+    updateDraft(spkDoc) {
+        return new Promise((resolve, reject) => {
+            spkDoc.isDraft = true;
+            this.update(spkDoc)
+                .then(id => {
+                    resolve(id);
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
+
+    }
+    
+    updateNotDraft(spkDoc) {
         return new Promise((resolve, reject) => {
             spkDoc.isDraft = false;
-            this.updateDraft(spkDoc)
+            this.update(spkDoc)
                 .then(id => {
                     resolve(id);
                 })
