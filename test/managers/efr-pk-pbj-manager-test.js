@@ -71,52 +71,52 @@ it('#03. should success when save draft new data', function (done) {
         })
 });
 
-// var createdDataDraft;
-// it(`#04. should success when get drafted data with id`, function (done) {
-//     manager.getSingleByQuery({ _id: createdId })
-//         .then(data => { 
-//             createdDataDraft = data;
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         })
-// });
+var createdDataDraft;
+it(`#04. should success when get drafted data with id`, function (done) {
+    manager.getSingleByQuery({ _id: createdId })
+        .then(data => { 
+            createdDataDraft = data;
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
 
-// it(`#05. should success when update created data`, function (done) {
+it(`#05. should success when update created data`, function (done) {
 
-//     createdData.reference += '[updated]';
-//     createdData.remark += '[updated]'; 
-//     manager.update(createdData)
-//         .then(id => { 
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         });
-// });
+    createdData.reference += '[updated]';
+    createdData.remark += '[updated]'; 
+    manager.update(createdData)
+        .then(id => { 
+            done();
+        })
+        .catch(e => {
+            done(e);
+        });
+});
 
-// it(`#06. should success when update drafted data`, function (done) {
+it(`#06. should success when update drafted data`, function (done) {
 
-//     createdDataDraft.reference += 'Draft [updated]';
-//     createdDataDraft.remark += 'Draft [updated]'; 
-//     manager.updateDraft(createdDataDraft)
-//         .then(id => { 
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         });
-// });
+    createdDataDraft.reference += 'Draft [updated]';
+    createdDataDraft.remark += 'Draft [updated]'; 
+    manager.updateDraft(createdDataDraft)
+        .then(id => { 
+            done();
+        })
+        .catch(e => {
+            done(e);
+        });
+});
 
 
-// it(`#07. should success when delete data`, function (done) {
-//     manager.delete(createdData)
-//         .then(id => { 
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         });
-// });
+it(`#07. should success when delete data`, function (done) {
+    manager.delete(createdData)
+        .then(id => { 
+            done();
+        })
+        .catch(e => {
+            done(e);
+        });
+});
 
