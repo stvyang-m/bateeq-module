@@ -185,7 +185,7 @@ module.exports = class SPKBarangEmbalaseManager {
 
     createDraft(spkDoc) {
         return new Promise((resolve, reject) => {
-            spkDoc.isDraft = 1;
+            spkDoc.isDraft = true;
             this.create(spkDoc)
                 .then(id => {
                     resolve(id);
