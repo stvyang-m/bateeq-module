@@ -163,8 +163,8 @@ module.exports = class FinishedGoodsManager {
                     //Create Code
                     var getModules = [];
                     getModules.push(this.moduleSeedManager.getModuleSeed(moduleId, year, month));
-                    getModules.push(this.moduleSeedManager.getModuleSeed(moduleIdIn, year, month));
-                    getModules.push(this.moduleSeedManager.getModuleSeed(moduleIdOut, year, month));
+                    //getModules.push(this.moduleSeedManager.getModuleSeed(moduleIdIn, year, month));
+                    //getModules.push(this.moduleSeedManager.getModuleSeed(moduleIdOut, year, month));
                     Promise.all(getModules)
                         .then(resultModules => {
                             
@@ -179,30 +179,32 @@ module.exports = class FinishedGoodsManager {
                             zero = 2 - month.toString().length + 1;
                             var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
                             codeFinishedGood = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`; 
-                            
-                            //Code Transfer In
-                            number = ++resultModules[1].seed;
-                            zero = 4 - number.toString().length + 1;
-                            runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
-                            zero = 2 - month.toString().length + 1;
-                            formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
                             codeTransferIn = `${runningNumber}/${moduleIdIn}/${formattedMonth}/${year}`; 
-                            
-                            //Code Transfer Out
-                            number = ++resultModules[2].seed;
-                            zero = 4 - number.toString().length + 1;
-                            runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
-                            zero = 2 - month.toString().length + 1;
-                            formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
                             codeTransferOut = `${runningNumber}/${moduleIdOut}/${formattedMonth}/${year}`; 
+                           
+                            // //Code Transfer In
+                            // number = ++resultModules[1].seed;
+                            // zero = 4 - number.toString().length + 1;
+                            // runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
+                            // zero = 2 - month.toString().length + 1;
+                            // formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
+                            // codeTransferIn = `${runningNumber}/${moduleIdIn}/${formattedMonth}/${year}`; 
+                            
+                            // //Code Transfer Out
+                            // number = ++resultModules[2].seed;
+                            // zero = 4 - number.toString().length + 1;
+                            // runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
+                            // zero = 2 - month.toString().length + 1;
+                            // formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
+                            // codeTransferOut = `${runningNumber}/${moduleIdOut}/${formattedMonth}/${year}`; 
                            
                             var getMethods = [];
                               
                             //Update Counter Number Transfer In
-                            getMethods.push(this.moduleSeedManager.update(resultModules[1]));
+                            getMethods.push(this.moduleSeedManager.update(resultModules[0]));
                             
-                            //Update Counter Number Transfer Out
-                            getMethods.push(this.moduleSeedManager.update(resultModules[2]));
+                            // //Update Counter Number Transfer Out
+                            // getMethods.push(this.moduleSeedManager.update(resultModules[2]));
                             
                             //Create Transfer In
                             var validTransferInDoc = {};
@@ -222,7 +224,7 @@ module.exports = class FinishedGoodsManager {
                              
                             //Create Transfer Out
                             var validTransferOutDoc = {};
-                            validTransferOutDoc.code = codeTransferIn;
+                            validTransferOutDoc.code = codeTransferOut;
                             validTransferOutDoc.reference = codeFinishedGood;
                             validTransferOutDoc.sourceId = finishedGoodDoc.sourceId;
                             validTransferOutDoc.destinationId = finishedGoodDoc.destinationId;
@@ -253,8 +255,8 @@ module.exports = class FinishedGoodsManager {
                                             var transferInData = transferResults[0];
                                             var transferOutData = transferResults[1];
                                             
-                                            //Update Counter Number Finished Good
-                                            getMethods.push(this.moduleSeedManager.update(resultModules[0]));
+                                            // //Update Counter Number Finished Good
+                                            // getMethods.push(this.moduleSeedManager.update(resultModules[0]));
                                             
                                             //Create Finishing Good
                                             var validFinishedGoodDoc = {};

@@ -1,4 +1,4 @@
-'use strict';
+ 'use strict';
 
 // external deps 
 var ObjectId = require('mongodb').ObjectId;
@@ -8,33 +8,28 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
+var ExpeditionsDoc = BateeqModels.inventory.ExpeditionsDoc; 
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
-var TransferOutItem = BateeqModels.inventory.TransferOutItem;
+var TransferOutItem = BateeqModels.inventory.TransferOutItem; 
 
-var moduleId = "EFR-KB/EXB";
-
+const moduleId = "EFR-KB/EXB"; 
 module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.transferOutDocCollection = this.db.use(map.inventory.TransferOutDoc);
+        this.expeditionsDocCollection = this.db.use(map.inventory.ExpeditionsDoc);  
+        
         var StorageManager = require('./storage-manager');
-        this.storageManager = new StorageManager(db, user);
-
-        var ArticleVariantManager = require('../article/article-variant-manager');
-        this.articleVariantManager = new ArticleVariantManager(db, user);
-
-        var InventoryManager = require('./inventory-manager');
-        this.inventoryManager = new InventoryManager(db, user);
-
+        this.storageManager = new StorageManager(db, user);   
+        
         var TransferOutDocManager = require('./transfer-out-doc-manager');
-        this.transferOutDocManager = new TransferOutDocManager(db, user);
-
-        var ModuleManager = require('../core/module-manager');
-        this.moduleManager = new ModuleManager(db, user);
+        this.transferOutDocManager = new TransferOutDocManager(db, user); 
 
         var ModuleSeedManager = require('../core/module-seed-manager');
         this.moduleSeedManager = new ModuleSeedManager(db, user);
+        
+        var SpkManager = require('../merchandiser/efr-pk-manager');
+        this.spkManager = new SpkManager(db, user);
 
     }
 
@@ -69,13 +64,13 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
             }
 
 
-            this.transferOutDocCollection
+            this.expeditionsDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(transferOutDocs => {
-                    resolve(transferOutDocs);
+                .then(expeditionsDocs => {
+                    resolve(expeditionsDocs);
                 })
                 .catch(e => {
                     reject(e);
@@ -90,8 +85,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
+                .then(expeditionsDoc => {
+                    resolve(expeditionsDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -106,8 +101,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
+                .then(expeditionsDoc => {
+                    resolve(expeditionsDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -117,10 +112,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.transferOutDocCollection
+            this.expeditionsDocCollection
                 .single(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
+                .then(expeditionsDoc => {
+                    resolve(expeditionsDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -130,10 +125,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
 
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.transferOutDocCollection
+            this.expeditionsDocCollection
                 .singleOrDefault(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
+                .then(expeditionsDoc => {
+                    resolve(expeditionsDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -141,36 +136,80 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         })
     }
 
-    create(transferOutDoc) {
+    create(expeditionsDoc) {
         return new Promise((resolve, reject) => {
-            this._validate(transferOutDoc)
-                .then(validTransferOutDoc => {
+            this._validate(expeditionsDoc)
+                .then(validatedExpeditionsDoc => {
                     var now = new Date();
                     var year = now.getFullYear();
                     var month = now.getMonth() + 1;
-                    this.moduleSeedManager
-                        .getModuleSeed(moduleId, year, month)
-                        .then(moduleSeed => {
-                            var number = ++moduleSeed.seed;
+                    
+                    //Create Code
+                    var getModules = [];
+                    this.moduleSeedManager.getModuleSeed(moduleId, year, month)
+                        .then(resultModule => {  
+                            //get Code
+                            var number = ++resultModule.seed;
                             var zero = 4 - number.toString().length + 1;
                             var runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
                             zero = 2 - month.toString().length + 1;
                             var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
-                            validTransferOutDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
-                            this.transferOutDocManager.create(validTransferOutDoc)
-                                .then(id => {
-                                    this.moduleSeedManager
-                                        .update(moduleSeed)
-                                        .then(seedId => {
-                                            resolve(id);
+                            var code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`; 
+                             
+                             
+                            var getMethods = [];
+                            //Update Counter Number Code
+                            getMethods.push(this.moduleSeedManager.update(resultModule));
+                             
+                            //Create Transfer Out
+                            var validTransferOutDoc = {};
+                            validTransferOutDoc.code = code;
+                            validTransferOutDoc.reference = code;
+                            validTransferOutDoc.sourceId = expeditionsDoc.sourceId;
+                            validTransferOutDoc.destinationId = expeditionsDoc.destinationId;
+                            validTransferOutDoc.items = [];
+                            for(var spkDocument of validatedExpeditionsDoc.spkDocuments) {
+                                for(var item of spkDocument.spkDocument.items){ 
+                                    var newitem = {}; 
+                                    newitem.articleVariantId = item.articleVariantId;
+                                    newitem.quantity = item.quantity;
+                                    validTransferOutDoc.items.push(newitem);
+                                }
+                            } 
+                            validTransferOutDoc = new TransferOutDoc(validTransferOutDoc);
+                            getMethods.push(this.transferOutDocManager.create(validTransferOutDoc)); 
+                                    
+                            Promise.all(getMethods)
+                                .then(results => { 
+                                    var transferOutResultId = results[1];  
+                                    //Get Transfer Out using ID
+                                    this.transferOutDocManager.getByIdOrDefault(transferOutResultId)
+                                        .then(transferOutResult => {  
+                                            var transferOutData = transferOutResult; 
+                                            //Create Expeditions
+                                            var validExpeditionDoc = {};
+                                            validExpeditionDoc.code = code; 
+                                            validExpeditionDoc.expedition = validatedExpeditionsDoc.expedition; 
+                                            validExpeditionDoc.weight = validatedExpeditionsDoc.weight; 
+                                            validExpeditionDoc.transferOutDocumentId = transferOutResultId;
+                                            validExpeditionDoc.transferOutDocument = transferOutData; 
+                                            validExpeditionDoc.spkDocuments = validatedExpeditionsDoc.spkDocuments 
+                                            validExpeditionDoc = new ExpeditionsDoc(validExpeditionDoc);   
+                                            this.expeditionsDocCollection.insert(validExpeditionDoc)
+                                                .then(result => {
+                                                    resolve(result);
+                                                })
+                                                .catch(e => {
+                                                    reject(e);
+                                                });  
                                         })
                                         .catch(e => {
                                             reject(e);
-                                        })
+                                        }); 
                                 })
                                 .catch(e => {
                                     reject(e);
-                                })
+                                }); 
                         })
                         .catch(e => {
                             reject(e);
@@ -178,60 +217,66 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                 })
                 .catch(e => {
                     reject(e);
-                })
-        });
-    }
-
-    update(transferOutDoc) {
-        return new Promise((resolve, reject) => {
-            this._validate(transferOutDoc)
-                .then(validTransferOutDoc => {
-                    this.transferOutDocManager.update(validTransferOutDoc)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    delete(transferOutDoc) {
-        return new Promise((resolve, reject) => {
-            this._validate(transferOutDoc)
-                .then(validTransferOutDoc => {
-                    validTransferOutDoc._deleted = true;
-                    this.transferOutDocManager.update(validTransferOutDoc)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    _validate(transferOutDoc) {
-        return new Promise((resolve, reject) => {
-            var valid = transferOutDoc;
-            this.moduleManager.getByCode(moduleId)
-                .then(module => {
-                    var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
-                    resolve(valid);
-                })
-                .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
                 });
         });
     }
-}; 
+
+    update(expeditionsDoc) {
+        return new Promise((resolve, reject) => {
+            resolve(null);
+        });
+    }
+
+    delete(expeditionsDoc) {
+        return new Promise((resolve, reject) => {
+            resolve(null);
+        });
+    }
+
+    _validate(expeditionsDoc) {
+        var errors = {};
+        return new Promise((resolve, reject) => {
+            var valid = expeditionsDoc;
+            var getPromise = [];
+            for(var spk of expeditionsDoc.spkDocuments){
+                getPromise.push(this.spkManager.getByIdOrDefault(spk.spkDocumentId));
+            }
+            
+            Promise.all(getPromise)
+                .then(spks => {
+                    var itemErrors = [];
+                    if (spks.length > 0) {
+                        var index = 0;
+                        for(var spk of spks) { 
+                            var itemError = {};
+                            if(spk){
+                                expeditionsDoc.spkDocuments[index].spkDocument = spk;
+                            }
+                            else{
+                                itemError["spkDocument"] = "SPK Document not found";
+                            }
+                            itemErrors.push(itemError);
+                        }
+                    }
+                    for (var itemError of itemErrors) {
+                        for (var prop in itemError) {
+                            errors.spkDocuments = itemErrors;
+                            break;
+                        }
+                        if (errors.items)
+                            break;
+                    }
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
+                    valid = new ExpeditionsDoc(valid);
+                    valid.stamp(this.user.username, 'manager');
+                    resolve(valid)
+                })
+                .catch(e => {
+                    reject(e);
+                });  
+        });
+    } 
+};
