@@ -18,6 +18,7 @@ module.exports = class TokoTerimaAksesorisManager {
         this.db = db;
         this.user = user;
         this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
+        this.spkDocCollection = this.db.use(map.merchandisher.SPKDoc);
 
         var StorageManager = require('./storage-manager');
         this.storageManager = new StorageManager(db, user);
@@ -75,6 +76,50 @@ module.exports = class TokoTerimaAksesorisManager {
                 .execute()
                 .then(transferInDocs => {
                     resolve(transferInDocs);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    readPendingSPK(paging){
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: '_id',
+            asc: true
+        }, paging);
+
+        return new Promise((resolve, reject) => {
+            var deleted = {
+                _deleted: false
+            };
+            
+            var regex = new RegExp("^[0-9]+\/[A-Z\-]+\/PBA\/[0-9]{2}\/[0-9]{4}$","i");
+            var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+
+            var isReceived = {
+                isReceived : false
+            };
+
+            var query = {$and:[
+                deleted,
+                filterCode,
+                isReceived
+            ]}
+
+            this.spkDocCollection
+                .where(query)
+                .page(_paging.page, _paging.size)
+                .orderBy(_paging.order, _paging.asc)
+                .execute()
+                .then(spkDocs => {
+                    resolve(spkDocs);
                 })
                 .catch(e => {
                     reject(e);
@@ -141,6 +186,23 @@ module.exports = class TokoTerimaAksesorisManager {
                     reject(e);
                 });
         })
+    }
+
+    getPendingSPKById(id){
+        return new Promise((resolve, reject) => {
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false,
+                isReceived:false
+            };
+            this.spkDocCollection.singleOrDefault(query)
+                .then(SPKDoc => {
+                    resolve(SPKDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
     }
 
     create(transferInDoc) {
