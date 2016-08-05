@@ -223,8 +223,8 @@ module.exports = class FinishingTerimaAksesorisManager {
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
                     var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
+                    valid.sourceId = config.source.value;
+                    valid.destinationId = config.destination.value;
                     resolve(valid);
                 })
                 .catch(e => {
