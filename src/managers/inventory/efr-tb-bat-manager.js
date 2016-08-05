@@ -18,7 +18,7 @@ module.exports = class TokoTerimaAksesorisManager {
         this.db = db;
         this.user = user;
         this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
-        this.spkDocCollection = this.db.use(map.merchandisher.SPKDoc);
+        this.spkDocCollection = this.db.use(map.merchandiser.SPKDoc);
 
         var StorageManager = require('./storage-manager');
         this.storageManager = new StorageManager(db, user);
