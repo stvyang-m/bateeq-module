@@ -8,29 +8,29 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.article.ArticleApproval;
-var ArticleBrand = BateeqModels.article.ArticleBrand;
-var ArticleCategory = BateeqModels.article.ArticleCategory;
-var ArticleColor = BateeqModels.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.article.ArticleCostCalculation;
-var ArticleCounter = BateeqModels.article.ArticleCounter;
-var ArticleMaterial = BateeqModels.article.ArticleMaterial;
-var ArticleMotif = BateeqModels.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.article.ArticleSeason;
-var ArticleSize = BateeqModels.article.ArticleSize;
-var ArticleSubCounter = BateeqModels.article.ArticleSubCounter;
-var ArticleTheme = BateeqModels.article.ArticleTheme;
-var ArticleType = BateeqModels.article.ArticleType;
-var ArticleVariant = BateeqModels.article.ArticleVariant;
-var Article = BateeqModels.article.Article;
+var ArticleApproval = BateeqModels.core.article.ArticleApproval;
+var ArticleBrand = BateeqModels.core.article.ArticleBrand;
+var ArticleCategory = BateeqModels.core.article.ArticleCategory;
+var ArticleColor = BateeqModels.core.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.core.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.core.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.core.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.core.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.core.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.core.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.core.article.ArticleSeason;
+var ArticleSize = BateeqModels.core.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.core.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.core.article.ArticleTheme;
+var ArticleType = BateeqModels.core.article.ArticleType;
+var ArticleVariant = BateeqModels.core.article.ArticleVariant;
+var Article = BateeqModels.core.article.Article;
 
-module.exports = class ArticleCategoryManager {
+module.exports = class ArticleSeasonManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleCategoryCollection = this.db.use(map.article.ArticleCategory);
+        this.articleSeasonCollection = this.db.use(map.core.article.ArticleSeason);
     }
 
     read(paging) {
@@ -69,13 +69,13 @@ module.exports = class ArticleCategoryManager {
             }
 
 
-            this.articleCategoryCollection
+            this.articleSeasonCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleCategories => {
-                    resolve(articleCategories);
+                .then(articleSeasons => {
+                    resolve(articleSeasons);
                 })
                 .catch(e => {
                     reject(e);
@@ -84,16 +84,16 @@ module.exports = class ArticleCategoryManager {
     }
 
     getById(id) {
-        if (id === '')
-            resolve(null);
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(articleCategory => {
-                    resolve(articleCategory);
+                .then(articleSeason => {
+                    resolve(articleSeason);
                 })
                 .catch(e => {
                     reject(e);
@@ -102,16 +102,16 @@ module.exports = class ArticleCategoryManager {
     }
 
     getByIdOrDefault(id) {
-        if (id === '')
-            resolve(null);
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
-                .then(articleCategory => {
-                    resolve(articleCategory);
+                .then(articleSeason => {
+                    resolve(articleSeason);
                 })
                 .catch(e => {
                     reject(e);
@@ -121,23 +121,22 @@ module.exports = class ArticleCategoryManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleCategoryCollection
+            this.articleSeasonCollection
                 .single(query)
-                .then(articleCategory => {
-                    resolve(articleCategory);
+                .then(articleSeason => {
+                    resolve(articleSeason);
                 })
                 .catch(e => {
                     reject(e);
                 });
         })
     }
-
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleCategoryCollection
+            this.articleSeasonCollection
                 .singleOrDefault(query)
-                .then(articleCategory => {
-                    resolve(articleCategory);
+                .then(articleSeason => {
+                    resolve(articleSeason);
                 })
                 .catch(e => {
                     reject(e);
@@ -145,12 +144,11 @@ module.exports = class ArticleCategoryManager {
         })
     }
 
-    create(articleCategory) {
+    create(articleSeason) {
         return new Promise((resolve, reject) => {
-            this._validate(articleCategory)
-                .then(validArticleCategory => {
-
-                    this.articleCategoryCollection.insert(validArticleCategory)
+            this._validate(articleSeason)
+                .then(validArticleSeason => {
+                    this.articleSeasonCollection.insert(validArticleSeason)
                         .then(id => {
                             resolve(id);
                         })
@@ -164,11 +162,11 @@ module.exports = class ArticleCategoryManager {
         });
     }
 
-    update(articleCategory) {
+    update(articleSeason) {
         return new Promise((resolve, reject) => {
-            this._validate(articleCategory)
-                .then(validArticleCategory => {
-                    this.articleCategoryCollection.update(validArticleCategory)
+            this._validate(articleSeason)
+                .then(validArticleSeason => {
+                    this.articleSeasonCollection.update(validArticleSeason)
                         .then(id => {
                             resolve(id);
                         })
@@ -182,12 +180,12 @@ module.exports = class ArticleCategoryManager {
         });
     }
 
-    delete(articleCategory) {
+    delete(articleSeason) {
         return new Promise((resolve, reject) => {
-            this._validate(articleCategory)
-                .then(validArticleCategory => {
-                    validArticleCategory._deleted = true;
-                    this.articleCategoryCollection.update(validArticleCategory)
+            this._validate(articleSeason)
+                .then(validArticleSeason => {
+                    validArticleSeason._deleted = true;
+                    this.articleSeasonCollection.update(validArticleSeason)
                         .then(id => {
                             resolve(id);
                         })
@@ -202,19 +200,19 @@ module.exports = class ArticleCategoryManager {
     }
 
 
-    _validate(articleCategory) {
+    _validate(articleSeason) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new ArticleCategory(articleCategory);
+            var valid = new ArticleSeason(articleSeason);
             //1.begin: Declare promises.
-            var getArticleMotif = this.articleCategoryCollection.singleOrDefault({
+            var getArticleMotif = this.articleSeasonCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: valid.code
+                }]
             });
             //1. end:Declare promises.
 
@@ -234,7 +232,7 @@ module.exports = class ArticleCategoryManager {
 
                     // 2a. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
+                        var ValidationError = require('../../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 

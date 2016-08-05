@@ -8,7 +8,7 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ExpeditionsDoc = BateeqModels.inventory.ExpeditionsDoc; 
+var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc; 
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem; 
 
@@ -17,7 +17,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.expeditionsDocCollection = this.db.use(map.inventory.ExpeditionsDoc);  
+        this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);  
         
         var StorageManager = require('./storage-manager');
         this.storageManager = new StorageManager(db, user);   
@@ -64,13 +64,13 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
             }
 
 
-            this.expeditionsDocCollection
+            this.expeditionDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(expeditionsDocs => {
-                    resolve(expeditionsDocs);
+                .then(expeditionDocs => {
+                    resolve(expeditionDocs);
                 })
                 .catch(e => {
                     reject(e);
@@ -85,8 +85,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(expeditionsDoc => {
-                    resolve(expeditionsDoc);
+                .then(expeditionDoc => {
+                    resolve(expeditionDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -101,8 +101,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
-                .then(expeditionsDoc => {
-                    resolve(expeditionsDoc);
+                .then(expeditionDoc => {
+                    resolve(expeditionDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -112,10 +112,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.expeditionsDocCollection
+            this.expeditionDocCollection
                 .single(query)
-                .then(expeditionsDoc => {
-                    resolve(expeditionsDoc);
+                .then(expeditionDoc => {
+                    resolve(expeditionDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -125,10 +125,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
 
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.expeditionsDocCollection
+            this.expeditionDocCollection
                 .singleOrDefault(query)
-                .then(expeditionsDoc => {
-                    resolve(expeditionsDoc);
+                .then(expeditionDoc => {
+                    resolve(expeditionDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -136,10 +136,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         })
     }
 
-    create(expeditionsDoc) {
+    create(expeditionDoc) {
         return new Promise((resolve, reject) => {
-            this._validate(expeditionsDoc)
-                .then(validatedExpeditionsDoc => {
+            this._validate(expeditionDoc)
+                .then(validatedExpeditionDoc => {
                     var now = new Date();
                     var year = now.getFullYear();
                     var month = now.getMonth() + 1;
@@ -165,10 +165,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                             var validTransferOutDoc = {};
                             validTransferOutDoc.code = code;
                             validTransferOutDoc.reference = code;
-                            validTransferOutDoc.sourceId = expeditionsDoc.sourceId;
-                            validTransferOutDoc.destinationId = expeditionsDoc.destinationId;
+                            validTransferOutDoc.sourceId = expeditionDoc.sourceId;
+                            validTransferOutDoc.destinationId = expeditionDoc.destinationId;
                             validTransferOutDoc.items = [];
-                            for(var spkDocument of validatedExpeditionsDoc.spkDocuments) {
+                            for(var spkDocument of validatedExpeditionDoc.spkDocuments) {
                                 for(var item of spkDocument.spkDocument.items){ 
                                     var newitem = {}; 
                                     newitem.articleVariantId = item.articleVariantId;
@@ -186,16 +186,16 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                     this.transferOutDocManager.getByIdOrDefault(transferOutResultId)
                                         .then(transferOutResult => {  
                                             var transferOutData = transferOutResult; 
-                                            //Create Expeditions
+                                            //Create Expedition
                                             var validExpeditionDoc = {};
                                             validExpeditionDoc.code = code; 
-                                            validExpeditionDoc.expedition = validatedExpeditionsDoc.expedition; 
-                                            validExpeditionDoc.weight = validatedExpeditionsDoc.weight; 
+                                            validExpeditionDoc.expedition = validatedExpeditionDoc.expedition; 
+                                            validExpeditionDoc.weight = validatedExpeditionDoc.weight; 
                                             validExpeditionDoc.transferOutDocumentId = transferOutResultId;
                                             validExpeditionDoc.transferOutDocument = transferOutData; 
-                                            validExpeditionDoc.spkDocuments = validatedExpeditionsDoc.spkDocuments 
-                                            validExpeditionDoc = new ExpeditionsDoc(validExpeditionDoc);   
-                                            this.expeditionsDocCollection.insert(validExpeditionDoc)
+                                            validExpeditionDoc.spkDocuments = validatedExpeditionDoc.spkDocuments 
+                                            validExpeditionDoc = new ExpeditionDoc(validExpeditionDoc);   
+                                            this.expeditionDocCollection.insert(validExpeditionDoc)
                                                 .then(result => {
                                                     resolve(result);
                                                 })
@@ -221,24 +221,24 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         });
     }
 
-    update(expeditionsDoc) {
+    update(expeditionDoc) {
         return new Promise((resolve, reject) => {
             resolve(null);
         });
     }
 
-    delete(expeditionsDoc) {
+    delete(expeditionDoc) {
         return new Promise((resolve, reject) => {
             resolve(null);
         });
     }
 
-    _validate(expeditionsDoc) {
+    _validate(expeditionDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = expeditionsDoc;
+            var valid = expeditionDoc;
             var getPromise = [];
-            for(var spk of expeditionsDoc.spkDocuments){
+            for(var spk of expeditionDoc.spkDocuments){
                 getPromise.push(this.spkManager.getByIdOrDefault(spk.spkDocumentId));
             }
             
@@ -250,7 +250,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                         for(var spk of spks) { 
                             var itemError = {};
                             if(spk){
-                                expeditionsDoc.spkDocuments[index].spkDocument = spk;
+                                expeditionDoc.spkDocuments[index].spkDocument = spk;
                             }
                             else{
                                 itemError["spkDocument"] = "SPK Document not found";
@@ -270,7 +270,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
-                    valid = new ExpeditionsDoc(valid);
+                    valid = new ExpeditionDoc(valid);
                     valid.stamp(this.user.username, 'manager');
                     resolve(valid)
                 })

@@ -8,8 +8,8 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var SPKDoc = BateeqModels.merchandisher.SPK;
-var SPKItem = BateeqModels.merchandisher.SPKItem;
+var SPKDoc = BateeqModels.merchandiser.SPK;
+var SPKItem = BateeqModels.merchandiser.SPKItem;
 
 var moduleId = "EFR-PK/PBJ";
 
@@ -17,11 +17,11 @@ module.exports = class SPKBarangJadiManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.SPKDocCollection = this.db.use(map.merchandisher.SPKDoc);
+        this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
         var StorageManager = require('../inventory/storage-manager');
         this.storageManager = new StorageManager(db, user);
 
-        var ArticleVariantManager = require('../article/article-variant-manager');
+        var ArticleVariantManager = require('../core/article/article-variant-manager');
         this.articleVariantManager = new ArticleVariantManager(db, user);
 
         var ModuleManager = require('../core/module-manager');

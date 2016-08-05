@@ -4,7 +4,7 @@ var validate = require('bateeq-models').validator.article;
 var manager;
 
 function getData() {
-    var ArticleBrand = require('bateeq-models').article.ArticleBrand;
+    var ArticleBrand = require('bateeq-models').core.article.ArticleBrand;
     var articleBrand = new ArticleBrand();
 
     var now = new Date();
@@ -21,7 +21,7 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var ArticleBrandManager = require('../../src/managers/article/article-brand-manager');
+            var ArticleBrandManager = require('../../src/managers/core/article/article-brand-manager');
             manager = new ArticleBrandManager(db, {
                 username: 'unit-test'
             });
@@ -48,7 +48,9 @@ it('#01. should success when create new data', function(done) {
 
 var createdData;
 it(`#02. should success when get created data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
             validate.articleBrand(data);
             createdData = data;
@@ -76,7 +78,9 @@ it(`#03. should success when update created data`, function(done) {
 });
 
 it(`#04. should success when get updated data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
             validate.articleBrand(data);
             data.code.should.equal(createdData.code);
@@ -89,7 +93,7 @@ it(`#04. should success when get updated data with id`, function(done) {
         })
 });
 
-it(`#05. should success when delete data`, function(done) { 
+it(`#05. should success when delete data`, function(done) {
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -101,7 +105,9 @@ it(`#05. should success when delete data`, function(done) {
 });
 
 it(`#06. should _deleted=true`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
             validate.articleBrand(data);
             data._deleted.should.be.Boolean();
@@ -123,25 +129,29 @@ it('#07. should error when create new data with same code', function(done) {
             done("Should not be able to create data with same code");
         })
         .catch(e => {
-               e.errors.should.have.property('code');
-            done();
+            try {
+                e.errors.should.have.property('code');
+                done();
+            }
+            catch (e) {
+                done(e);
+            }
         })
-}); 
+});
 
-it('#08. should error with property code and name ', function(done) { 
+it('#08. should error with property code and name ', function(done) {
     manager.create({})
-        .then(id => { 
+        .then(id => {
             done("Should not be able error with property code and name");
         })
-        .catch(e => { 
-           try
-           {
-               e.errors.should.have.property('code');
-               e.errors.should.have.property('name');  
-               done();
-           }catch(ex)
-           {
-               done(ex);
-           } 
+        .catch(e => {
+            try {
+                e.errors.should.have.property('code');
+                e.errors.should.have.property('name');
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
         })
 });

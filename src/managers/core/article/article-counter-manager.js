@@ -8,29 +8,29 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.article.ArticleApproval;
-var ArticleBrand = BateeqModels.article.ArticleBrand;
-var ArticleCategory = BateeqModels.article.ArticleCategory;
-var ArticleColor = BateeqModels.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.article.ArticleCostCalculation;
-var ArticleCounter = BateeqModels.article.ArticleCounter;
-var ArticleMaterial = BateeqModels.article.ArticleMaterial;
-var ArticleMotif = BateeqModels.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.article.ArticleSeason;
-var ArticleSize = BateeqModels.article.ArticleSize;
-var ArticleSubCounter = BateeqModels.article.ArticleSubCounter;
-var ArticleTheme = BateeqModels.article.ArticleTheme;
-var ArticleType = BateeqModels.article.ArticleType;
-var ArticleVariant = BateeqModels.article.ArticleVariant;
-var Article = BateeqModels.article.Article;
+var ArticleApproval = BateeqModels.core.article.ArticleApproval;
+var ArticleBrand = BateeqModels.core.article.ArticleBrand;
+var ArticleCategory = BateeqModels.core.article.ArticleCategory;
+var ArticleColor = BateeqModels.core.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.core.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.core.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.core.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.core.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.core.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.core.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.core.article.ArticleSeason;
+var ArticleSize = BateeqModels.core.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.core.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.core.article.ArticleTheme;
+var ArticleType = BateeqModels.core.article.ArticleType;
+var ArticleVariant = BateeqModels.core.article.ArticleVariant;
+var Article = BateeqModels.core.article.Article;
 
-module.exports = class ArticleThemeManager {
+module.exports = class ArticleCounterManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleThemeCollection = this.db.use(map.article.ArticleTheme);
+        this.articleCounterCollection = this.db.use(map.core.article.ArticleCounter);
     }
 
     read(paging) {
@@ -69,13 +69,13 @@ module.exports = class ArticleThemeManager {
             }
 
 
-            this.articleThemeCollection
+            this.articleCounterCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleThemes => {
-                    resolve(articleThemes);
+                .then(articleCounters => {
+                    resolve(articleCounters);
                 })
                 .catch(e => {
                     reject(e);
@@ -85,55 +85,58 @@ module.exports = class ArticleThemeManager {
 
     getById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(articleStyle => {
-                    resolve(articleStyle);
+                .then(articleCounter => {
+                    resolve(articleCounter);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
     }
-
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
-                .then(articleStyle => {
-                    resolve(articleStyle);
+                .then(articleCounter => {
+                    resolve(articleCounter);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
     }
-    
+
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleThemeCollection
+            this.articleCounterCollection
                 .single(query)
-                .then(articleStyle => {
-                    resolve(articleStyle);
+                .then(articleCounter => {
+                    resolve(articleCounter);
                 })
                 .catch(e => {
                     reject(e);
                 });
         })
     }
-    
+
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleThemeCollection
+            this.articleCounterCollection
                 .singleOrDefault(query)
-                .then(articleStyle => {
-                    resolve(articleStyle);
+                .then(articleCounter => {
+                    resolve(articleCounter);
                 })
                 .catch(e => {
                     reject(e);
@@ -141,12 +144,12 @@ module.exports = class ArticleThemeManager {
         })
     }
 
-    create(articleStyle) {
+    create(articleCounter) {
         return new Promise((resolve, reject) => {
-            this._validate(articleStyle)
-                .then(validArticleTheme => {
+            this._validate(articleCounter)
+                .then(validArticleCounter => {
 
-                    this.articleThemeCollection.insert(validArticleTheme)
+                    this.articleCounterCollection.insert(validArticleCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -160,11 +163,11 @@ module.exports = class ArticleThemeManager {
         });
     }
 
-    update(articleStyle) {
+    update(articleCounter) {
         return new Promise((resolve, reject) => {
-            this._validate(articleStyle)
-                .then(validArticleTheme => {
-                    this.articleThemeCollection.update(validArticleTheme)
+            this._validate(articleCounter)
+                .then(validArticleCounter => {
+                    this.articleCounterCollection.update(validArticleCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -178,12 +181,12 @@ module.exports = class ArticleThemeManager {
         });
     }
 
-    delete(articleStyle) {
+    delete(articleCounter) {
         return new Promise((resolve, reject) => {
-            this._validate(articleStyle)
-                .then(validArticleTheme => {
-                    validArticleTheme._deleted = true;
-                    this.articleThemeCollection.update(validArticleTheme)
+            this._validate(articleCounter)
+                .then(validArticleCounter => {
+                    validArticleCounter._deleted = true;
+                    this.articleCounterCollection.update(validArticleCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -196,40 +199,74 @@ module.exports = class ArticleThemeManager {
                 })
         });
     }
- 
-    _validate(articleStyle) {  
+
+
+    _validate(articleCounter) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new ArticleTheme(articleStyle);
+            var valid = new ArticleCounter(articleCounter);
             // 1. begin: Declare promises.
-            var getArticleTheme = this.articleThemeCollection.singleOrDefault({
+            var getArticleCounter = this.articleCounterCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: valid.code
+                }]
             });
             // 1. end: Declare promises.
 
             // 2. begin: Validation.
-            Promise.all([getArticleTheme])
+            Promise.all([getArticleCounter])
                 .then(results => {
-                    var _articleTheme = results[0];
+                    var _articleCounter = results[0];
 
                     if (!valid.code || valid.code == '')
                         errors["code"] = "code is required";
-                    else if (_articleTheme) {
+                    else if (_articleCounter) {
                         errors["code"] = "code already exists";
                     }
 
                     if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required"; 
+                        errors["name"] = "name is required";
+
+                    // 2a. begin: Validate error on item level.
+                    var itemErrors = [];
+                    for (var item of valid.subCounters) {
+                        var itemError = {};
+
+                        if (!item.code || item.code == '') {
+                            itemError["code"] = "code is required";
+                        }
+                        else {
+                            for (var i = valid.subCounters.indexOf(item) + 1; i < valid.subCounters.length; i++) {
+                                var otherItem = valid.subCounters[i];
+                                if (item.code == otherItem.code) {
+                                    itemError["code"] = "code already exists on another sub-counter";
+                                }
+                            }
+                        }
+
+                        if (!item.name || item.name == '') {
+                            itemError["name"] = "name is required";
+                        }
+                        itemErrors.push(itemError);
+                    }
+                    // 2a. end: Validate error on item level.
+                    // 2b. add item level errors to parent error, if any.
+                    for (var itemError of itemErrors) {
+                        for (var prop in itemError) {
+                            errors.subCounters = itemErrors;
+                            break;
+                        }
+                        if (errors.subCounters)
+                            break;
+                    }
 
                     // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
+                        var ValidationError = require('../../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 

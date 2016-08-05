@@ -4,7 +4,7 @@ var validate = require('bateeq-models').validator.article;
 var manager;
 
 function getData() {
-    var ArticleSubCounter = require('bateeq-models').article.ArticleSubCounter;
+    var ArticleSubCounter = require('bateeq-models').core.article.ArticleSubCounter;
     var articleSubCounter = new ArticleSubCounter();
 
     var now = new Date();
@@ -21,7 +21,7 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var ArticleSubCounterManager = require('../../src/managers/article/article-sub-counter-manager');
+            var ArticleSubCounterManager = require('../../src/managers/core/article/article-sub-counter-manager');
             manager = new ArticleSubCounterManager(db, {
                 username: 'unit-test'
             });
@@ -123,8 +123,13 @@ it('#07. should error when create new data with same code', function(done) {
             done("Should not be able to create data with same code");
         })
         .catch(e => {
-               e.errors.should.have.property('code');
-            done();
+            try {
+                e.errors.should.have.property('code');
+                done();
+            }
+            catch (e) {
+                done(e);
+            }
         })
 }); 
 

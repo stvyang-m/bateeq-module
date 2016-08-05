@@ -21,7 +21,7 @@ module.exports = class FinishingTerimaAksesorisManager {
         var StorageManager = require('./storage-manager');
         this.storageManager = new StorageManager(db, user);
 
-        var ArticleVariantManager = require('../article/article-variant-manager');
+        var ArticleVariantManager = require('../core/article/article-variant-manager');
         this.articleVariantManager = new ArticleVariantManager(db, user);
 
         var InventoryManager = require('./inventory-manager');

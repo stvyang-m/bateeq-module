@@ -4,7 +4,7 @@ var validate = require('bateeq-models').validator.article;
 var manager;
 
 function getData() {
-    var Article = require('bateeq-models').article.Article;
+    var Article = require('bateeq-models').core.article.Article;
     var article = new Article();
 
     var now = new Date();
@@ -21,7 +21,7 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var ArticleManager = require('../../src/managers/article/article-manager');
+            var ArticleManager = require('../../src/managers/core/article/article-manager');
             manager = new ArticleManager(db, {
                 username: 'unit-test'
             });
@@ -48,7 +48,9 @@ it('#01. should success when create new data', function(done) {
 
 var createdData;
 it(`#02. should success when get created data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
             validate.article(data);
             createdData = data;
@@ -62,7 +64,7 @@ it(`#02. should success when get created data with id`, function(done) {
 it(`#03. should success when update created data`, function(done) {
 
     createdData.code += '[updated]';
-    createdData.name += '[updated]'; 
+    createdData.name += '[updated]';
 
     manager.update(createdData)
         .then(id => {
@@ -75,11 +77,13 @@ it(`#03. should success when update created data`, function(done) {
 });
 
 it(`#04. should success when get updated data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
             validate.article(data);
             data.code.should.equal(createdData.code);
-            data.name.should.equal(createdData.name); 
+            data.name.should.equal(createdData.name);
             done();
         })
         .catch(e => {
@@ -87,7 +91,7 @@ it(`#04. should success when get updated data with id`, function(done) {
         })
 });
 
-it(`#05. should success when delete data`, function(done) { 
+it(`#05. should success when delete data`, function(done) {
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -99,7 +103,9 @@ it(`#05. should success when delete data`, function(done) {
 });
 
 it(`#06. should _deleted=true`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
             validate.article(data);
             data._deleted.should.be.Boolean();
@@ -120,25 +126,29 @@ it('#07. should error when create new data with same code', function(done) {
             done("Should not be able to create data with same code");
         })
         .catch(e => {
-               e.errors.should.have.property('code');
-            done();
+            try {
+                e.errors.should.have.property('code');
+                done();
+            }
+            catch (e) {
+                done(e);
+            }
         })
-}); 
+});
 
-it('#08. should error with property code and name ', function(done) { 
+it('#08. should error with property code and name ', function(done) {
     manager.create({})
-        .then(id => { 
+        .then(id => {
             done("Should not be able error with property code and name");
         })
-        .catch(e => { 
-           try
-           {
-               e.errors.should.have.property('code');
-               e.errors.should.have.property('name');  
-               done();
-           }catch(ex)
-           {
-               done(ex);
-           } 
+        .catch(e => {
+            try {
+                e.errors.should.have.property('code');
+                e.errors.should.have.property('name');
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
         })
 });
