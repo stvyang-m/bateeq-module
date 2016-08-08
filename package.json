@@ -8,16 +8,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/moonlay/bateeq-module.git"
+    "url": "git+https://github.com/danliris/bateeq-module.git"
   },
   "author": "Tris Setiawan",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/moonlay/bateeq-module/issues"
+    "url": "https://github.com/danliris/bateeq-module/issues"
   },
-  "homepage": "https://github.com/moonlay/bateeq-module#readme",
+  "homepage": "https://github.com/danliris/bateeq-module#readme",
   "dependencies": {
-    "bateeq-models": "git+https://git@github.com/moonlay/bateeq-models.git",
+    "bateeq-models": "git+https://git@github.com/danliris/bateeq-models.git",
     "mongodb-toolkit": "git+https://github.com/pinkgorilla/mongodb-toolkit.git"
   },
   "devDependencies": {
