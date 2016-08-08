@@ -2,8 +2,9 @@ var should = require('should');
 var helper = require('../helper');
 var validate = require('bateeq-models').validator.inventory;
 var manager;
+var manager2;
 
-function getData() {
+function getData(refno) {
     var TransferInDoc = require('bateeq-models').inventory.TransferInDoc;
     var TransferInItem = require('bateeq-models').inventory.TransferInItem;
     var transferInDoc = new TransferInDoc();
@@ -18,13 +19,29 @@ function getData() {
     transferInDoc.sourceId = '57738435e8a64fc532cd5bf1';
     transferInDoc.destinationId = '57738460d53dae9234ae0ae1';
 
-    transferInDoc.reference = `reference[${code}]`;
+    transferInDoc.reference = refno;
 
     transferInDoc.remark = `remark for ${code}`;
 
-    transferInDoc.items.push(new TransferInItem({ articleVariantId: "578855c4964302281454fa51", quantity: 10, remark: 'transferInDoc.test' }));
+    transferInDoc.items.push(new TransferInItem({ articleVariantId: "578855c4964302281454fa51", quantity: 1, remark: 'transferInDoc.test' }));
 
     return transferInDoc;
+}
+
+function getDataSPK() {
+    var SpkDoc = require('bateeq-models').merchandiser.SPK;
+    var SpkItem = require('bateeq-models').merchandiser.SPKItem;
+    var spkDoc = new SpkDoc();
+    var now = new Date();
+    spkDoc.date = now;
+    spkDoc.sourceId = '57738435e8a64fc532cd5bf1';
+    spkDoc.destinationId = '57738460d53dae9234ae0ae1';
+    spkDoc.isReceived = false;
+
+    spkDoc.reference = `reference[${spkDoc.date}]`;
+
+    spkDoc.items.push(new SpkItem({ articleVariantId: "578855c4964302281454fa51", quantity: 1, remark: 'SPK.test' }));
+    return spkDoc;
 }
 
 before('#00. connect db', function (done) {
@@ -34,7 +51,32 @@ before('#00. connect db', function (done) {
             manager = new TokoTerimaBarangBaruManager(db, {
                 username: 'unit-test'
             });
+
+            var SPKBarangJadiManager = require('../../src/managers/merchandiser/efr-pk-pbj-manager');
+            manager2 = new SPKBarangJadiManager(db, {
+                username: 'unit-test'
+            });
             done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
+var createdRef;
+it('#01. should success when create new SPK data', function(done) {
+    var data = getDataSPK();
+    manager2.create(data)
+        .then(id => {
+            id.should.be.Object();
+            manager.getPendingSPKById(id)
+            .then(spkDoc => {
+                createdRef = spkDoc.packingList;
+                done();    
+            })
+            .catch(e =>{
+                done();
+            })
         })
         .catch(e => {
             done(e);
@@ -43,7 +85,7 @@ before('#00. connect db', function (done) {
 
 var createdId;
 it('#01. should success when create new data', function(done) {
-    var data = getData();
+    var data = getData(createdRef);
     manager.create(data)
         .then(id => {
             id.should.be.Object();

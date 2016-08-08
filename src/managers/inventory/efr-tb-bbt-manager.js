@@ -250,15 +250,9 @@ module.exports = class TokoTerimaBarangBaruManager {
                                             pbj=>{
                                                 pbj.isReceived = true;
                                                 this.pbjManager.update(pbj)
-                                                .then(
-                                                    this.moduleSeedManager
-                                                        .update(moduleSeed)
-                                                        .then(seedId => {
-                                                            resolve(id);
-                                                        })
-                                                        .catch(e => {
-                                                            reject(e);
-                                                        })
+                                                .then(id=>{
+                                                        resolve(id);
+                                                    }
                                                 )
                                                 .catch(e => {
                                                     reject(e);
@@ -274,15 +268,9 @@ module.exports = class TokoTerimaBarangBaruManager {
                                             pbr=>{
                                                 pbr.isReceived = true;
                                                 this.pbrManager.update(pbj)
-                                                .then(
-                                                    this.moduleSeedManager
-                                                        .update(moduleSeed)
-                                                        .then(seedId => {
-                                                            resolve(id);
-                                                        })
-                                                        .catch(e => {
-                                                            reject(e);
-                                                        })
+                                                .then(id=>{
+                                                        resolve(id);
+                                                    }
                                                 )
                                                 .catch(e => {
                                                     reject(e);
@@ -292,7 +280,17 @@ module.exports = class TokoTerimaBarangBaruManager {
                                         .catch(e => {
                                             reject(e);
                                         });
+
                                     }
+
+                                    this.moduleSeedManager
+                                    .update(moduleSeed)
+                                    .then(seedId => {
+                                        resolve(id);
+                                    })
+                                    .catch(e => {
+                                        reject(e);
+                                    })
                                 })
                                 .catch(e => {
                                     reject(e);
@@ -371,10 +369,10 @@ module.exports = class TokoTerimaBarangBaruManager {
             //         reject(new Error(`Unable to load module:${moduleId}`));
             //     });
             if(valid.reference == ""){
-                error["reference"] = "reference is required";
+                errors["reference"] = "reference is required";
             }
-            if(valid.items.length <= 0){
-                error["items"] = "no item(s) to transfer in";
+            if(valid.items == undefined || valid.items.length <= 0){
+                errors["items"] = "no item(s) to transfer in";
             }
             for (var prop in errors) {
                 var ValidationError = require('../../validation-error');
