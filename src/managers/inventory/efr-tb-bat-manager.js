@@ -37,6 +37,9 @@ module.exports = class TokoTerimaAksesorisManager {
 
         var ModuleSeedManager = require('../core/module-seed-manager');
         this.moduleSeedManager = new ModuleSeedManager(db, user);
+        
+        var PBAManager = require('../merchandiser/efr-pk-pba-manager');
+        this.pbaManager = new PBAManager(db, user);
     }
 
     read(paging) {
@@ -144,7 +147,21 @@ module.exports = class TokoTerimaAksesorisManager {
         });
     }
 
-
+    getSPKByReference(ref){
+            return new Promise((resolve, reject) => {
+                var query = {
+                    packingList: ref,
+                    _deleted: false
+                };
+                this.spkDocCollection.singleOrDefault(query)
+                    .then(SPKDoc => {
+                        resolve(SPKDoc);
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
+            });
+        }
 
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
@@ -223,6 +240,26 @@ module.exports = class TokoTerimaAksesorisManager {
                             validTransferInDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`; 
                             this.transferInDocManager.create(validTransferInDoc)
                                 .then(id => { 
+                                    var reference = transferInDoc.reference;
+                                    
+                                    this.getSPKByReference(reference)
+                                    .then(
+                                        pba=>{
+                                            pba.isReceived = true;
+                                            this.pbaManager.update(pba)
+                                            .then(id=>{
+                                                    resolve(id);
+                                                }
+                                            )
+                                            .catch(e => {
+                                                reject(e);
+                                            });
+                                        }
+                                    )
+                                    .catch(e => {
+                                        reject(e);
+                                    });
+                                    
                                     this.moduleSeedManager
                                         .update(moduleSeed)
                                         .then(seedId => {
@@ -287,25 +324,36 @@ module.exports = class TokoTerimaAksesorisManager {
         var errors = {};
         return new Promise((resolve, reject) => {
             var valid = transferInDoc;
-            this.moduleManager.getByCode(moduleId)
-                .then(module => {
-                    var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
+            // this.moduleManager.getByCode(moduleId)
+            //     .then(module => {
+            //         var config = module.config;
+            //         valid.sourceId = config.sourceId;
+            //         valid.destinationId = config.destinationId;
                     
-                    // if(valid.password == ""){  
-                    //     errors["password"] = "password is required";
-                    // } 
-                    // for (var prop in errors) {
-                    //     var ValidationError = require('../../validation-error');
-                    //     reject(new ValidationError('data does not pass validation', errors));
-                    // }
+            //         // if(valid.password == ""){  
+            //         //     errors["password"] = "password is required";
+            //         // } 
+            //         // for (var prop in errors) {
+            //         //     var ValidationError = require('../../validation-error');
+            //         //     reject(new ValidationError('data does not pass validation', errors));
+            //         // }
                     
-                    resolve(valid);
-                })
-                .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
-                });
+            //         resolve(valid);
+            //     })
+            //     .catch(e => {
+            //         reject(new Error(`Unable to load module:${moduleId}`));
+            //     });
+             if(valid.reference == ""){
+                errors["reference"] = "reference is required";
+            }
+            if(valid.items == undefined || valid.items.length <= 0){
+                errors["items"] = "no item(s) to transfer in";
+            }
+            for (var prop in errors) {
+                var ValidationError = require('../../validation-error');
+                reject(new ValidationError('data does not pass validation', errors));
+            }
+            resolve(valid);
         });
     } 
 };
