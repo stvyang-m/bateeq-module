@@ -18,9 +18,9 @@ function getData() {
     finishingDoc.items = [];
         
     var item = {};
-    item.quantity = 10;
+    item.quantity = 1;
     item.articleVariant = { _id : "578855c4964302281454fa51", code : code, name : code , size:"size" , finishings : [] } 
-    item.articleVariant.finishings.push({ articleVariantId: "578855c4964302281454fa51", quantity: 10, articleVariant: { _id: "578855c4964302281454fa51", code : code, name : code, size:"size" } });
+    item.articleVariant.finishings.push({ articleVariantId: "578855c4964302281454fa51", quantity: 1, articleVariant: { _id: "578855c4964302281454fa51", code : code, name : code, size:"size" } });
     finishingDoc.items.push(item);
      
     return finishingDoc;
