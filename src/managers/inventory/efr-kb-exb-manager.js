@@ -198,11 +198,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                     validExpeditionDoc.weight = validatedExpeditionDoc.weight; 
                                                     validExpeditionDoc.transferOutDocuments = []; 
                                                     validExpeditionDoc.spkDocuments = validatedExpeditionDoc.spkDocuments 
-                                                    for(var transferOut of transferOutResults) { 
-                                                        var transferOutDocument = {};
-                                                        transferOutDocument.transferOutDocumentId = transferOut._id;
-                                                        transferOutDocument.transferOutDocument = transferOut;
-                                                        validExpeditionDoc.transferOutDocuments.push(transferOutDocument); 
+                                                    for(var transferOut of transferOutResults) {  
+                                                        validExpeditionDoc.transferOutDocuments.push(transferOut); 
                                                     } 
                                                     validExpeditionDoc = new ExpeditionDoc(validExpeditionDoc);   
                                                     //Create Expedition 
