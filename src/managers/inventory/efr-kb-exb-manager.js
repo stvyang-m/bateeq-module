@@ -11,6 +11,7 @@ var map = BateeqModels.map;
 var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc; 
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem; 
+var SPK = BateeqModels.merchandiser.SPK; 
 
 const moduleId = "EFR-KB/EXB"; 
 module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
@@ -204,8 +205,31 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                     validExpeditionDoc = new ExpeditionDoc(validExpeditionDoc);   
                                                     //Create Expedition 
                                                     this.expeditionDocCollection.insert(validExpeditionDoc)
-                                                        .then(result => {
-                                                            resolve(result);
+                                                        .then(resultExpeditionId => {
+                                                            var getSPKData = [];
+                                                            //get data SPK for update
+                                                            for(var spkDocument of validExpeditionDoc.spkDocuments) {
+                                                                getSPKData.push(this.spkManager.getByIdOrDefault(spkDocument.spkDocumentId));
+                                                            } 
+                                                            Promise.all(getSPKData)
+                                                                .then(resultSPKs => { 
+                                                                    var getUpdateSPKData = [];
+                                                                    for(var resultSPK of resultSPKs) {
+                                                                        resultSPK.expeditionDocumentId = resultExpeditionId;
+                                                                        resultSPK = new SPK(resultSPK);
+                                                                        getUpdateSPKData.push(this.spkManager.update(resultSPK));
+                                                                    }
+                                                                    Promise.all(getUpdateSPKData)
+                                                                        .then(resultUpdateSPKs => {  
+                                                                            resolve(resultExpeditionId); 
+                                                                        }) 
+                                                                        .catch(e => {
+                                                                            reject(e);
+                                                                        });  
+                                                                }) 
+                                                                .catch(e => {
+                                                                    reject(e);
+                                                                });  
                                                         })
                                                         .catch(e => {
                                                             reject(e);

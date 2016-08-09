@@ -14,7 +14,7 @@ function getData() {
     expeditionDoc.sourceId = '57738435e8a64fc532cd5bf1';
     expeditionDoc.destinationId = '57738460d53dae9234ae0ae1'; 
     expeditionDoc.reference = `reference[${code}]`; 
-    expeditionDoc.spkDocuments = [ { spkDocumentId: '57a420358e1b4d09b875fe34' } ]; 
+    expeditionDoc.spkDocuments = [ { spkDocumentId: '57a47ebba60b652c1f751853' } ]; 
     
     // var spk = {};
     // spk.spkDocumentId = '57a3018b9259e20a8840880f';
