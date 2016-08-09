@@ -11,6 +11,7 @@ var map = BateeqModels.map;
 var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc; 
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem; 
+var SPK = BateeqModels.merchandiser.SPK; 
 
 const moduleId = "EFR-KB/EXB"; 
 module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
@@ -145,71 +146,114 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                     var month = now.getMonth() + 1;
                     
                     //Create Code
-                    var getModules = [];
+                    var getModules = [];  
                     this.moduleSeedManager.getModuleSeed(moduleId, year, month)
-                        .then(resultModule => {  
-                            //get Code
-                            var number = ++resultModule.seed;
-                            var zero = 4 - number.toString().length + 1;
-                            var runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
-                            zero = 2 - month.toString().length + 1;
-                            var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
-                            var code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`; 
-                             
-                             
-                            var getMethods = [];
-                            //Update Counter Number Code
-                            getMethods.push(this.moduleSeedManager.update(resultModule));
-                             
-                            //Create Transfer Out
-                            var validTransferOutDoc = {};
-                            validTransferOutDoc.code = code;
-                            validTransferOutDoc.reference = code;
-                            validTransferOutDoc.sourceId = expeditionDoc.sourceId;
-                            validTransferOutDoc.destinationId = expeditionDoc.destinationId;
-                            validTransferOutDoc.items = [];
+                        .then(resultModule => {   
+                            var transferOuts = []; 
                             for(var spkDocument of validatedExpeditionDoc.spkDocuments) {
+                                //get Code
+                                var number = ++resultModule.seed;
+                                var zero = 4 - number.toString().length + 1;
+                                var runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
+                                zero = 2 - month.toString().length + 1;
+                                var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
+                                var code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`; 
+                                 
+                                var validTransferOutDoc = {};
+                                validTransferOutDoc.code = code;
+                                validTransferOutDoc.reference = spkDocument.spkDocument.packingList;
+                                validTransferOutDoc.sourceId = spkDocument.spkDocument.sourceId;
+                                validTransferOutDoc.destinationId = expeditionDoc.destinationId;
+                                validTransferOutDoc.items = []; 
                                 for(var item of spkDocument.spkDocument.items){ 
                                     var newitem = {}; 
                                     newitem.articleVariantId = item.articleVariantId;
                                     newitem.quantity = item.quantity;
                                     validTransferOutDoc.items.push(newitem);
-                                }
+                                } 
+                                transferOuts.push(validTransferOutDoc); 
                             } 
-                            validTransferOutDoc = new TransferOutDoc(validTransferOutDoc);
-                            getMethods.push(this.transferOutDocManager.create(validTransferOutDoc)); 
+                            
+                            //Update Counter Number Code
+                            this.moduleSeedManager.update(resultModule)
+                                .then(resultModuleSeed => { 
+                                    var getTransferOuts = [];
                                     
-                            Promise.all(getMethods)
-                                .then(results => { 
-                                    var transferOutResultId = results[1];  
-                                    //Get Transfer Out using ID
-                                    this.transferOutDocManager.getByIdOrDefault(transferOutResultId)
-                                        .then(transferOutResult => {  
-                                            var transferOutData = transferOutResult; 
-                                            //Create Expedition
-                                            var validExpeditionDoc = {};
-                                            validExpeditionDoc.code = code; 
-                                            validExpeditionDoc.expedition = validatedExpeditionDoc.expedition; 
-                                            validExpeditionDoc.weight = validatedExpeditionDoc.weight; 
-                                            validExpeditionDoc.transferOutDocumentId = transferOutResultId;
-                                            validExpeditionDoc.transferOutDocument = transferOutData; 
-                                            validExpeditionDoc.spkDocuments = validatedExpeditionDoc.spkDocuments 
-                                            validExpeditionDoc = new ExpeditionDoc(validExpeditionDoc);   
-                                            this.expeditionDocCollection.insert(validExpeditionDoc)
-                                                .then(result => {
-                                                    resolve(result);
+                                    //Add Transcation Out
+                                    for(var transferOut of transferOuts){ 
+                                        getTransferOuts.push(this.transferOutDocManager.create(transferOut)); 
+                                    }
+                                    
+                                    Promise.all(getTransferOuts)
+                                        .then(results => {
+                                            getTransferOuts = [];
+                                            for(var transferOutResultId of results) {
+                                                //Get Transfer Out using ID
+                                                getTransferOuts.push(this.transferOutDocManager.getByIdOrDefault(transferOutResultId)); 
+                                            } 
+                                            Promise.all(getTransferOuts)
+                                                .then(transferOutResults => {  
+                                                    var validExpeditionDoc = {};
+                                                    validExpeditionDoc.code = code; 
+                                                    validExpeditionDoc.expedition = validatedExpeditionDoc.expedition; 
+                                                    validExpeditionDoc.weight = validatedExpeditionDoc.weight; 
+                                                    validExpeditionDoc.transferOutDocuments = []; 
+                                                    validExpeditionDoc.spkDocuments = validatedExpeditionDoc.spkDocuments 
+                                                    for(var transferOut of transferOutResults) {  
+                                                        validExpeditionDoc.transferOutDocuments.push(transferOut); 
+                                                    } 
+                                                    validExpeditionDoc = new ExpeditionDoc(validExpeditionDoc);   
+                                                    //Create Expedition 
+                                                    this.expeditionDocCollection.insert(validExpeditionDoc)
+                                                        .then(resultExpeditionId => {
+                                                            this.getByIdOrDefault(resultExpeditionId)
+                                                                .then(resultExpedition => {
+                                                                    var getSPKData = [];
+                                                                    //get data SPK for update
+                                                                    for(var spkDocument of validExpeditionDoc.spkDocuments) {
+                                                                        getSPKData.push(this.spkManager.getByIdOrDefault(spkDocument.spkDocumentId));
+                                                                    } 
+                                                                    Promise.all(getSPKData)
+                                                                        .then(resultSPKs => { 
+                                                                            var getUpdateSPKData = [];
+                                                                            for(var resultSPK of resultSPKs) {
+                                                                                resultSPK.expeditionDocumentId = resultExpeditionId;
+                                                                                resultSPK.expeditionDocument = resultExpedition;
+                                                                                resultSPK = new SPK(resultSPK);
+                                                                                getUpdateSPKData.push(this.spkManager.update(resultSPK));
+                                                                            }
+                                                                            Promise.all(getUpdateSPKData)
+                                                                                .then(resultUpdateSPKs => {  
+                                                                                    resolve(resultExpeditionId); 
+                                                                                }) 
+                                                                                .catch(e => {
+                                                                                    reject(e);
+                                                                                });  
+                                                                        }) 
+                                                                        .catch(e => {
+                                                                            reject(e);
+                                                                        });  
+                                                                })
+                                                                .catch(e => {
+                                                                    reject(e);
+                                                                });  
+                                                        })
+                                                        .catch(e => {
+                                                            reject(e);
+                                                        });  
                                                 })
                                                 .catch(e => {
                                                     reject(e);
-                                                });  
+                                                }); 
                                         })
                                         .catch(e => {
                                             reject(e);
                                         }); 
+                                        
                                 })
                                 .catch(e => {
                                     reject(e);
-                                }); 
+                                });  
                         })
                         .catch(e => {
                             reject(e);

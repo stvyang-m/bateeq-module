@@ -145,9 +145,20 @@ module.exports = class SPKBarangEmbalaseManager {
    
     update(spkDoc) {
         return new Promise((resolve, reject) => {
-             resolve(spkDoc);
-        });
-
+            this._validate(spkDoc)
+                .then(validSpkDoc => {
+                    this.SPKDocCollection.update(validSpkDoc)
+                        .then(id => {
+                            resolve(id);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        })
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });  
     }
 
     delete(spkDoc) {
