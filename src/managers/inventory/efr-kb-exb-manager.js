@@ -206,27 +206,34 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                     //Create Expedition 
                                                     this.expeditionDocCollection.insert(validExpeditionDoc)
                                                         .then(resultExpeditionId => {
-                                                            var getSPKData = [];
-                                                            //get data SPK for update
-                                                            for(var spkDocument of validExpeditionDoc.spkDocuments) {
-                                                                getSPKData.push(this.spkManager.getByIdOrDefault(spkDocument.spkDocumentId));
-                                                            } 
-                                                            Promise.all(getSPKData)
-                                                                .then(resultSPKs => { 
-                                                                    var getUpdateSPKData = [];
-                                                                    for(var resultSPK of resultSPKs) {
-                                                                        resultSPK.expeditionDocumentId = resultExpeditionId;
-                                                                        resultSPK = new SPK(resultSPK);
-                                                                        getUpdateSPKData.push(this.spkManager.update(resultSPK));
-                                                                    }
-                                                                    Promise.all(getUpdateSPKData)
-                                                                        .then(resultUpdateSPKs => {  
-                                                                            resolve(resultExpeditionId); 
+                                                            this.getByIdOrDefault(resultExpeditionId)
+                                                                .then(resultExpedition => {
+                                                                    var getSPKData = [];
+                                                                    //get data SPK for update
+                                                                    for(var spkDocument of validExpeditionDoc.spkDocuments) {
+                                                                        getSPKData.push(this.spkManager.getByIdOrDefault(spkDocument.spkDocumentId));
+                                                                    } 
+                                                                    Promise.all(getSPKData)
+                                                                        .then(resultSPKs => { 
+                                                                            var getUpdateSPKData = [];
+                                                                            for(var resultSPK of resultSPKs) {
+                                                                                resultSPK.expeditionDocumentId = resultExpeditionId;
+                                                                                resultSPK.expeditionDocument = resultExpedition;
+                                                                                resultSPK = new SPK(resultSPK);
+                                                                                getUpdateSPKData.push(this.spkManager.update(resultSPK));
+                                                                            }
+                                                                            Promise.all(getUpdateSPKData)
+                                                                                .then(resultUpdateSPKs => {  
+                                                                                    resolve(resultExpeditionId); 
+                                                                                }) 
+                                                                                .catch(e => {
+                                                                                    reject(e);
+                                                                                });  
                                                                         }) 
                                                                         .catch(e => {
                                                                             reject(e);
                                                                         });  
-                                                                }) 
+                                                                })
                                                                 .catch(e => {
                                                                     reject(e);
                                                                 });  

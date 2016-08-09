@@ -14,8 +14,8 @@ function getData() {
     expeditionDoc.sourceId = '57738435e8a64fc532cd5bf1';
     expeditionDoc.destinationId = '57738460d53dae9234ae0ae1'; 
     expeditionDoc.reference = `reference[${code}]`; 
-    expeditionDoc.spkDocuments = [ { spkDocumentId: '57a47ebba60b652c1f751853' } ]; 
-    
+    expeditionDoc.spkDocuments = [ { spkDocumentId: '57a9ac2c1b31132b943bd6aa' } ];
+        
     // var spk = {};
     // spk.spkDocumentId = '57a3018b9259e20a8840880f';
     //spk.spkDocument = { _id : "57a3018b9259e20a8840880f", items : [] } 
