@@ -38,10 +38,8 @@ module.exports = class TokoTerimaBarangBaruManager {
         var ModuleSeedManager = require('../core/module-seed-manager');
         this.moduleSeedManager = new ModuleSeedManager(db, user);
 
-        var PBJManager = require('../merchandiser/efr-pk-pbj-manager');
-        this.pbjManager = new PBJManager(db, user);
-        var PBRManager = require('../merchandiser/efr-pk-pbr-manager');
-        this.pbrManager = new PBRManager(db, user);
+        var SPKManager = require('../merchandiser/efr-pk-manager');
+        this.spkManager = new SPKManager(db, user);
     }
 
     read(paging) {
@@ -54,7 +52,10 @@ module.exports = class TokoTerimaBarangBaruManager {
 
         return new Promise((resolve, reject) => {
             var deleted = {
-                _deleted: false
+                _deleted: false,
+                code: {
+                        '$regex': new RegExp("^[0-9]+\/" + moduleId + "\/[0-9]{2}\/[0-9]{4}$","i")
+                    }
             };
             var query = _paging.keyword ? {
                 '$and': [deleted]
@@ -104,7 +105,8 @@ module.exports = class TokoTerimaBarangBaruManager {
             var filterCode = {
                     'code': {
                         '$regex': regex
-                    }
+                    },
+                    'expeditionDocumentId' : {"$ne" : {}}
                 };
 
             var isReceived = {
@@ -244,44 +246,11 @@ module.exports = class TokoTerimaBarangBaruManager {
                             this.transferInDocManager.create(validTransferInDoc)
                                 .then(id => { 
                                     var reference = transferInDoc.reference;
-                                    if(reference.indexOf("PBJ") != -1){
-                                        this.getSPKByReference(reference)
-                                        .then(
-                                            pbj=>{
-                                                pbj.isReceived = true;
-                                                this.pbjManager.update(pbj)
-                                                .then(id=>{
-                                                        resolve(id);
-                                                    }
-                                                )
-                                                .catch(e => {
-                                                    reject(e);
-                                                });
-                                            }
-                                        )
-                                        .catch(e => {
-                                            reject(e);
-                                        });
-                                    }else{
-                                        this.getSPKByReference(reference)
-                                        .then(
-                                            pbr=>{
-                                                pbr.isReceived = true;
-                                                this.pbrManager.update(pbj)
-                                                .then(id=>{
-                                                        resolve(id);
-                                                    }
-                                                )
-                                                .catch(e => {
-                                                    reject(e);
-                                                });
-                                            }
-                                        )
-                                        .catch(e => {
-                                            reject(e);
-                                        });
-
-                                    }
+                                    
+                                    this.spkManager.updateReceivedByRef(reference)
+                                    .then(result => {
+                                        resolve(result);
+                                    }).catch(e=> reject(e));
 
                                     this.moduleSeedManager
                                     .update(moduleSeed)
@@ -345,40 +314,46 @@ module.exports = class TokoTerimaBarangBaruManager {
 
     _validate(transferInDoc) {
         var errors = {};
-
-        
         return new Promise((resolve, reject) => {
-            var valid = transferInDoc;
-            // this.moduleManager.getByCode(moduleId)
-            //     .then(module => {
-            //         var config = module.config;
-            //         // valid.sourceId = config.sourceId;
-            //         // valid.destinationId = config.destinationId;
-                    
-            //         // if(valid.password == ""){  
-            //         //     errors["password"] = "password is required";
-            //         // } 
-            //         // for (var prop in errors) {
-            //         //     var ValidationError = require('../../validation-error');
-            //         //     reject(new ValidationError('data does not pass validation', errors));
-            //         // }
-                    
-            //         resolve(valid);
-            //     })
-            //     .catch(e => {
-            //         reject(new Error(`Unable to load module:${moduleId}`));
-            //     });
-            if(valid.reference == ""){
-                errors["reference"] = "reference is required";
-            }
-            if(valid.items == undefined || valid.items.length <= 0){
-                errors["items"] = "no item(s) to transfer in";
-            }
-            for (var prop in errors) {
-                var ValidationError = require('../../validation-error');
-                reject(new ValidationError('data does not pass validation', errors));
-            }
-            resolve(valid);
+            this.spkManager.getByReference(transferInDoc.reference).
+            then(spkDoc => {
+                if(spkDoc){
+                    if(transferInDoc.password != spkDoc.password){
+                        errors["password"] = "invalid password";
+                    }
+                    if(transferInDoc.reference == ""){
+                        errors["reference"] = "reference is required";
+                    }
+                    if(transferInDoc.items.length <= 0){
+                        errors["items"] = "no item(s) to transfer in";
+                    }
+                    if(spkDoc.sourceId.toString() != transferInDoc.sourceId.toString()){
+                        errors["sourceId"] = "invalid sourceId";
+                    }
+                    if(spkDoc.destinationId.toString() != transferInDoc.destinationId.toString()){
+                        errors["destinationId"] = "invalid destinationId";
+                    }
+                    if(spkDoc.isReceived){
+                        errors["isReceived"] = "this reference already received";
+                    }
+                    for(var item of transferInDoc.items){
+                        if(item.quantity <= 0)
+                            errors["items"] = "items should not contains 0 quantity";
+                    }
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
+                }else{
+                    errors["reference"] = "reference not found";
+                    var ValidationError = require('../../validation-error');
+                    reject(new ValidationError('data does not pass validation', errors));
+                }
+                resolve(transferInDoc);
+            })
+            .catch(e=>{
+                reject(e);
+            })
         });
     } 
 };

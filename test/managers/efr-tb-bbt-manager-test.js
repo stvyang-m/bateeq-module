@@ -64,14 +64,16 @@ before('#00. connect db', function (done) {
 });
 
 var createdRef;
+var dataSPK;
 it('#01. should success when create new SPK data', function(done) {
-    var data = getDataSPK();
-    manager2.create(data)
+    dataSPK = getDataSPK();
+    manager2.create(dataSPK)
         .then(id => {
             id.should.be.Object();
             manager.getPendingSPKById(id)
             .then(spkDoc => {
                 createdRef = spkDoc.packingList;
+                dataSPK.password = spkDoc.password;
                 done();    
             })
             .catch(e =>{
@@ -84,8 +86,23 @@ it('#01. should success when create new SPK data', function(done) {
 });
 
 var createdId;
-it('#01. should success when create new data', function(done) {
+it('#02. should error when create new data with invalid password', function(done) {
     var data = getData(createdRef);
+    data.password = "12345678";
+    manager.create(data)
+        .then(id => {
+            done("should error if insert invalid password");
+        })
+        .catch(e => {
+            e.errors.should.have.property('password');
+            e.errors.password.should.String();
+            done();
+        })
+});
+
+it('#03. should success when create new data', function(done) {
+    var data = getData(createdRef);
+    data.password = dataSPK.password;
     manager.create(data)
         .then(id => {
             id.should.be.Object();
@@ -98,7 +115,7 @@ it('#01. should success when create new data', function(done) {
 });
 
 var createdData;
-it(`#02. should success when get created data with id`, function(done) {
+it(`#04. should success when get created data with id`, function(done) {
     manager.getSingleByQuery({_id:createdId})
         .then(data => {
             validate.transferInDoc(data);
@@ -110,9 +127,9 @@ it(`#02. should success when get created data with id`, function(done) {
         })
 });
 
-it(`#03. should success when update created data`, function(done) {
+it(`#05. should success when update created data`, function(done) {
 
-    createdData.reference += '[updated]';
+    // createdData.reference += '[updated]';
     createdData.remark += '[updated]';
 
     var TransferInItem = require('bateeq-models').inventory.TransferInItem; 
@@ -120,53 +137,57 @@ it(`#03. should success when update created data`, function(done) {
     manager.update(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
-            done();
+            done("should not update transfer in, spk must be already received");
         })
         .catch(e => {
-            done(e);
+            e.errors.should.have.property('isReceived');
+            e.errors.isReceived.should.String();
+            done();
         });
 });
 
-it(`#04. should success when get updated data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
-        .then(data => {
-            validate.transferInDoc(data);
-            data.remark.should.equal(createdData.remark);
-            data.reference.should.equal(createdData.reference); 
-            data.items.length.should.equal(1);
-            done();
-        })
-        .catch(e => {
-            done(e);
-        })
-});
+// it(`#05. should success when get updated data with id`, function(done) {
+//     manager.delete(createdData)
+//         .then(id => {
+//             createdId.toString().should.equal(id.toString());
+//             done("should not delete transfer in, spk must be already received");
+//         })
+//         .catch(e => {
+//             e.errors.should.have.property('isReceived');
+//             e.errors.isReceived.should.String();
+//             done();
+//         });
+// });
 
-it(`#05. should success when delete data`, function(done) { 
+it(`#06. should success when delete data`, function(done) { 
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
-            done();
+            done("should not delete transfer in, spk must be already received");
         })
         .catch(e => {
-            done(e);
+            e.errors.should.have.property('isReceived');
+            e.errors.isReceived.should.String();
+            done();
         });
 });
 
-it(`#06. should _deleted=true`, function(done) {
+it(`#07. should _deleted=true`, function(done) {
     manager.getSingleByQuery({_id:createdId})
         .then(data => {
             validate.transferInDoc(data);
             data._deleted.should.be.Boolean();
             data._deleted.should.equal(true);
-            done();
+            done("should not delete transfer in, spk must be already received");
         })
         .catch(e => {
-            done(e);
+            done();
         })
 }); 
 
-it('#07. should error with property items minimum one', function (done) {
-    manager.create({})
+it('#08. should error with property items minimum one', function (done) {
+     createdData.items= [];
+    manager.create(createdData)
         .then(id => {
             done("Should not be error with property items minimum one");
         })
@@ -181,10 +202,9 @@ it('#07. should error with property items minimum one', function (done) {
         })
 });
 
-it('#08. should error with property items must be greater one', function(done) { 
-  manager.create({items:[{},
-                          {articleVariantId:'578dd8a976d4f1003e0d7a3f'},
-                          {quantity:0}]})
+it('#09. should error with property items must be greater one', function(done) { 
+  createdData.items.push({ articleVariantId: "578855c4964302281454fa51", quantity: 0, remark: 'transferInDoc.test' });
+  manager.create(createdData)
       .then(id => { 
           done("Should not be error with property items must be greater one");
       })
@@ -192,12 +212,12 @@ it('#08. should error with property items must be greater one', function(done) {
           try
           {  
               e.errors.should.have.property('items');
-              e.errors.items.should.Array();
-              for(var i of e.errors.items)
-              {
-                i.should.have.property('articleVariantId');
-                i.should.have.property('quantity');
-              }
+              e.errors.items.should.String();
+            //   for(var i of e.errors.items)
+            //   {
+            //     i.should.have.property('articleVariantId');
+            //     i.should.have.property('quantity');
+            //   }
               done();
           }catch(ex)
           {
