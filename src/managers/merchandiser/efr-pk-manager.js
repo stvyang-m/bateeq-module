@@ -13,7 +13,7 @@ var SPKItem = BateeqModels.merchandiser.SPKItem;
 
 var moduleId = "EFR-PK/PBA";
 
-module.exports = class SPKBarangEmbalaseManager {
+module.exports = class SPKBarangManager  {
     constructor(db, user) {
         this.db = db;
         this.user = user;
@@ -111,6 +111,22 @@ module.exports = class SPKBarangEmbalaseManager {
         });
     }
 
+    getByReference(ref){
+        return new Promise((resolve, reject) => {
+            var query = {
+                packingList: ref,
+                _deleted: false
+            };
+            this.SPKDocCollection.singleOrDefault(query)
+                .then(SPKDoc => {
+                    resolve(SPKDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.SPKDocCollection
@@ -159,6 +175,26 @@ module.exports = class SPKBarangEmbalaseManager {
                     reject(e);
                 })
         });  
+    }
+
+    
+
+    updateReceivedByRef(ref) {
+        return new Promise((resolve, reject) => {
+            this.getByReference(ref)
+            .then(spkDoc =>{
+                spkDoc.isReceived = true;
+                this.SPKDocCollection.update(spkDoc).then(id => {
+                            resolve(id);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+            })
+            .catch(e=>{
+                reject(e);
+            });
+        });
     }
 
     delete(spkDoc) {

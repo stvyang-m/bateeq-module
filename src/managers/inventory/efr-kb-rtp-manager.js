@@ -6,6 +6,7 @@ var ObjectId = require('mongodb').ObjectId;
 // internal deps
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
+var generateCode = require('../../utils/code-generator');
 var map = BateeqModels.map;
 
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
@@ -32,9 +33,6 @@ module.exports = class TokoKirimBarangReturnManager {
 
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db, user);
-
-        var ModuleSeedManager = require('../core/module-seed-manager');
-        this.moduleSeedManager = new ModuleSeedManager(db, user);
     }
 
     read(paging) {
@@ -144,40 +142,19 @@ module.exports = class TokoKirimBarangReturnManager {
         return new Promise((resolve, reject) => {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
-                    var now = new Date();
-                    var year = now.getFullYear();
-                    var month = now.getMonth() + 1;
-                    this.moduleSeedManager
-                        .getModuleSeed(moduleId, year, month)
-                        .then(moduleSeed => {
-                            var number = ++moduleSeed.seed;
-                            var zero = 4 - number.toString().length + 1;
-                            var runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
-                            zero = 2 - month.toString().length + 1;
-                            var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
-                            validTransferOutDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
-                            this.transferOutDocManager.create(validTransferOutDoc)
-                                .then(id => {
-                                    this.moduleSeedManager
-                                        .update(moduleSeed)
-                                        .then(seedId => {
-                                            resolve(id);
-                                        })
-                                        .catch(e => {
-                                            reject(e);
-                                        })
-                                })
-                                .catch(e => {
-                                    reject(e);
-                                })
+                    validTransferOutDoc.code = generateCode(moduleId);
+                    this.transferOutDocManager.create(validTransferOutDoc)
+                        .then(id => {
+                            resolve(id);
                         })
                         .catch(e => {
                             reject(e);
-                        });
+                        })
                 })
                 .catch(e => {
                     reject(e);
                 })
+
         });
     }
 
