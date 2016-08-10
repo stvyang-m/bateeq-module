@@ -44,18 +44,16 @@ module.exports = class FinishingTerimaKomponenManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-            var regexModuleId = new RegExp(moduleId, "i");
-            var filterCodeModuleId = {
+            var regexModuleId = new RegExp(moduleId, "i"); 
+            var filter = {
+                _deleted: false,
                 'code': {
                     '$regex': regexModuleId
                 }
-            }; 
-            var deleted = {
-                _deleted: false
             };
             var query = _paging.keyword ? {
-                '$and': [filterCodeModuleId, deleted]
-            } : deleted;
+                '$and': [filter]
+            } : filter;
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
@@ -66,12 +64,10 @@ module.exports = class FinishingTerimaKomponenManager {
                 };
                 var $or = {
                     '$or': [filterCode]
-                };
-
+                }; 
                 query['$and'].push($or);
             }
-
-
+ 
             this.transferInDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
