@@ -212,10 +212,10 @@ module.exports = class FinishingKirimBarangReturSelesaiPerbaikanManager {
                     if(valid.items) {
                         var itemErrors = [];
                         for(var item of valid.items) {
-                            var errorItem = {};
+                            var itemError = {};
                             if(item.quantityStock) {
                                 if(item.quantityStock < item.quantity) {
-                                    errorItem["quantity"] = "Quantity Bigger than Stock";
+                                    itemError["quantity"] = "Quantity Bigger than Stock";
                                 }
                             }
                             itemErrors.push(itemError);
