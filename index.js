@@ -9,19 +9,16 @@ inventoryMap.set("efr-kb-fng", require('./src/managers/inventory/efr-kb-fng-mana
 inventoryMap.set("efr-kb-rtf", require('./src/managers/inventory/efr-kb-rtf-manager'));
 inventoryMap.set("efr-kb-rtp", require('./src/managers/inventory/efr-kb-rtp-manager'));
 inventoryMap.set("efr-kb-rtd", require('./src/managers/inventory/efr-kb-rtd-manager'));
-inventoryMap.set("efr-kb-exb", require('./src/managers/inventory/efr-kb-exb-manager'));
-inventoryMap.set("efr-kb-exr", require('./src/managers/inventory/efr-kb-exr-manager'));
+inventoryMap.set("efr-kb-exb", require('./src/managers/inventory/efr-kb-exb-manager')); 
 
 inventoryMap.set("efr-tb-acc", require('./src/managers/inventory/efr-tb-acc-manager'));
 inventoryMap.set("efr-tb-bat", require('./src/managers/inventory/efr-tb-bat-manager'));
-inventoryMap.set("efr-tb-bbt", require('./src/managers/inventory/efr-tb-bbt-manager'));
-inventoryMap.set("efr-tb-bcd", require('./src/managers/inventory/efr-tb-bcd-manager'));
+inventoryMap.set("efr-tb-bbt", require('./src/managers/inventory/efr-tb-bbt-manager')); 
 inventoryMap.set("efr-tb-bjb", require('./src/managers/inventory/efr-tb-bjb-manager'));
 inventoryMap.set("efr-tb-bjr", require('./src/managers/inventory/efr-tb-bjr-manager'));
 inventoryMap.set("efr-tb-brd", require('./src/managers/inventory/efr-tb-brd-manager'));
 inventoryMap.set("efr-tb-brt", require('./src/managers/inventory/efr-tb-brt-manager'));
-inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager'));
-inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager'));
+inventoryMap.set("efr-tb-swg", require('./src/managers/inventory/efr-tb-swg-manager')); 
 inventoryMap.set("efr-tb-sab", require('./src/managers/inventory/efr-tb-sab-manager'));
 inventoryMap.set("efr-hp-fng", require('./src/managers/inventory/efr-hp-fng-manager'));
 

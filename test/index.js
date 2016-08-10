@@ -31,17 +31,14 @@ describe('#bateeq-module', function(done) {
     // test('@manager/efr-kb-rtf-manager', './managers/efr-kb-rtf-manager-test');
     
 
-    // test('@manager/efr-kb-rtd-manager', './managers/efr-kb-rtd-manager-test');
-    // test('@manager/efr-kb-exr-manager', './managers/efr-kb-exr-manager-test'); 
+    // test('@manager/efr-kb-rtd-manager', './managers/efr-kb-rtd-manager-test'); 
     // test('@manager/efr-tb-acc-manager', './managers/efr-tb-acc-manager-test');
     // test('@manager/efr-tb-bat-manager', './managers/efr-tb-bat-manager-test');
-    // test('@manager/efr-tb-bbt-manager', './managers/efr-tb-bbt-manager-test');
-    // test('@manager/efr-tb-bcd-manager', './managers/efr-tb-bcd-manager-test');
+    // test('@manager/efr-tb-bbt-manager', './managers/efr-tb-bbt-manager-test'); 
     // test('@manager/efr-tb-bjb-manager', './managers/efr-tb-bjb-manager-test');
     // test('@manager/efr-tb-bjr-manager', './managers/efr-tb-bjr-manager-test');
     // test('@manager/efr-tb-brd-manager', './managers/efr-tb-brd-manager-test');
-    // test('@manager/efr-tb-brt-manager', './managers/efr-tb-brt-manager-test');
-    // test('@manager/efr-tb-swg-manager', './managers/efr-tb-swg-manager-test'); 
+    // test('@manager/efr-tb-brt-manager', './managers/efr-tb-brt-manager-test'); 
 
     // test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test');
     // test('@manager/efr-pk-pbj-manager', './managers/efr-pk-pbj-manager-test');
