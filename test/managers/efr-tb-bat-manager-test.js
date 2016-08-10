@@ -72,7 +72,7 @@ it('#01. should success when create new SPK data', function(done) {
     manager2.create(dataSPK)
         .then(id => {
             id.should.be.Object();
-            manager.getPendingSPKById(id)
+            manager.getSPKById(id)
             .then(spkDoc => {
                 createdRef = spkDoc.packingList;
                 dataSPK.password = spkDoc.password;
@@ -135,6 +135,7 @@ it(`#04. should error when update created data`, function(done) {
 
     // createdData.reference += '[updated]';
     createdData.remark += '[updated]';
+    createdData.password = dataSPK.password;
 
     var TransferInItem = require('bateeq-models').inventory.TransferInItem; 
 

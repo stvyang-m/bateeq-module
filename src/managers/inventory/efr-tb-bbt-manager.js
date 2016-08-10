@@ -7,6 +7,7 @@ var ObjectId = require('mongodb').ObjectId;
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
+var generateCode = require('../../utils/code-generator');
 
 var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
@@ -35,9 +36,6 @@ module.exports = class TokoTerimaBarangBaruManager {
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db, user);
 
-        var ModuleSeedManager = require('../core/module-seed-manager');
-        this.moduleSeedManager = new ModuleSeedManager(db, user);
-
         var SPKManager = require('../merchandiser/efr-pk-manager');
         this.spkManager = new SPKManager(db, user);
     }
@@ -54,7 +52,7 @@ module.exports = class TokoTerimaBarangBaruManager {
             var deleted = {
                 _deleted: false,
                 code: {
-                        '$regex': new RegExp("^[0-9]+\/" + moduleId + "\/[0-9]{2}\/[0-9]{4}$","i")
+                        '$regex': new RegExp("^[A-Z0-9]+\/" + moduleId + "\/[0-9]{2}\/[0-9]{4}$","i")
                     }
             };
             var query = _paging.keyword ? {
@@ -151,6 +149,21 @@ module.exports = class TokoTerimaBarangBaruManager {
     }
 
 
+    getSPKById(id){
+            return new Promise((resolve, reject) => {
+                var query = {
+                    _id: new ObjectId(id),
+                    _deleted: false
+                };
+                this.spkDocCollection.singleOrDefault(query)
+                    .then(SPKDoc => {
+                        resolve(SPKDoc);
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
+            });
+        }
 
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
@@ -204,6 +217,7 @@ module.exports = class TokoTerimaBarangBaruManager {
             this.spkDocCollection.singleOrDefault(query)
                 .then(SPKDoc => {
                     SPKDoc.password = '';
+                    SPKDoc._id = undefined;
                     resolve(SPKDoc);
                 })
                 .catch(e => {
@@ -232,43 +246,20 @@ module.exports = class TokoTerimaBarangBaruManager {
         return new Promise((resolve, reject) => {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => { 
-                    var now = new Date();
-                    var year = now.getFullYear();
-                    var month = now.getMonth() + 1; 
-                    this.moduleSeedManager
-                        .getModuleSeed(moduleId, year, month)
-                        .then(moduleSeed => {
-                            var number = ++moduleSeed.seed;
-                            var zero = 4 - number.toString().length + 1;
-                            var runningNumber = Array(+(zero > 0 && zero)).join("0") + number; 
-                            zero = 2 - month.toString().length + 1;
-                            var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month; 
-                            validTransferInDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`; 
+                    validTransferInDoc.code = generateCode(moduleId);
                             this.transferInDocManager.create(validTransferInDoc)
                                 .then(id => { 
                                     var reference = transferInDoc.reference;
-                                    
                                     this.spkManager.updateReceivedByRef(reference)
                                     .then(result => {
-                                        resolve(result);
-                                    }).catch(e=> reject(e));
-
-                                    this.moduleSeedManager
-                                    .update(moduleSeed)
-                                    .then(seedId => {
                                         resolve(id);
-                                    })
-                                    .catch(e => {
+                                    }).catch(e=> {
                                         reject(e);
-                                    })
+                                    });
                                 })
-                                .catch(e => {
-                                    reject(e);
-                                })
-                        })
-                        .catch(e => {
-                            reject(e);
-                        });
+                            .catch(e => {
+                                reject(e);
+                            })
                 })
                 .catch(e => {
                     reject(e);

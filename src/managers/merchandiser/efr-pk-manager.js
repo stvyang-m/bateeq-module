@@ -184,7 +184,12 @@ module.exports = class SPKBarangManager  {
             this.getByReference(ref)
             .then(spkDoc =>{
                 spkDoc.isReceived = true;
-                this.SPKDocCollection.update(spkDoc);
+                this.SPKDocCollection.update(spkDoc).then(id => {
+                            resolve(id);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
             })
             .catch(e=>{
                 reject(e);
