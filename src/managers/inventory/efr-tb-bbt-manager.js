@@ -203,6 +203,7 @@ module.exports = class TokoTerimaBarangBaruManager {
             };
             this.spkDocCollection.singleOrDefault(query)
                 .then(SPKDoc => {
+                    SPKDoc.password = '';
                     resolve(SPKDoc);
                 })
                 .catch(e => {

@@ -220,6 +220,7 @@ module.exports = class TokoTerimaAksesorisManager {
             };
             this.spkDocCollection.singleOrDefault(query)
                 .then(SPKDoc => {
+                    SPKDoc.password = '';
                     resolve(SPKDoc);
                 })
                 .catch(e => {
