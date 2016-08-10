@@ -148,23 +148,6 @@ module.exports = class TokoTerimaBarangBaruManager {
         });
     }
 
-
-    getSPKById(id){
-            return new Promise((resolve, reject) => {
-                var query = {
-                    _id: new ObjectId(id),
-                    _deleted: false
-                };
-                this.spkDocCollection.singleOrDefault(query)
-                    .then(SPKDoc => {
-                        resolve(SPKDoc);
-                    })
-                    .catch(e => {
-                        reject(e);
-                    });
-            });
-        }
-
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             var query = {
@@ -225,23 +208,7 @@ module.exports = class TokoTerimaBarangBaruManager {
                 });
         });
     }
-
-    getSPKByReference(ref){
-        return new Promise((resolve, reject) => {
-            var query = {
-                packingList: ref,
-                _deleted: false
-            };
-            this.spkDocCollection.singleOrDefault(query)
-                .then(SPKDoc => {
-                    resolve(SPKDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
+    
     create(transferInDoc) {
         return new Promise((resolve, reject) => {
             this._validate(transferInDoc)

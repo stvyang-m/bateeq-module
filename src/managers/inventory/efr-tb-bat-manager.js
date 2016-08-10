@@ -153,39 +153,6 @@ module.exports = class TokoTerimaAksesorisManager {
         });
     }
 
-    getSPKByReference(ref){
-            return new Promise((resolve, reject) => {
-                var query = {
-                    packingList: ref,
-                    _deleted: false
-                };
-                this.spkDocCollection.singleOrDefault(query)
-                    .then(SPKDoc => {
-                        resolve(SPKDoc);
-                    })
-                    .catch(e => {
-                        reject(e);
-                    });
-            });
-        }
-        
-
-    getSPKById(id){
-            return new Promise((resolve, reject) => {
-                var query = {
-                    _id: new ObjectId(id),
-                    _deleted: false
-                };
-                this.spkDocCollection.singleOrDefault(query)
-                    .then(SPKDoc => {
-                        resolve(SPKDoc);
-                    })
-                    .catch(e => {
-                        reject(e);
-                    });
-            });
-        }
-
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             var query = {

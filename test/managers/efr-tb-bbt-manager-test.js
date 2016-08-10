@@ -3,6 +3,7 @@ var helper = require('../helper');
 var validate = require('bateeq-models').validator.inventory;
 var manager;
 var manager2;
+var manager3;
 
 function getData(refno) {
     var TransferInDoc = require('bateeq-models').inventory.TransferInDoc;
@@ -56,6 +57,11 @@ before('#00. connect db', function (done) {
             manager2 = new SPKBarangJadiManager(db, {
                 username: 'unit-test'
             });
+            
+            var SPKManager = require('../../src/managers/merchandiser/efr-pk-manager');
+            manager3 = new SPKManager(db, {
+                username: 'unit-test'
+            });
             done();
         })
         .catch(e => {
@@ -70,7 +76,7 @@ it('#01. should success when create new SPK data', function(done) {
     manager2.create(dataSPK)
         .then(id => {
             id.should.be.Object();
-            manager.getSPKById(id)
+            manager3.getById(id)
             .then(spkDoc => {
                 createdRef = spkDoc.packingList;
                 dataSPK.password = spkDoc.password;
