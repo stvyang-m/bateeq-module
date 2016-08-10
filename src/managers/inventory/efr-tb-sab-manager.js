@@ -230,7 +230,8 @@ module.exports = class FinishingTerimaKomponenManager {
       
                         finishing.articleVariant.code = code;
                         finishing.articleVariant.size = "Component";
-                        finishing.articleVariant.description = "Component";
+                        finishing.articleVariant.description = "Component Finishings";
+                        finishing.articleVariant = new ArticleVariant(finishing.articleVariant); 
                         getFinishings.push(this.articleVariantManager.create(finishing.articleVariant));
                     }
                     else{
