@@ -122,7 +122,7 @@ module.exports = class FinishingKirimBarangBaruManager {
                 .catch(e => {
                     reject(e);
                 });
-        })
+        });
     }
 
     getSingleOrDefaultByQuery(query) {
@@ -135,7 +135,7 @@ module.exports = class FinishingKirimBarangBaruManager {
                 .catch(e => {
                     reject(e);
                 });
-        })
+        });
     }
 
     create(transferOutDoc) {
@@ -154,6 +154,7 @@ module.exports = class FinishingKirimBarangBaruManager {
                 .catch(e => {
                     reject(e);
                 });
+
         });
     }
 
@@ -167,11 +168,11 @@ module.exports = class FinishingKirimBarangBaruManager {
                         })
                         .catch(e => {
                             reject(e);
-                        })
+                        });
                 })
                 .catch(e => {
                     reject(e);
-                })
+                });
         });
     }
 
@@ -186,11 +187,11 @@ module.exports = class FinishingKirimBarangBaruManager {
                         })
                         .catch(e => {
                             reject(e);
-                        })
+                        });
                 })
                 .catch(e => {
                     reject(e);
-                })
+                });
         });
     }
 
