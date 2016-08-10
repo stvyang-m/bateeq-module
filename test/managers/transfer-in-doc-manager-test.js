@@ -2,8 +2,14 @@ var should = require('should');
 var helper = require('../helper');
 var validate = require('bateeq-models').validator.inventory;
 var manager;
+var testData;
 
 function getData() {
+    var source = testData.storages["UT-FNG"];
+    var destination = testData.storages["UT-BJB"];
+    var variant = testData.variants["UT-AV1"];
+
+
     var TransferInDoc = require('bateeq-models').inventory.TransferInDoc;
     var TransferInItem = require('bateeq-models').inventory.TransferInItem;
     var transferInDoc = new TransferInDoc();
@@ -15,15 +21,15 @@ function getData() {
     transferInDoc.code = code;
     transferInDoc.date = now;
 
-    transferInDoc.sourceId = '57738435e8a64fc532cd5bf1';
-    transferInDoc.destinationId = '57738460d53dae9234ae0ae1';
+    transferInDoc.sourceId = source._id;
+    transferInDoc.destinationId = destination._id;
 
     transferInDoc.reference = `reference[${code}]`;
 
     transferInDoc.remark = `remark for ${code}`;
 
     transferInDoc.items.push(new TransferInItem({
-        articleVariantId: "578855c4964302281454fa51",
+        articleVariantId: variant._id,
         quantity: 5,
         remark: 'transferInDoc.test'
     }));
@@ -34,15 +40,23 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var TransferInDocManager = require('../../src/managers/inventory/transfer-in-doc-manager');
-            manager = new TransferInDocManager(db, {
-                username: 'unit-test'
-            });
-            done();
+
+            var data = require("../data");
+            data(db)
+                .then(result => {
+                    
+                    var TransferInDocManager = require('../../src/managers/inventory/transfer-in-doc-manager');
+                    manager = new TransferInDocManager(db, {
+                        username: 'unit-test'
+                    });
+                    testData = result;
+                    
+                    done();
+                });
         })
         .catch(e => {
             done(e);
-        })
+        });
 });
 
 var createdId;
@@ -56,7 +70,7 @@ it('#01. should success when create new data', function(done) {
         })
         .catch(e => {
             done(e);
-        })
+        });
 });
 
 var createdData;

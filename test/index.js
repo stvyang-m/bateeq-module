@@ -20,7 +20,7 @@ describe('#bateeq-module', function(done) {
     // test('@manager/article-manager', './managers/article-manager-test');
     // test('@manager/article-variant-manager', './managers/article-variant-manager-test');
     // test('@manager/storage-manager', './managers/storage-manager-test');
-    // test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
+    test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
     // test('@manager/transfer-out-doc-manager', './managers/transfer-out-doc-manager-test');
     // test('@manager/inventory-manager', './managers/inventory-manager-test');
     // test('@manager/module-manager', './managers/module-manager-test');
@@ -33,7 +33,7 @@ describe('#bateeq-module', function(done) {
     // test('@manager/efr-kb-rtd-manager', './managers/efr-kb-rtd-manager-test');
     // test('@manager/efr-kb-exr-manager', './managers/efr-kb-exr-manager-test');
 
-    test('@manager/efr-tb-acc-manager', './managers/efr-tb-acc-manager-test');
+    // test('@manager/efr-tb-acc-manager', './managers/efr-tb-acc-manager-test');
     // test('@manager/efr-tb-bat-manager', './managers/efr-tb-bat-manager-test');
     // test('@manager/efr-tb-bbt-manager', './managers/efr-tb-bbt-manager-test');
     // test('@manager/efr-tb-bcd-manager', './managers/efr-tb-bcd-manager-test');
