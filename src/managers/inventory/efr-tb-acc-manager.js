@@ -10,6 +10,7 @@ var map = BateeqModels.map;
 
 var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
+var generateCode = require('../../utils/code-generator');
 
 const moduleId = "EFR-TB/ACC";
 
@@ -31,10 +32,7 @@ module.exports = class FinishingTerimaAksesorisManager {
         this.transferInDocManager = new TransferInDocManager(db, user);
 
         var ModuleManager = require('../core/module-manager');
-        this.moduleManager = new ModuleManager(db, user);
-
-        var ModuleSeedManager = require('../core/module-seed-manager');
-        this.moduleSeedManager = new ModuleSeedManager(db, user);
+        this.moduleManager = new ModuleManager(db, user); 
     }
 
     read(paging) {
@@ -144,36 +142,14 @@ module.exports = class FinishingTerimaAksesorisManager {
         return new Promise((resolve, reject) => {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
-                    var now = new Date();
-                    var year = now.getFullYear();
-                    var month = now.getMonth() + 1;
-                    this.moduleSeedManager
-                        .getModuleSeed(moduleId, year, month)
-                        .then(moduleSeed => {
-                            var number = ++moduleSeed.seed;
-                            var zero = 4 - number.toString().length + 1;
-                            var runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
-                            zero = 2 - month.toString().length + 1;
-                            var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
-                            validTransferInDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
-                            this.transferInDocManager.create(validTransferInDoc)
-                                .then(id => {
-                                    this.moduleSeedManager
-                                        .update(moduleSeed)
-                                        .then(seedId => {
-                                            resolve(id);
-                                        })
-                                        .catch(e => {
-                                            reject(e);
-                                        })
-                                })
-                                .catch(e => {
-                                    reject(e);
-                                })
+                    validTransferInDoc.code = generateCode(moduleId);
+                    this.transferInDocManager.create(validTransferInDoc)
+                        .then(id => {
+                            resolve(id);
                         })
                         .catch(e => {
                             reject(e);
-                        });
+                        })
                 })
                 .catch(e => {
                     reject(e);
@@ -232,4 +208,5 @@ module.exports = class FinishingTerimaAksesorisManager {
                 });
         });
     }
+
 };

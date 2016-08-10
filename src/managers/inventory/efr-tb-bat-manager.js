@@ -7,6 +7,7 @@ var ObjectId = require('mongodb').ObjectId;
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
+var generateCode = require('../../utils/code-generator');
 
 var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
@@ -33,10 +34,7 @@ module.exports = class TokoTerimaAksesorisManager {
         this.transferInDocManager = new TransferInDocManager(db, user);
 
         var ModuleManager = require('../core/module-manager');
-        this.moduleManager = new ModuleManager(db, user);
-
-        var ModuleSeedManager = require('../core/module-seed-manager');
-        this.moduleSeedManager = new ModuleSeedManager(db, user);
+        this.moduleManager = new ModuleManager(db, user); 
     }
 
     read(paging) {
@@ -64,7 +62,7 @@ module.exports = class TokoTerimaAksesorisManager {
                 };
                 var $or = {
                     '$or': [filterCode]
-                }; 
+                };
                 query['$and'].push($or);
             }
 
@@ -83,7 +81,7 @@ module.exports = class TokoTerimaAksesorisManager {
         });
     }
 
-    readPendingSPK(paging){
+    readPendingSPK(paging) {
         var _paging = Object.assign({
             page: 1,
             size: 20,
@@ -95,23 +93,25 @@ module.exports = class TokoTerimaAksesorisManager {
             var deleted = {
                 _deleted: false
             };
-            
-            var regex = new RegExp("^[0-9]+\/[A-Z\-]+\/PBA\/[0-9]{2}\/[0-9]{4}$","i");
-            var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
 
-            var isReceived = {
-                isReceived : false
+            var regex = new RegExp("^[0-9]+\/[A-Z\-]+\/PBA\/[0-9]{2}\/[0-9]{4}$", "i");
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
             };
 
-            var query = {$and:[
-                deleted,
-                filterCode,
-                isReceived
-            ]}
+            var isReceived = {
+                isReceived: false
+            };
+
+            var query = {
+                $and: [
+                    deleted,
+                    filterCode,
+                    isReceived
+                ]
+            }
 
             this.spkDocCollection
                 .where(query)
@@ -188,12 +188,12 @@ module.exports = class TokoTerimaAksesorisManager {
         })
     }
 
-    getPendingSPKById(id){
+    getPendingSPKById(id) {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false,
-                isReceived:false
+                isReceived: false
             };
             this.spkDocCollection.singleOrDefault(query)
                 .then(SPKDoc => {
@@ -208,37 +208,15 @@ module.exports = class TokoTerimaAksesorisManager {
     create(transferInDoc) {
         return new Promise((resolve, reject) => {
             this._validate(transferInDoc)
-                .then(validTransferInDoc => { 
-                    var now = new Date();
-                    var year = now.getFullYear();
-                    var month = now.getMonth() + 1; 
-                    this.moduleSeedManager
-                        .getModuleSeed(moduleId, year, month)
-                        .then(moduleSeed => {
-                            var number = ++moduleSeed.seed;
-                            var zero = 4 - number.toString().length + 1;
-                            var runningNumber = Array(+(zero > 0 && zero)).join("0") + number; 
-                            zero = 2 - month.toString().length + 1;
-                            var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month; 
-                            validTransferInDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`; 
-                            this.transferInDocManager.create(validTransferInDoc)
-                                .then(id => { 
-                                    this.moduleSeedManager
-                                        .update(moduleSeed)
-                                        .then(seedId => {
-                                            resolve(id);
-                                        })
-                                        .catch(e => {
-                                            reject(e);
-                                        })
-                                })
-                                .catch(e => {
-                                    reject(e);
-                                })
+                .then(validTransferInDoc => {
+                    validTransferInDoc.code = generateCode(moduleId)
+                    this.transferInDocManager.create(validTransferInDoc)
+                        .then(id => {
+                            resolve(id);
                         })
                         .catch(e => {
                             reject(e);
-                        });
+                        })
                 })
                 .catch(e => {
                     reject(e);
@@ -292,7 +270,7 @@ module.exports = class TokoTerimaAksesorisManager {
                     var config = module.config;
                     valid.sourceId = config.sourceId;
                     valid.destinationId = config.destinationId;
-                    
+
                     // if(valid.password == ""){  
                     //     errors["password"] = "password is required";
                     // } 
@@ -300,12 +278,12 @@ module.exports = class TokoTerimaAksesorisManager {
                     //     var ValidationError = require('../../validation-error');
                     //     reject(new ValidationError('data does not pass validation', errors));
                     // }
-                    
+
                     resolve(valid);
                 })
                 .catch(e => {
                     reject(new Error(`Unable to load module:${moduleId}`));
                 });
         });
-    } 
+    }
 };
