@@ -1,7 +1,7 @@
 var helper = require('./helper');
 
 
-function getSertStorage(db) {
+function getSertStorages(db) {
 
     var storages = [{
         code: "UT-FNG",
@@ -46,7 +46,7 @@ function getSertStorage(db) {
         var promises = [];
 
         for (var storage of storages) {
-            var promise = new Promise((resolve, reject) => { 
+            var promise = new Promise((resolve, reject) => {
                 var _storage = storage;
                 manager.getSingleOrDefaultByQuery({
                         code: _storage.code
@@ -85,7 +85,7 @@ function getSertStorage(db) {
 
 
 
-function getSertVariant(db) {
+function getSertVariants(db) {
 
     var variants = [{
         code: "UT-AV1",
@@ -145,9 +145,277 @@ function getSertVariant(db) {
 }
 
 
+function getSertModules(db, storages) {
+
+    var modules = [{
+        code: "EFR-HP/FNG",
+        name: "Module EFR-HP/FNG",
+        description: "Unit test data: module EFR-HP/FNG",
+        config: {
+            source: {
+                type: "fixed",
+                value: storages["UT-FNG"]._id
+            },
+            destination: {
+                type: "fixed",
+                value: storages["UT-FNG"]._id
+            }
+        }
+    }, {
+        code: "EFR-KB/EXB",
+        name: "Module EFR-KB/EXB",
+        description: "Unit test data: module EFR-KB/EXB",
+        config: {
+            destination: {
+                type: "selection",
+                value: [storages["UT-ST1"]._id, storages["UT-ST2"]._id]
+            }
+        }
+    }, {
+        code: "EFR-KB/FNG",
+        name: "Module EFR-KB/FNG",
+        description: "Unit test data: module EFR-KB/FNG",
+        config: {
+            source: {
+                type: "fixed",
+                value: storages["UT-FNG"]._id
+            },
+            destination: {
+                type: "fixed",
+                value: storages["UT-BJB"]._id
+            }
+        }
+    }, {
+        code: "EFR-KB/RTD",
+        name: "Module EFR-KB/RTD",
+        description: "Unit test data: module EFR-KB/RTD",
+        config: {
+            source: {
+                type: "fixed",
+                value: storages["UT-FNG"]._id
+            },
+            destination: {
+                type: "fixed",
+                value: storages["UT-BJR"]._id
+            }
+        }
+    }, {
+        code: "EFR-KB/RTF",
+        name: "Module EFR-KB/RTF",
+        description: "Unit test data: module EFR-KB/RTF",
+        config: {
+            source: {
+                type: "fixed",
+                value: storages["UT-BJR"]._id
+            },
+            destination: {
+                type: "fixed",
+                value: storages["UT-FNG"]._id
+            }
+        }
+    }, {
+        code: "EFR-KB/RTP",
+        name: "Module EFR-KB/RTP",
+        description: "Unit test data: module EFR-KB/RTP",
+        config: {
+            source: {
+                type: "selection",
+                value: [storages["UT-ST1"]._id, storages["UT-ST2"]._id]
+            },
+            destination: {
+                type: "fixed",
+                value: storages["UT-BJR"]._id
+            }
+        }
+    }, {
+        code: "EFR-KB/RTT",
+        name: "Module EFR-KB/RTT",
+        description: "Unit test data: module EFR-KB/RTT",
+        config: {
+            source: {
+                type: "selection",
+                value: [storages["UT-ST1"]._id, storages["UT-ST2"]._id]
+            },
+            destination: {
+                type: "selection",
+                value: [storages["UT-ST1"]._id, storages["UT-ST2"]._id]
+            }
+        }
+    }, {
+        code: "EFR-TB/ACC",
+        name: "Module EFR-TB/ACC",
+        description: "Unit test data: module EFR-TB/ACC",
+        config: {
+            destination: {
+                type: "fixed",
+                value: storages["UT-ACC"]._id
+            }
+        }
+    }, {
+        code: "EFR-TB/BAT",
+        name: "Module EFR-TB/BAT",
+        description: "Unit test data: module EFR-TB/BAT",
+        config: {}
+    }, {
+        code: "EFR-TB/BBT",
+        name: "Module EFR-TB/BBT",
+        description: "Unit test data: module EFR-TB/BBT",
+        config: {}
+    }, {
+        code: "EFR-TB/BJB",
+        name: "Module EFR-TB/BJB",
+        description: "Unit test data: module EFR-TB/BJB",
+        config: {}
+    }, {
+        code: "EFR-TB/BJR",
+        name: "Module EFR-TB/BJR",
+        description: "Unit test data: module EFR-TB/BJR",
+        config: {}
+    }, {
+        code: "EFR-TB/BRD",
+        name: "Module EFR-TB/BRD",
+        description: "Unit test data: module EFR-TB/BRD",
+        config: {}
+    }, {
+        code: "EFR-TB/BRT",
+        name: "Module EFR-TB/BRT",
+        description: "Unit test data: module EFR-TB/BRT",
+        config: {}
+    }, {
+        code: "EFR-TB/SAB",
+        name: "Module EFR-TB/SAB",
+        description: "Unit test data: module EFR-TB/SAB",
+        config: {
+            source: {
+                type: "selection",
+                value: [storages["UT-ACC"]._id, storages["UT-SWG"]._id, storages["UT-MHD"]._id]
+            },
+            destination: {
+                type: "fixed",
+                value: storages["UT-FNG"]._id
+            }
+        }
+    }, {
+        code: "EFR-PK/PBA",
+        name: "Module EFR-PK/PBA",
+        description: "Unit test data: module EFR-PK/PBA",
+        config: {
+            source: {
+                type: "fixed",
+                value: storages["UT-ACC"]._id
+            },
+            destination: {
+                type: "selection",
+                value: [storages["UT-ST1"]._id, storages["UT-ST2"]._id]
+            }
+        }
+    }, {
+        code: "EFR-PK/PBJ",
+        name: "Module EFR-PK/PBJ",
+        description: "Unit test data: module EFR-PK/PBJ",
+        config: {
+            source: {
+                type: "fixed",
+                value: storages["UT-BJB"]._id
+            },
+            destination: {
+                type: "selection",
+                value: [storages["UT-ST1"]._id, storages["UT-ST2"]._id]
+            }
+        }
+    }, {
+        code: "EFR-PK/PBR",
+        name: "",
+        description: "Unit test data: module EFR-HP/FNG",
+        config: {
+            source: {
+                type: "fixed",
+                value: storages["UT-BJR"]._id
+            },
+            destination: {
+                type: "selection",
+                value: [storages["UT-ST1"]._id, storages["UT-ST2"]._id]
+            }
+        }
+    }, {
+        code: "EFR-TB/ALT",
+        name: "Module EFR-TB/ALT",
+        description: "Unit test data: module EFR-TB/ALT",
+        config: {
+            source: {
+                type: "fixed",
+                value: storages["UT-SWG"]._id
+            },
+            destination: {
+                type: "fixed",
+                value: storages["UT-FNG"]._id
+            }
+        }
+    }, {
+        code: "EFR-KB/ALT",
+        name: "Module EFR-KB/ALT",
+        description: "Unit test data: module EFR-KB/ALT",
+        config: {
+            source: {
+                type: "fixed",
+                value: storages["UT-FNG"]._id
+            },
+            destination: {
+                type: "fixed",
+                value: storages["UT-SWG"]._id
+            }
+        }
+    }];
+
+    var ModuleManager = require("../src/managers/core/module-manager");
+    return new Promise((resolve, reject) => {
+        var manager = new ModuleManager(db, {
+            username: "unit-test"
+        });
+        var promises = [];
+
+        for (var module of modules) {
+            var promise = new Promise((resolve, reject) => {
+                var _module = module;
+                manager.getSingleOrDefaultByQuery({
+                        code: _module.code
+                    })
+                    .then(data => {
+                        if (data)
+                            resolve(data);
+                        else {
+                            manager.create(_module)
+                                .then(id => {
+                                    manager.getById(id).then(createdData => {
+                                        resolve(createdData);
+                                    });
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                });
+                        }
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
+            });
+            promises.push(promise);
+        }
+
+        Promise.all(promises)
+            .then(variants => {
+                resolve(variants);
+            })
+            .catch(e => {
+                reject(e);
+            });
+    });
+}
+
+
 module.exports = function(db) {
     return new Promise((resolve, reject) => {
-        Promise.all([getSertStorage(db), getSertVariant(db)])
+        Promise.all([getSertStorages(db), getSertVariants(db)])
             .then(results => {
                 var storages = {};
                 var variants = {};
@@ -158,10 +426,23 @@ module.exports = function(db) {
                 for (var variant of results[1])
                     variants[variant.code] = variant;
 
-                resolve({
-                    storages: storages,
-                    variants: variants
-                });
+
+                getSertModules(db, storages)
+                    .then(results => {
+                        var modules = {};
+                        for (var module of results)
+                            modules[module.code] = module;
+
+                        resolve({
+                            storages: storages,
+                            variants: variants,
+                            modules: modules
+                        });
+                    })
+                    .catch(e => {
+                        reject(e);
+                    }); 
+
             })
             .catch(e => {
                 reject(e);
