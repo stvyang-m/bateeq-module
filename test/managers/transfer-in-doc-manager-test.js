@@ -40,17 +40,16 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-
             var data = require("../data");
             data(db)
                 .then(result => {
-                    
+
                     var TransferInDocManager = require('../../src/managers/inventory/transfer-in-doc-manager');
                     manager = new TransferInDocManager(db, {
                         username: 'unit-test'
                     });
                     testData = result;
-                    
+
                     done();
                 });
         })

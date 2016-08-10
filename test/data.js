@@ -325,7 +325,7 @@ function getSertModules(db, storages) {
         }
     }, {
         code: "EFR-PK/PBR",
-        name: "",
+        name: "Module EFR-PK/PBR",
         description: "Unit test data: module EFR-HP/FNG",
         config: {
             source: {

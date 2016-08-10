@@ -2,8 +2,13 @@ var should = require('should');
 var helper = require('../helper');
 var validate = require('bateeq-models').validator.inventory;
 var manager;
+var testData;
 
 function getData() {
+    var source = testData.storages["UT-BJB"];
+    var destination = testData.storages["UT-FNG"];
+    var variant = testData.variants["UT-AV1"];
+
     var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
     var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
     var transferOutDoc = new TransferOutDoc();
@@ -15,15 +20,15 @@ function getData() {
     transferOutDoc.code = code;
     transferOutDoc.date = now;
 
-    transferOutDoc.destinationId = '57738435e8a64fc532cd5bf1';
-    transferOutDoc.sourceId = '57738460d53dae9234ae0ae1';
+    transferOutDoc.sourceId = source._id;
+    transferOutDoc.destinationId = destination._id;
 
     transferOutDoc.reference = `reference[${code}]`;
 
     transferOutDoc.remark = `remark for ${code}`;
 
     transferOutDoc.items.push(new TransferOutItem({
-        articleVariantId: "578855c4964302281454fa51",
+        articleVariantId: variant._id,
         quantity: 5,
         remark: 'transferOutDoc.test'
     }));
@@ -34,15 +39,21 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var TransferOutDocManager = require('../../src/managers/inventory/transfer-out-doc-manager');
-            manager = new TransferOutDocManager(db, {
-                username: 'unit-test'
-            });
-            done();
+            var data = require("../data");
+            data(db)
+                .then(result => {
+
+                    var TransferOutDocManager = require('../../src/managers/inventory/transfer-out-doc-manager');
+                    manager = new TransferOutDocManager(db, {
+                        username: 'unit-test'
+                    });
+                    testData = result;
+                    done();
+                });
         })
         .catch(e => {
             done(e);
-        })
+        });
 });
 
 var createdId;
