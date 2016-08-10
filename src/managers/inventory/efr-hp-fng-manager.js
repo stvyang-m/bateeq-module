@@ -225,8 +225,8 @@ module.exports = class FinishedGoodsManager {
                                         
                                     //Create Finishing Good
                                     this.finishedGoodsDocCollection.insert(validFinishedGoodDoc)
-                                        .then(results => {
-                                            resolve(results[0]);
+                                        .then(id => {
+                                            resolve(id);
                                         })
                                         .catch(e => {
                                             reject(e);
@@ -263,8 +263,46 @@ module.exports = class FinishedGoodsManager {
         return new Promise((resolve, reject) => {
             var valid = finishedGoodDoc;
             
-            resolve(valid);
-            
+            var getItem = [];
+            for(var item of valid.items){
+                for(var finishing of item.articleVariant.finishings){
+                    // finishing.articleVariantId;
+                    // finishing.quantity;
+                    getItem.push(this.inventoryManager.getByStorageIdAndArticleVarianId(valid.sourceId, finishing.articleVariantId))
+                }
+            }
+            Promise.all(getItem)
+                .then(items => {
+                    var isHaveError = false;
+                    var index = 0; 
+                    var errorItems = [];
+                    for(var item of valid.items){
+                        var errorItem = {};
+                        var errorItemsFinishings = [];
+                        for(var finishing of item.articleVariant.finishings){
+                            // finishing.articleVariantId;
+                            // finishing.quantity;
+                            var errorFinishing = {};
+                            var inventoryQuantity = items[index++].quantity
+                            if(finishing.quantity > inventoryQuantity) {
+                                errorFinishing["quantity"] = "Quantity is Bigger than Stock (" + inventoryQuantity + ")";
+                                isHaveError = true;
+                            }  
+                            errorItemsFinishings.push(errorFinishing);
+                        } 
+                        errorItem.articleVariant = { finishings: errorItemsFinishings };  
+                        errorItems.push(errorItem);
+                    }
+                    if(isHaveError){ 
+                        errors.items = errorItems;
+                        for (var prop in errors) {
+                            var ValidationError = require('../../validation-error');
+                            reject(new ValidationError('data does not pass validation', errors));
+                        }
+                    }
+                    
+                    resolve(valid);
+                }) 
         });
     } 
 };
