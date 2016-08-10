@@ -18,6 +18,8 @@
   "homepage": "https://github.com/danliris/bateeq-module#readme",
   "dependencies": {
     "bateeq-models": "git+https://git@github.com/danliris/bateeq-models.git",
+    "hashids": "^1.1.0",
+    "moment": "^2.14.1",
     "mongodb-toolkit": "git+https://github.com/pinkgorilla/mongodb-toolkit.git"
   },
   "devDependencies": {
