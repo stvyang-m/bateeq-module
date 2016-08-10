@@ -11,6 +11,7 @@ var map = BateeqModels.map;
 var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
 var ArticleVariant = BateeqModels.core.article.ArticleVariant;
+var generateCode = require('../../utils/code-generator');
 
 const moduleId = "EFR-TB/SAB";
 module.exports = class FinishingTerimaKomponenManager {
@@ -31,11 +32,7 @@ module.exports = class FinishingTerimaKomponenManager {
         this.transferInDocManager = new TransferInDocManager(db, user);
 
         var ModuleManager = require('../core/module-manager');
-        this.moduleManager = new ModuleManager(db, user);
-
-        var ModuleSeedManager = require('../core/module-seed-manager');
-        this.moduleSeedManager = new ModuleSeedManager(db, user);
-
+        this.moduleManager = new ModuleManager(db, user);  
     }
 
     read(paging) {
@@ -149,71 +146,51 @@ module.exports = class FinishingTerimaKomponenManager {
 
     create(transferInDoc) {
         return new Promise((resolve, reject) => {
+            //Validate Model Input
             this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    var now = new Date();
-                    var year = now.getFullYear();
-                    var month = now.getMonth() + 1;
-                    //Create Code
-                    this.moduleSeedManager.getModuleSeed(moduleId, year, month)
-                        .then(moduleSeed => {
-                            var number = ++moduleSeed.seed;
-                            var zero = 4 - number.toString().length + 1;
-                            var runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
-                            zero = 2 - month.toString().length + 1;
-                            var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
-                            validTransferInDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`; 
-                            //Create Components to Article Variant if dont Any
-                            this._validateFinishingVariant(validTransferInDoc)
-                                .then(readyTransferInDoc => {
-                                    //Update Article Variant, add Finishings object
-                                    this._appendArticleVariant(readyTransferInDoc)
-                                        .then(latestTransferInDoc => { 
-                                            // Create View Model to Transfer In
-                                            var getTransferIns = [];
-                                            var valid = latestTransferInDoc;  
-                                            var NewTransferInDoc = {};
-                                            NewTransferInDoc.sourceId = valid.sourceId;
-                                            NewTransferInDoc.destinationId = valid.destinationId;
-                                            NewTransferInDoc.code = valid.code;
-                                            NewTransferInDoc.reference = valid.reference;
-                                            NewTransferInDoc.items = []; 
-                                            for (var item of valid.items) {    
-                                                for (var finishing of item.articleVariant.finishings) {  
-                                                    var item = {};
-                                                    item.articleVariantId = finishing.articleVariant._id;
-                                                    item.quantity = finishing.quantity;
-                                                    NewTransferInDoc.items.push(item); 
-                                                }  
-                                            }   
-                                            NewTransferInDoc = new TransferInDoc(NewTransferInDoc); 
-                                            //Create Transfer In
-                                            this.transferInDocManager.create(NewTransferInDoc)
-                                                .then(id => {
-                                                    //Update Counter Number
-                                                    this.moduleSeedManager.update(moduleSeed)
-                                                        .then(seedId => {
-                                                            resolve(id);
-                                                        })
-                                                        .catch(e => {
-                                                            reject(e);
-                                                        })
-                                                })
-                                                .catch(e => {
-                                                    reject(e);
-                                                }) 
-                                        }) 
-                                         .catch(e => {
+                .then(validTransferInDoc => {  
+                    //Generate Code  
+                    validTransferInDoc.code = generateCode(moduleId);
+                    //Create Components to Article Variant if dont Any
+                    this._validateFinishingVariant(validTransferInDoc)
+                        .then(readyTransferInDoc => {
+                            //Update Article Variant, add Finishings object
+                            this._appendArticleVariant(readyTransferInDoc)
+                                .then(latestTransferInDoc => { 
+                                    // Create View Model to Transfer In
+                                    var getTransferIns = [];
+                                    var valid = latestTransferInDoc;  
+                                    var NewTransferInDoc = {};
+                                    NewTransferInDoc.sourceId = valid.sourceId;
+                                    NewTransferInDoc.destinationId = valid.destinationId;
+                                    NewTransferInDoc.code = valid.code;
+                                    NewTransferInDoc.reference = valid.reference;
+                                    NewTransferInDoc.items = []; 
+                                    for (var item of valid.items) {    
+                                        for (var finishing of item.articleVariant.finishings) {  
+                                            var item = {};
+                                            item.articleVariantId = finishing.articleVariant._id;
+                                            item.quantity = finishing.quantity;
+                                            NewTransferInDoc.items.push(item); 
+                                        }  
+                                    }   
+                                    NewTransferInDoc = new TransferInDoc(NewTransferInDoc); 
+                                    //Create Transfer In
+                                    this.transferInDocManager.create(NewTransferInDoc)
+                                        .then(id => {
+                                            resolve(id); 
+                                        })
+                                        .catch(e => {
                                             reject(e);
-                                        }); 
-                                })
-                                .catch(e => {
+                                        }) 
+                                }) 
+                                    .catch(e => {
                                     reject(e);
                                 }); 
                         })
                         .catch(e => {
                             reject(e);
-                        });
+                        });  
                 })
                 .catch(e => {
                     reject(e);
