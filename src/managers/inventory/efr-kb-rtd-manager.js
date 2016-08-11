@@ -45,12 +45,16 @@ module.exports = class FinishingKirimBarangReturSelesaiPerbaikanManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
+            var regexModuleId = new RegExp(moduleId, "i"); 
+            var filter = {
+                _deleted: false,
+                'code': {
+                    '$regex': regexModuleId
+                }
             };
             var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
+                '$and': [filter]
+            } : filter;
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
@@ -197,13 +201,39 @@ module.exports = class FinishingKirimBarangReturSelesaiPerbaikanManager {
     }
 
     _validate(transferOutDoc) {
+        var errors = {};
         return new Promise((resolve, reject) => {
             var valid = transferOutDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-                    var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
+                    var config = module.config; 
+                    valid.sourceId = config.source.value;
+                    valid.destinationId = config.destination.value;
+                    if(valid.items) {
+                        var itemErrors = [];
+                        for(var item of valid.items) {
+                            var itemError = {};
+                            if(item.quantityStock) {
+                                if(item.quantityStock < item.quantity) {
+                                    itemError["quantity"] = "Quantity Bigger than Stock";
+                                }
+                            }
+                            itemErrors.push(itemError);
+                        } 
+                        for (var itemError of itemErrors) {
+                            for (var prop in itemError) {
+                                errors.items = itemErrors;
+                                break;
+                            }
+                            if (errors.items)
+                                break;
+                        }
+                    }
+                    
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    } 
                     resolve(valid);
                 })
                 .catch(e => {
