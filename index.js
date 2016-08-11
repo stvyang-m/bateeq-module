@@ -10,6 +10,7 @@ inventoryMap.set("efr-kb-rtf", require('./src/managers/inventory/efr-kb-rtf-mana
 inventoryMap.set("efr-kb-rtp", require('./src/managers/inventory/efr-kb-rtp-manager'));
 inventoryMap.set("efr-kb-rtd", require('./src/managers/inventory/efr-kb-rtd-manager'));
 inventoryMap.set("efr-kb-exb", require('./src/managers/inventory/efr-kb-exb-manager')); 
+inventoryMap.set("efr-kb-alt", require('./src/managers/inventory/efr-kb-alt-manager'));
 
 inventoryMap.set("efr-tb-acc", require('./src/managers/inventory/efr-tb-acc-manager'));
 inventoryMap.set("efr-tb-bat", require('./src/managers/inventory/efr-tb-bat-manager'));
@@ -38,6 +39,7 @@ module.exports = {
         InventoryMovementManager: inventoryMap.get("inventory-movement"),
         FinishedGoodsManager: inventoryMap.get("efr-hp-fng"),
         ExpeditionsManager: inventoryMap.get("efr-kb-exb"),
+        AlterationOutManager : inventoryMap.get("efr-kb-alt"),
         map: inventoryMap
     },
     core: {
