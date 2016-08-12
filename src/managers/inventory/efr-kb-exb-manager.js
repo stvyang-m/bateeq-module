@@ -257,32 +257,54 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         return new Promise((resolve, reject) => {
             var valid = expeditionDoc;
             var getPromise = [];
-            for(var spk of expeditionDoc.spkDocuments){
+            for(var spk of valid.spkDocuments){
                 getPromise.push(this.spkManager.getByIdOrDefault(spk.spkDocumentId));
             }
             
             Promise.all(getPromise)
                 .then(spks => {
+                    var spkErrors = [];
                     var itemErrors = [];
-                    if (spks.length > 0) {
-                        var index = 0;
-                        for(var spk of spks) { 
+                    var index = 0;
+                    for(var spk of valid.spkDocuments){
+                        var spkError = {};
+                        
+                        for(var item of spk.spkDocument.items) {
                             var itemError = {};
-                            if(spk){
-                                expeditionDoc.spkDocuments[index].spkDocument = spk;
-                            }
-                            else{
-                                itemError["spkDocument"] = "SPK Document not found";
+                            if(item.quantitySend != item.quantity) {
+                                itemError.quantitySend = "Quantity Send not Match";
                             }
                             itemErrors.push(itemError);
                         }
-                    }
-                    for (var itemError of itemErrors) {
-                        for (var prop in itemError) {
-                            errors.spkDocuments = itemErrors;
+                        
+                        if(spks[index]){
+                            spk.spkDocument = spks[index];
+                        }
+                        else{
+                            spkError["spkDocument"] = "SPK Document not found";
+                        }
+                        
+                        for (var itemError of itemErrors) {
+                            for (var prop in itemError) {
+                                spkError.spkDocument = {};
+                                spkError.spkDocument.items = itemErrors;
+                                break;
+                            }
+                            if (spkError.spkDocument) {
+                                if(spkError.spkDocument.items)
+                                    break;
+                            }
+                        }
+                    
+                        index++;
+                        spkErrors.push(spkError);
+                    } 
+                    for (var spkError of spkErrors) {
+                        for (var prop in spkError) {
+                            errors.spkDocuments = spkErrors;
                             break;
                         }
-                        if (errors.items)
+                        if (errors.spkDocuments)
                             break;
                     }
                     for (var prop in errors) {
