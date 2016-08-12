@@ -23,6 +23,9 @@ module.exports = class ALterationOutManager {
         var TransferOutDocManager = require('./transfer-out-doc-manager');
         this.transferOutDocManager = new TransferOutDocManager(db,user);
 
+        var FinishingTerimaBarangReturManager = require('./efr-tb-bjr-manager');
+        this.finishingTerimaBarangReturManager = new FinishingTerimaBarangReturManager(db,user);
+
         var TransferInDocManager = require('./transfer-in-doc-manager');
         this.transferInDocManager = new TransferInDocManager(db,user);
 
@@ -76,10 +79,42 @@ module.exports = class ALterationOutManager {
         });
     }
 
+    getByCode(code) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                code: code,
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getByReference(ref) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                reference: ref,
                 _deleted: false
             };
             this.getSingleByQuery(query)
@@ -118,6 +153,9 @@ module.exports = class ALterationOutManager {
                         .catch(e => {
                             reject(e);
                         })
+                })
+                .catch(e => {
+                    reject(e);
                 });
         });
     }
@@ -140,8 +178,13 @@ module.exports = class ALterationOutManager {
                 valid.destination = config.destination;
                 valid.destinationId = config.destination.value.toString();
 
-                this.transferInDocManager.getById(valid._id)
-                .then(bjrTransferIn =>{
+                var getbjrInByCode =  this.finishingTerimaBarangReturManager.getByCode(valid.reference);
+                var getAltOutByRef = this.getByReference(valid.reference);
+
+                Promise.all([getbjrInByCode,getAltOutByRef])
+                .then(results =>{
+                    var bjrTransferIn = results[0];
+                    var altTransferOut = results[1];
                     if(bjrTransferIn){
                         if (valid.items && valid.items.length > 0) {
                             
@@ -170,7 +213,11 @@ module.exports = class ALterationOutManager {
                             errors["items"] = "items is required";
                         }
                     }else{
-                        reject(new Error("BJR Reference Doc not found"));
+                            errors["reference"] = "reference not found";
+                    }
+
+                    if(altTransferOut){
+                            errors["reference"] = "reference already used";
                     }
 
                     // 2c. begin: check if data has any error, reject if it has.
@@ -180,7 +227,6 @@ module.exports = class ALterationOutManager {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
-                    valid._id = undefined;
                     resolve(valid);
                 })
                 .catch(e => {
