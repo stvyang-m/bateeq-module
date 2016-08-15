@@ -45,12 +45,16 @@ module.exports = class PusatBarangBaruTerimaBarangBaruManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
+           var regexModuleId = new RegExp(moduleId, "i"); 
+            var filter = {
+                _deleted: false,
+                'code': {
+                    '$regex': regexModuleId
+                }
             };
             var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
+                '$and': [filter]
+            } : filter;
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
@@ -203,9 +207,7 @@ module.exports = class PusatBarangBaruTerimaBarangBaruManager {
             var valid = transferInDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-                    var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
+                    var config = module.config; 
                     resolve(valid);
                 })
                 .catch(e => {
