@@ -69,6 +69,7 @@ module.exports = {
             ArticleTypeManager: require('./src/managers/core/article/article-type-manager'),
             ArticleVariantManager: require('./src/managers/core/article/article-variant-manager')
         },
+        AccountManager: require('./src/managers/core/account-manager'),
         ModuleManager: require('./src/managers/core/module-manager')
     },
     merchandiser: {
