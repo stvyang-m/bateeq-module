@@ -413,19 +413,76 @@ function getSertModules(db, storages) {
 }
 
 
+function getSertSuppliers(db) {
+ var suppliers = [{
+        code: "UT-S01",
+        name: "Finishing[UT]",
+        description: "Unit test data: supplier 01."
+    }];
+
+    var SupplierManager = require("../src/managers/inventory/supplier-manager");
+    return new Promise((resolve, reject) => {
+        var manager = new SupplierManager(db, {
+            username: "unit-test"
+        });
+        var promises = [];
+
+        for (var supplier of suppliers) {
+            var promise = new Promise((resolve, reject) => {
+                var _supplier = supplier;
+                manager.getSingleOrDefaultByQuery({
+                        code: _supplier.code
+                    })
+                    .then(data => {
+                        if (data)
+                            resolve(data);
+                        else {
+                            manager.create(_supplier)
+                                .then(id => {
+                                    manager.getById(id).then(createdData => {
+                                        resolve(createdData);
+                                    });
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                });
+                        }
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
+            });
+            promises.push(promise);
+        }
+
+        Promise.all(promises)
+            .then(suppliers => {
+                resolve(suppliers);
+            })
+            .catch(e => {
+                reject(e);
+            });
+    });
+}
+
+
+
 module.exports = function(db) {
     return new Promise((resolve, reject) => {
-        Promise.all([getSertStorages(db), getSertVariants(db)])
+        Promise.all([getSertStorages(db), getSertVariants(db), getSertSuppliers(db)])
             .then(results => {
                 var storages = {};
                 var variants = {};
+                var suppliers={};
 
                 for (var storage of results[0])
                     storages[storage.code] = storage;
 
                 for (var variant of results[1])
                     variants[variant.code] = variant;
-
+                
+                 for (var supplier of results[2])
+                    suppliers[supplier.code] = supplier;
 
                 getSertModules(db, storages)
                     .then(results => {
@@ -436,6 +493,7 @@ module.exports = function(db) {
                         resolve({
                             storages: storages,
                             variants: variants,
+                            suppliers:suppliers,
                             modules: modules
                         });
                     })
@@ -449,3 +507,4 @@ module.exports = function(db) {
             });
     });
 };
+
