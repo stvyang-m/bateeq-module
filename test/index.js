@@ -50,4 +50,5 @@ describe('#bateeq-module', function(done) {
     // test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test');
 
      test('@manager/supplier-manager', './managers/supplier-manager-test');
+     test('@manager/transfer-in-doc-ext-manager', './managers/transfer-in-doc-ext-manager-test');
 })
