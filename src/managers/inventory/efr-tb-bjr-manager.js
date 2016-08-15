@@ -217,9 +217,9 @@ module.exports = class FinishingTerimaBarangReturManager {
             var valid = transferInDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-                    var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
+                    // var config = module.config;
+                    // valid.sourceId = config.sourceId;
+                    // valid.destinationId = config.destinationId;
                     resolve(valid);
                 })
                 .catch(e => {
