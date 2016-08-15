@@ -171,9 +171,9 @@ module.exports = class ALterationInManager {
                     if(!altOut){
                         errors["reference"] = "reference not found";
                     }
-                    if(altIn){
-                        errors["reference"] = "reference already used";
-                    }
+                    // if(altIn){
+                    //     errors["reference"] = "reference already used";
+                    // }
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
