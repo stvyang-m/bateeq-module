@@ -262,39 +262,96 @@ module.exports = class FinishedGoodsManager {
         var errors = {};
         return new Promise((resolve, reject) => {
             var valid = finishedGoodDoc;
+            var isHaveError = false;
+            
+            if (!valid.sourceId || valid.sourceId == '') {
+                errors["sourceId"] = "source is required";
+                isHaveError = true;
+            }
+            if (!valid.destinationId || valid.destinationId == '') {
+                errors["destinationId"] = "destination is required";
+                isHaveError = true;
+            }
             
             var getItem = [];
-            for(var item of valid.items){
-                for(var finishing of item.articleVariant.finishings){
-                    // finishing.articleVariantId;
-                    // finishing.quantity;
-                    getItem.push(this.inventoryManager.getByStorageIdAndArticleVarianId(valid.sourceId, finishing.articleVariantId))
+            var errorItems = []; 
+            if(valid.items && valid.items.length > 0) { 
+                for(var item of valid.items){ 
+                    var errorItem = {};
+                    //var errorItemsFinishings = []; 
+                    if(item.articleVariant && item.articleVariantId != "") { 
+                        if(item.articleVariant.finishings && item.articleVariant.finishings.length > 0) { 
+                            for(var finishing of item.articleVariant.finishings){  
+                                getItem.push(this.inventoryManager.getByStorageIdAndArticleVarianId(valid.sourceId, finishing.articleVariantId))
+                            }  
+                        }
+                        else {
+                            errorItem["articleVariantId"] = "Item dont have Component";
+                            isHaveError = true;
+                        }
+                    }
+                    else { 
+                        errorItem["articleVariantId"] = "Fill Product";
+                        isHaveError = true;
+                    } 
+                    errorItems.push(errorItem);     
                 }
+                errors.items = errorItems;  
             }
+            else {
+                errors.errorItems = "Must choose Item";
+                isHaveError = true;
+            }
+            
+            if(isHaveError){  
+                for (var prop in errors) {
+                    var ValidationError = require('../../validation-error');
+                    reject(new ValidationError('data does not pass validation', errors));
+                }
+            } 
+                    
             Promise.all(getItem)
                 .then(items => {
-                    var isHaveError = false;
                     var index = 0; 
-                    var errorItems = [];
+                    var errorItems = []; 
                     for(var item of valid.items){
                         var errorItem = {};
-                        var errorItemsFinishings = [];
-                        for(var finishing of item.articleVariant.finishings){
-                            // finishing.articleVariantId;
-                            // finishing.quantity;
+                        var errorItemsFinishings = []; 
+                        
+                        if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
+                            errorItem["quantity"] = "quantity is required";
+                            isHaveError = true;
+                        }
+                        else if (parseInt(item.quantity) <= 0) {
+                            errorItem["quantity"] = "quantity must be greater than 0";
+                            isHaveError = true;
+                        }
+                        
+                        for(var finishing of item.articleVariant.finishings){ 
                             var errorFinishing = {};
                             var inventoryQuantity = items[index++].quantity
-                            if(finishing.quantity > inventoryQuantity) {
+                            
+                            if (finishing.quantity == undefined || (finishing.quantity && finishing.quantity == '')) {
+                                errorFinishing["quantity"] = "Quantity is required";
+                                isHaveError = true;
+                            } 
+                            else if(parseInt(finishing.quantity) > inventoryQuantity) {
                                 errorFinishing["quantity"] = "Quantity is Bigger than Stock (" + inventoryQuantity + ")";
                                 isHaveError = true;
                             }  
+                            else if (parseInt(finishing.quantity) <= 0) {
+                                errorFinishing["quantity"] = "quantity must be greater than 0";
+                                isHaveError = true;
+                            }
                             errorItemsFinishings.push(errorFinishing);
                         } 
-                        errorItem.articleVariant = { finishings: errorItemsFinishings };  
-                        errorItems.push(errorItem);
-                    }
-                    if(isHaveError){ 
-                        errors.items = errorItems;
+                        errorItem.articleVariant = { };  
+                        errorItem.articleVariant.finishings = errorItemsFinishings;  
+                        errorItems.push(errorItem);   
+                    } 
+                    errors.items = errorItems;  
+                    
+                    if(isHaveError){  
                         for (var prop in errors) {
                             var ValidationError = require('../../validation-error');
                             reject(new ValidationError('data does not pass validation', errors));
@@ -303,6 +360,7 @@ module.exports = class FinishedGoodsManager {
                     
                     resolve(valid);
                 }) 
+            resolve(valid);
         });
     } 
 };
