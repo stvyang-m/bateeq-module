@@ -14,7 +14,7 @@ var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
 const moduleId = "EFR-TB/ALT";
 
-module.exports = class ALterationInManager {
+module.exports = class AlterationInManager {
     constructor(db, user){
         this.db = db;
         this.user = user;
@@ -101,7 +101,7 @@ module.exports = class ALterationInManager {
                 reference: ref,
                 _deleted: false
             };
-            this.getSingleByQuery(query)
+            this.getSingleOrDefaultByQuery(query)
                 .then(transferInDoc => {
                     resolve(transferInDoc);
                 })
@@ -122,6 +122,19 @@ module.exports = class ALterationInManager {
                     reject(e);
                 });
         })
+    }
+
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.transferInDocCollection
+                .singleOrDefault(query)
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
     }
 
     create(transferInDoc) {

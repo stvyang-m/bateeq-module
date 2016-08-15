@@ -90,7 +90,7 @@ module.exports = class FinishingTerimaBarangReturManager {
                 code: code,
                 _deleted: false
             };
-            this.getSingleByQuery(query)
+            this.getSingleOrDefaultByQuery(query)
                 .then(transferInDoc => {
                     resolve(transferInDoc);
                 })

@@ -14,7 +14,7 @@ var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
 const moduleId = "EFR-KB/ALT";
 
-module.exports = class ALterationOutManager {
+module.exports = class AlterationOutManager {
     constructor(db, user){
         this.db = db;
         this.user = user;
@@ -85,7 +85,7 @@ module.exports = class ALterationOutManager {
                 code: code,
                 _deleted: false
             };
-            this.getSingleByQuery(query)
+            this.getSingleOrDefaultByQuery(query)
                 .then(transferOutDoc => {
                     resolve(transferOutDoc);
                 })
@@ -207,7 +207,7 @@ module.exports = class ALterationOutManager {
                             for(var item of valid.items){
                                 var itemError = {};
                                 for(var item2 of bjrTransferIn.items){
-                                    if(item.articleVariantId == item2.articleVariantId){
+                                    if(item.articleVariantId.toString() == item2.articleVariantId.toString()){
                                         if(item.quantity > item2.quantity){
                                             itemError["articleVariantId"] = "item retur harus lebih kecil atau sama dengan";
                                         }
