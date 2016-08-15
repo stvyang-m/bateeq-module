@@ -117,7 +117,7 @@ module.exports = class ALterationOutManager {
                 reference: ref,
                 _deleted: false
             };
-            this.getSingleByQuery(query)
+            this.getSingleOrDefaultByQuery(query)
                 .then(transferOutDoc => {
                     resolve(transferOutDoc);
                 })
@@ -137,7 +137,22 @@ module.exports = class ALterationOutManager {
                 .catch(e => {
                     reject(e);
                 });
-        })
+        });
+    }
+
+    
+
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.transferOutDocCollection
+                .singleOrDefault(query)
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
     }
 
     create(transferOutDoc) {
@@ -216,9 +231,9 @@ module.exports = class ALterationOutManager {
                             errors["reference"] = "reference not found";
                     }
 
-                    if(altTransferOut){
-                            errors["reference"] = "reference already used";
-                    }
+                    // if(altTransferOut){
+                    //         errors["reference"] = "reference already used";
+                    // }
 
                     // 2c. begin: check if data has any error, reject if it has.
                     
