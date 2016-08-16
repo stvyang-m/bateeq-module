@@ -211,8 +211,94 @@ module.exports = class FinishingTerimaKomponenManager {
         return new Promise((resolve, reject) => {
             var valid = transferInDoc;
             
+            if (!valid.sourceId || valid.sourceId == '')
+                errors["sourceId"] = "sourceId is required";
+             
+            if (!valid.destinationId || valid.destinationId == '')
+                errors["destinationId"] = "destinationId is required";
+           
+            if (!valid.items || valid.items.length == 0) {
+                errors["items"] = "items is required";
+            } 
+            else {
+                var itemErrors = [];
+                for(var item of valid.items) {
+                    var itemError = {};
+                    if(!item.articleVariantId || item.articleVariantId == "") {
+                        itemError["articleVariantId"] = "articleVariantId is required";
+                    }
+                    else { 
+                        for (var i = valid.items.indexOf(item) + 1; i < valid.items.length; i++) {
+                            var otherItem = valid.items[i];
+                            if (item.articleVariantId == otherItem.articleVariantId) {
+                                itemError["articleVariantId"] = "articleVariantId already exists on another detail";
+                            }
+                        } 
+                        
+                        var articleVariantError = {}; 
+                        if(item.articleVariant) { 
+                            if(!item.articleVariant.finishings || item.articleVariant.finishings.length == 0) { 
+                                articleVariantError["finishings"] = "Component is required";
+                            }
+                            else {
+                                var finishingErrors = [];
+                                for(var finishing of item.articleVariant.finishings) {
+                                    var finishingError = {};
+                                    if(!finishing.articleVariantId || finishing.articleVariantId == "") {
+                                        //finishingError["articleVariantId"] = "Component ArticleVariantId is required";
+                                    }
+                                    else {
+                                        for (var i = item.articleVariant.finishings.indexOf(finishing) + 1; i < item.articleVariant.finishings.length; i++) {
+                                            var otherItem = item.articleVariant.finishings[i];
+                                            if (finishing.articleVariantId == otherItem.articleVariantId) {
+                                                finishingError["articleVariantId"] = "Component articleVariantId already exists on another detail"; 
+                                            }
+                                        } 
+                                    }
+                                    
+                                    if (finishing.quantity == undefined || (finishing.quantity && finishing.quantity == '')) {
+                                        finishingError["quantity"] = "quantity is required";
+                                    }
+                                    else if (parseInt(finishing.quantity) <= 0) {
+                                        finishingError["quantity"] = "quantity must be greater than 0";
+                                    }
+                             
+                                    finishingErrors.push(finishingError);
+                                }
+                                for (var finishingError of finishingErrors) {
+                                    for (var prop in finishingError) {
+                                        articleVariantError.finishings = finishingErrors;
+                                        break;
+                                    }
+                                    if (articleVariantError.finishings)
+                                        break;
+                                }
+                
+                            }
+                        } 
+                        for (var prop in articleVariantError) {
+                            itemError["articleVariant"] = articleVariantError;
+                            break;
+                        } 
+                    } 
+                    itemErrors.push(itemError);
+                }
+                for (var itemError of itemErrors) {
+                    for (var prop in itemError) {
+                        errors.items = itemErrors;
+                        break;
+                    }
+                    if (errors.items)
+                        break;
+                }
+            }
+             
+             for (var prop in errors) {
+                var ValidationError = require('../../validation-error');
+                reject(new ValidationError('data does not pass validation', errors));
+            }
+                    
             resolve(valid);
-            
         });
     }
     
@@ -222,12 +308,12 @@ module.exports = class FinishingTerimaKomponenManager {
             var getFinishings = [];
             for (var item of valid.items) {  
                 for (var finishing of item.articleVariant.finishings) {  
-                    if(!finishing.articleVariant._id){
-                        
+                    if(!finishing.articleVariantId || finishing.articleVariantId == ""){
                         var now = new Date();
                         var stamp = now / 1000 | 0;
                         var code = stamp.toString(36);
       
+                        finishing.articleVariant = {};
                         finishing.articleVariant.code = code;
                         finishing.articleVariant.size = "Component";
                         finishing.articleVariant.description = "Component Finishings";
@@ -244,7 +330,7 @@ module.exports = class FinishingTerimaKomponenManager {
                     var index = 0;
                     for (var item of valid.items) {  
                         for (var finishing of item.articleVariant.finishings) {  
-                            if(!finishing.articleVariant._id){   
+                            if(!finishing.articleVariantId || finishing.articleVariantId == ""){
                                 finishing.articleVariant._id = results[index]; 
                                 finishing.articleVariantId = results[index]; 
                                 finishing.articleVariant = new ArticleVariant(finishing.articleVariant); 
