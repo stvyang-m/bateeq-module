@@ -44,7 +44,7 @@ module.exports = class FinishingKirimBarangBaruManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-           var regexModuleId = new RegExp(moduleId, "i"); 
+            var regexModuleId = new RegExp(moduleId, "i");
             var filter = {
                 _deleted: false,
                 'code': {
@@ -148,7 +148,7 @@ module.exports = class FinishingKirimBarangBaruManager {
                 .then(validTransferOutDoc => {
                     validTransferOutDoc.code = generateCode(moduleId);
                     this.transferOutDocManager.create(validTransferOutDoc)
-                        .then(id => { 
+                        .then(id => {
                             resolve(id);
                         })
                         .catch(e => {
@@ -200,17 +200,49 @@ module.exports = class FinishingKirimBarangBaruManager {
     }
 
     _validate(transferOutDoc) {
+        var errors = {};
         return new Promise((resolve, reject) => {
             var valid = transferOutDoc;
-            this.moduleManager.getByCode(moduleId)
-                .then(module => {
-                    var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
+            var getItem = [];
+            if (valid.items && valid.items.length > 0) {
+                for (var item of valid.items) {
+                    getItem.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item.articleVariantId))
+                }
+            }
+            else {
+                errors["items"] = "items is required";
+            }
+            Promise.all(getItem)
+                .then(items => {
+                    var index = 0;
+                    var itemErrors = [];
+                    var itemError = {};
+
+                    if (getItem.length > 0) {
+                        for (var item of valid.items) {
+                            var inventoryQuantity =items[index++].quantity; 
+                            if (item.quantity > inventoryQuantity) {
+                                itemError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
+                            }
+                            itemErrors.push(itemError);
+                        }
+                    } 
+                    for (var itemError of itemErrors) {
+                        for (var prop in itemError) {
+                            errors.items = itemErrors;
+                            break;
+                        }
+                        if (errors.items)
+                            break;
+                    }
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
                     resolve(valid);
                 })
-                .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
+                 .catch(e => {
+                    reject(e);
                 });
         });
     }
