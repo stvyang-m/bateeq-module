@@ -6,34 +6,16 @@ var ObjectId = require('mongodb').ObjectId;
 // internal deps
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
-var generateCode = require('../../utils/code-generator');
 var map = BateeqModels.map;
 
-var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
-var TransferOutItem = BateeqModels.inventory.TransferOutItem;
+var Supplier = BateeqModels.inventory.Supplier;
 
-var moduleId = "EFR-KB/EXR";
 
-module.exports = class PusatReturTokoKirimBarangReturSelesaiPerbaikanManager {
+module.exports = class SupplierManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.transferOutDocCollection = this.db.use(map.inventory.TransferOutDoc);
-        var StorageManager = require('./storage-manager');
-        this.storageManager = new StorageManager(db, user);
-
-        var ArticleVariantManager = require('../core/article/article-variant-manager');
-        this.articleVariantManager = new ArticleVariantManager(db, user);
-
-        var InventoryManager = require('./inventory-manager');
-        this.inventoryManager = new InventoryManager(db, user);
-
-        var TransferOutDocManager = require('./transfer-out-doc-manager');
-        this.transferOutDocManager = new TransferOutDocManager(db, user);
-
-        var ModuleManager = require('../core/module-manager');
-        this.moduleManager = new ModuleManager(db, user);
-
+        this.supplierCollection = this.db.use(map.inventory.Supplier);
     }
 
     read(paging) {
@@ -59,21 +41,26 @@ module.exports = class PusatReturTokoKirimBarangReturSelesaiPerbaikanManager {
                         '$regex': regex
                     }
                 };
+                var filterName = {
+                    'name': {
+                        '$regex': regex
+                    }
+                };
                 var $or = {
-                    '$or': [filterCode]
+                    '$or': [filterCode, filterName]
                 };
 
                 query['$and'].push($or);
             }
 
 
-            this.transferOutDocCollection
+            this.supplierCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(transferOutDocs => {
-                    resolve(transferOutDocs);
+                .then(suppliers => {
+                    resolve(suppliers);
                 })
                 .catch(e => {
                     reject(e);
@@ -83,13 +70,15 @@ module.exports = class PusatReturTokoKirimBarangReturSelesaiPerbaikanManager {
 
     getById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
+                .then(supplier => {
+                    resolve(supplier);
                 })
                 .catch(e => {
                     reject(e);
@@ -99,13 +88,15 @@ module.exports = class PusatReturTokoKirimBarangReturSelesaiPerbaikanManager {
 
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
+                .then(supplier => {
+                    resolve(supplier);
                 })
                 .catch(e => {
                     reject(e);
@@ -115,10 +106,10 @@ module.exports = class PusatReturTokoKirimBarangReturSelesaiPerbaikanManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.transferOutDocCollection
+            this.supplierCollection
                 .single(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
+                .then(supplier => {
+                    resolve(supplier);
                 })
                 .catch(e => {
                     reject(e);
@@ -128,10 +119,10 @@ module.exports = class PusatReturTokoKirimBarangReturSelesaiPerbaikanManager {
 
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.transferOutDocCollection
+            this.supplierCollection
                 .singleOrDefault(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
+                .then(supplier => {
+                    resolve(supplier);
                 })
                 .catch(e => {
                     reject(e);
@@ -139,12 +130,12 @@ module.exports = class PusatReturTokoKirimBarangReturSelesaiPerbaikanManager {
         })
     }
 
-    create(transferOutDoc) {
+    create(supplier) {
         return new Promise((resolve, reject) => {
-            this._validate(transferOutDoc)
-                .then(validTransferOutDoc => {
-                    validTransferOutDoc.code = generateCode(moduleId);
-                    this.transferOutDocManager.create(validTransferOutDoc)
+            this._validate(supplier)
+                .then(validsupplier => {
+
+                    this.supplierCollection.insert(validsupplier)
                         .then(id => {
                             resolve(id);
                         })
@@ -158,11 +149,11 @@ module.exports = class PusatReturTokoKirimBarangReturSelesaiPerbaikanManager {
         });
     }
 
-    update(transferOutDoc) {
+    update(supplier) {
         return new Promise((resolve, reject) => {
-            this._validate(transferOutDoc)
-                .then(validTransferOutDoc => {
-                    this.transferOutDocManager.update(validTransferOutDoc)
+            this._validate(supplier)
+                .then(validsupplier => {
+                    this.supplierCollection.update(validsupplier)
                         .then(id => {
                             resolve(id);
                         })
@@ -176,12 +167,12 @@ module.exports = class PusatReturTokoKirimBarangReturSelesaiPerbaikanManager {
         });
     }
 
-    delete(transferOutDoc) {
+    delete(supplier) {
         return new Promise((resolve, reject) => {
-            this._validate(transferOutDoc)
-                .then(validTransferOutDoc => {
-                    validTransferOutDoc._deleted = true;
-                    this.transferOutDocManager.update(validTransferOutDoc)
+            this._validate(supplier)
+                .then(validsupplier => {
+                    validsupplier._deleted = true;
+                    this.supplierCollection.update(validsupplier)
                         .then(id => {
                             resolve(id);
                         })
@@ -194,20 +185,49 @@ module.exports = class PusatReturTokoKirimBarangReturSelesaiPerbaikanManager {
                 })
         });
     }
-
-    _validate(transferOutDoc) {
+ 
+    _validate(supplier) {
+        var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = transferOutDoc;
-            this.moduleManager.getByCode(moduleId)
-                .then(module => {
-                    var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
+            var valid = new Supplier(supplier);
+            // 1. begin: Declare promises.
+            var getsupplier = this.supplierCollection.singleOrDefault({
+                "$and": [{
+                    _id: {
+                        '$ne': new ObjectId(valid._id)
+                    }
+                }, {
+                        code: valid.code
+                    }]
+            });
+            // 1. end: Declare promises.
+
+            // 2. begin: Validation.
+            Promise.all([getsupplier])
+                .then(results => {
+                    var _supplier = results[0];
+
+                    if (!valid.code || valid.code == '')
+                        errors["code"] = "code is required";
+                    else if (_supplier) {
+                        errors["code"] = "code already exists";
+                    }
+
+                    if (!valid.name || valid.name == '')
+                        errors["name"] = "name is required"; 
+
+                    // 2c. begin: check if data has any error, reject if it has.
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
+
+                    valid.stamp(this.user.username, 'manager');
                     resolve(valid);
                 })
                 .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
-                });
+                    reject(e);
+                })
         });
     }
-}; 
+};

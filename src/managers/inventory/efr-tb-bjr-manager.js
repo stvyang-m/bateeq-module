@@ -84,6 +84,21 @@ module.exports = class FinishingTerimaBarangReturManager {
         });
     }
 
+    getByCode(code) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                code: code,
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
 
     getById(id) {
         return new Promise((resolve, reject) => {

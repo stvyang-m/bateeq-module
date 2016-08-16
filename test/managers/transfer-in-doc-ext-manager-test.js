@@ -5,7 +5,7 @@ var manager;
 var testData;
 
 function getData() {
-    var source = testData.storages["UT-FNG"];
+    var source = testData.suppliers["UT-S01"];
     var destination = testData.storages["UT-BJB"];
     var variant = testData.variants["UT-AV1"];
 
@@ -31,7 +31,7 @@ function getData() {
     transferInDoc.items.push(new TransferInItem({
         articleVariantId: variant._id,
         quantity: 5,
-        remark: 'transferInDoc.test'
+        remark: 'transferInExtDoc.test'
     }));
 
     return transferInDoc;
@@ -44,8 +44,8 @@ before('#00. connect db', function(done) {
             data(db)
                 .then(result => {
 
-                    var TransferInDocManager = require('../../src/managers/inventory/transfer-in-doc-manager');
-                    manager = new TransferInDocManager(db, {
+                    var TransferInDocExtManager = require('../../src/managers/inventory/transfer-in-doc-ext-manager');
+                    manager = new TransferInDocExtManager(db, {
                         username: 'unit-test'
                     });
                     testData = result;
@@ -92,8 +92,7 @@ it(`#03. should success when update created data`, function(done) {
     createdData.reference += '[updated]';
     createdData.remark += '[updated]';
 
-    var TransferInItem = require('bateeq-models').inventory.TransferInItem;
-    // createdData.items.push(new TransferInItem());
+    var TransferInItem = require('bateeq-models').inventory.TransferInItem; 
 
     manager.update(createdData)
         .then(id => {
