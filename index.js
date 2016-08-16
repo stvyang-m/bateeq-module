@@ -40,7 +40,7 @@ module.exports = {
         FinishedGoodsManager: inventoryMap.get("efr-hp-fng"),
         ExpeditionsManager: inventoryMap.get("efr-kb-exb"),
         AlterationOutManager : inventoryMap.get("efr-kb-alt"),
-        ALterationInManager : inventoryMap.get("efr-tb-alt"),
+        AlterationInManager : inventoryMap.get("efr-tb-alt"),
         TokoTransferStokManager: inventoryMap.get("efr-kb-rtt"),
         FinishingKirimBarangBaruManager:inventoryMap.get("efr-kb-fng"),
         PusatReturTokoKirimBarangReturManager:inventoryMap.get("efr-kb-rtf"),

@@ -26,9 +26,6 @@ module.exports = class AlterationOutManager {
         var FinishingTerimaBarangReturManager = require('./efr-tb-bjr-manager');
         this.finishingTerimaBarangReturManager = new FinishingTerimaBarangReturManager(db,user);
 
-        var TransferInDocManager = require('./transfer-in-doc-manager');
-        this.transferInDocManager = new TransferInDocManager(db,user);
-
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db,user);
     }

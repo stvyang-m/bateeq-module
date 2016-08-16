@@ -19,9 +19,6 @@ module.exports = class AlterationInManager {
         this.db = db;
         this.user = user;
         this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
-        
-        var TransferOutDocManager = require('./transfer-out-doc-manager');
-        this.transferOutDocManager = new TransferOutDocManager(db,user);
 
         var TransferInDocManager = require('./transfer-in-doc-manager');
         this.transferInDocManager = new TransferInDocManager(db,user);
