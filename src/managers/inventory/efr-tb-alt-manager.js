@@ -1,4 +1,4 @@
-'use strict';
+ 'use strict';
 
 // external deps 
 var ObjectId = require('mongodb').ObjectId;
@@ -6,54 +6,48 @@ var ObjectId = require('mongodb').ObjectId;
 // internal deps
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
-var generateCode = require('../../utils/code-generator');
 var map = BateeqModels.map;
+var generateCode = require('../../utils/code-generator');
 
-var TransferInDoc = BateeqModels.inventory.TransferInDoc;
-var TransferInItem = BateeqModels.inventory.TransferInItem;
+var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
+var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
-const moduleId = "EFR-TB/BJR";
+const moduleId = "EFR-TB/ALT";
 
-module.exports = class FinishingTerimaBarangReturManager {
-    constructor(db, user) {
+module.exports = class AlterationInManager {
+    constructor(db, user){
         this.db = db;
         this.user = user;
         this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
-        var StorageManager = require('./storage-manager');
-        this.storageManager = new StorageManager(db, user);
-
-        var ArticleVariantManager = require('../core/article/article-variant-manager');
-        this.articleVariantManager = new ArticleVariantManager(db, user);
-
-        var InventoryManager = require('./inventory-manager');
-        this.inventoryManager = new InventoryManager(db, user);
 
         var TransferInDocManager = require('./transfer-in-doc-manager');
-        this.transferInDocManager = new TransferInDocManager(db, user);
+        this.transferInDocManager = new TransferInDocManager(db,user);
+
+        var AlterationOutManager = require('./efr-kb-alt-manager');
+        this.alterationOutManager = new AlterationOutManager(db,user);
 
         var ModuleManager = require('../core/module-manager');
-        this.moduleManager = new ModuleManager(db, user);
+        this.moduleManager = new ModuleManager(db,user);
     }
 
-    read(paging) {
+    read(paging){
         var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
+            page : 1,
+            size : 20,
+            order: "_id",
+            asc : true
+        },paging);
 
         return new Promise((resolve, reject) => {
-            var regexModuleId = new RegExp(moduleId, "i"); 
-            var filter = {
+            var deleted = {
                 _deleted: false,
-                'code': {
-                    '$regex': regexModuleId
-                }
+                code: {
+                        '$regex': new RegExp("^[A-Z0-9]+\/" + moduleId + "\/[0-9]{2}\/[0-9]{4}$","i")}
             };
+            
             var query = _paging.keyword ? {
-                '$and': [filter]
-            } : filter;
+                '$and': [deleted]
+            } : deleted;
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
@@ -65,10 +59,8 @@ module.exports = class FinishingTerimaBarangReturManager {
                 var $or = {
                     '$or': [filterCode]
                 };
-
                 query['$and'].push($or);
             }
-
 
             this.transferInDocCollection
                 .where(query)
@@ -84,22 +76,6 @@ module.exports = class FinishingTerimaBarangReturManager {
         });
     }
 
-    getByCode(code) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                code: code,
-                _deleted: false
-            };
-            this.getSingleOrDefaultByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
@@ -107,8 +83,8 @@ module.exports = class FinishingTerimaBarangReturManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -116,12 +92,10 @@ module.exports = class FinishingTerimaBarangReturManager {
         });
     }
 
-
-
-    getByIdOrDefault(id) {
+    getByReference(ref) {
         return new Promise((resolve, reject) => {
             var query = {
-                _id: new ObjectId(id),
+                reference: ref,
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
@@ -157,17 +131,18 @@ module.exports = class FinishingTerimaBarangReturManager {
                 .catch(e => {
                     reject(e);
                 });
-        })
+        });
     }
 
     create(transferInDoc) {
         return new Promise((resolve, reject) => {
+
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
-                    validTransferInDoc.code = generateCode(moduleId);
+                    validTransferInDoc.code = generateCode(moduleId)
                     this.transferInDocManager.create(validTransferInDoc)
                         .then(id => {
-                            resolve(id);
+                                resolve(id);
                         })
                         .catch(e => {
                             reject(e);
@@ -179,58 +154,50 @@ module.exports = class FinishingTerimaBarangReturManager {
         });
     }
 
-    update(transferInDoc) {
-        return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    this.transferInDocManager.update(validTransferInDoc)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
+    update(transferOutDoc){
+        return new Promise((resolve,reject) =>{
+
         });
     }
 
-    delete(transferInDoc) {
-        return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    validTransferInDoc._deleted = true;
-                    this.transferInDocManager.update(validTransferInDoc)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    _validate(transferInDoc) {
+    _validate(transferInDoc){
+        var errors = {};
         return new Promise((resolve, reject) => {
             var valid = transferInDoc;
             this.moduleManager.getByCode(moduleId)
-                .then(module => {
-                    // var config = module.config;
-                    // valid.sourceId = config.sourceId;
-                    // valid.destinationId = config.destinationId;
+            .then(module => {
+                var config = module.config;
+                valid.source = config.source;
+                valid.sourceId = config.source.value.toString();
+                valid.destination = config.destination;
+                valid.destinationId = config.destination.value.toString();
+
+                var getAltOutById = this.alterationOutManager.getByCode(valid.reference);
+                var getAltInByRef = this.getByReference(valid.reference);
+                Promise.all([getAltOutById, getAltInByRef])
+                .then(results =>{
+                    var altOut = results[0];
+                    var altIn = results[1];
+                    if(!altOut){
+                        errors["reference"] = "reference not found";
+                    }
+                    // if(altIn){
+                    //     errors["reference"] = "reference already used";
+                    // }
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
                     resolve(valid);
                 })
                 .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
+                    reject(e);
                 });
+
+            })
+            .catch(e => {
+                reject(new Error(`Unable to load module:${moduleId}`));
+            });
         });
     }
-
-
-};
+}

@@ -10,7 +10,8 @@ inventoryMap.set("efr-kb-fng", require('./src/managers/inventory/efr-kb-fng-mana
 inventoryMap.set("efr-kb-rtf", require('./src/managers/inventory/efr-kb-rtf-manager'));
 inventoryMap.set("efr-kb-rtp", require('./src/managers/inventory/efr-kb-rtp-manager'));
 inventoryMap.set("efr-kb-rtd", require('./src/managers/inventory/efr-kb-rtd-manager'));
-inventoryMap.set("efr-kb-exb", require('./src/managers/inventory/efr-kb-exb-manager'));  
+inventoryMap.set("efr-kb-exb", require('./src/managers/inventory/efr-kb-exb-manager')); 
+inventoryMap.set("efr-kb-alt", require('./src/managers/inventory/efr-kb-alt-manager'));
 inventoryMap.set("efr-tb-acc", require('./src/managers/inventory/efr-tb-acc-manager'));
 inventoryMap.set("efr-tb-bat", require('./src/managers/inventory/efr-tb-bat-manager'));
 inventoryMap.set("efr-tb-bbt", require('./src/managers/inventory/efr-tb-bbt-manager')); 
@@ -19,6 +20,7 @@ inventoryMap.set("efr-tb-bjr", require('./src/managers/inventory/efr-tb-bjr-mana
 inventoryMap.set("efr-tb-brd", require('./src/managers/inventory/efr-tb-brd-manager'));
 inventoryMap.set("efr-tb-brt", require('./src/managers/inventory/efr-tb-brt-manager')); 
 inventoryMap.set("efr-tb-sab", require('./src/managers/inventory/efr-tb-sab-manager'));
+inventoryMap.set("efr-tb-alt", require('./src/managers/inventory/efr-tb-alt-manager'));
 inventoryMap.set("efr-hp-fng", require('./src/managers/inventory/efr-hp-fng-manager'));
 inventoryMap.set("supplier", require('./src/managers/inventory/supplier-manager'));
 inventoryMap.set("transfer-in-doc-ext", require('./src/managers/inventory/transfer-in-doc-ext-manager'));
@@ -38,6 +40,8 @@ module.exports = {
         InventoryMovementManager: inventoryMap.get("inventory-movement"),
         FinishedGoodsManager: inventoryMap.get("efr-hp-fng"),
         ExpeditionsManager: inventoryMap.get("efr-kb-exb"),
+        AlterationOutManager : inventoryMap.get("efr-kb-alt"),
+        AlterationInManager : inventoryMap.get("efr-tb-alt"),
         TokoTransferStokManager: inventoryMap.get("efr-kb-rtt"),
         FinishingKirimBarangBaruManager:inventoryMap.get("efr-kb-fng"),
         PusatReturTokoKirimBarangReturManager:inventoryMap.get("efr-kb-rtf"),
