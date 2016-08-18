@@ -90,7 +90,8 @@ module.exports = class SPKBarangManager  {
         return new Promise((resolve, reject) => {
             var filter = {
                 _deleted: false,
-                isReceived: false
+                isReceived: false,
+                expeditionDocumentId: {}
             };
             var query = _paging.keyword ? {
                 '$and': [filter]
