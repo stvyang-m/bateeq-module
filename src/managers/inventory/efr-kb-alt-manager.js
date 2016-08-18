@@ -29,7 +29,7 @@ module.exports = class AlterationOutManager {
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db,user);
 
-        var InventoryManager = require('../inventory-manager');
+        var InventoryManager = require('./inventory-manager');
         this.inventoryManager = new InventoryManager(db,user);
     }
 
@@ -232,6 +232,12 @@ module.exports = class AlterationOutManager {
                                         }
                                     }
                                 }
+                                for(var item2 of checkInventory){
+                                   if (item.articleVariantId.toString() == item2.articleVariantId.toString() && item.quantity > item2.quantity) {
+                                      itemError["articleVariantId"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
+                                   }
+                                }
+                            itemErrors.push(itemError);
                                 itemErrors.push(itemError);
                             }
 
@@ -243,18 +249,6 @@ module.exports = class AlterationOutManager {
                     }
 
                     var index = 0;
-                    
-                    if(checkInventory.length > 0){
-                        for (var item of valid.items) {
-                            var itemStockError = {};
-                                for(var item2 of checkInventory){
-                                   if (item.articleVariantId.toString() == item2.articleVariantId.toString() && item.quantity > item2.quantity) {
-                                      itemStockError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
-                                   }
-                                }
-                            itemErrors.push(itemStockError);
-                        }
-                    }
 
                     for (var itemError of itemErrors) {
                                 for (var prop in itemError) {
