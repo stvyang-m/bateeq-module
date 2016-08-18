@@ -29,7 +29,7 @@ module.exports = class AlterationOutManager {
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db,user);
 
-        var InventoryManager = require('../core/inventory-manager');
+        var InventoryManager = require('../inventory-manager');
         this.inventoryManager = new InventoryManager(db,user);
     }
 
