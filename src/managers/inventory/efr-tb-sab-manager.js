@@ -312,8 +312,8 @@ module.exports = class FinishingTerimaKomponenManager {
                         var now = new Date();
                         var stamp = now / 1000 | 0;
                         var code = stamp.toString(36);
-      
-                        finishing.articleVariant = {};
+            
+                        //finishing.articleVariant = {};
                         finishing.articleVariant.code = code;
                         finishing.articleVariant.size = "Component";
                         finishing.articleVariant.description = "Component Finishings";

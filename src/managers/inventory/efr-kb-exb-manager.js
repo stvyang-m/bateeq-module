@@ -1,4 +1,4 @@
- 'use strict';
+'use strict';
 
 // external deps 
 var ObjectId = require('mongodb').ObjectId;
@@ -8,27 +8,27 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc; 
+var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
-var TransferOutItem = BateeqModels.inventory.TransferOutItem; 
-var SPK = BateeqModels.merchandiser.SPK; 
+var TransferOutItem = BateeqModels.inventory.TransferOutItem;
+var SPK = BateeqModels.merchandiser.SPK;
 var generateCode = require('../../utils/code-generator');
 
-const moduleId = "EFR-KB/EXB"; 
+const moduleId = "EFR-KB/EXB";
 module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);  
-        
+        this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);
+
         var StorageManager = require('./storage-manager');
-        this.storageManager = new StorageManager(db, user);   
-        
+        this.storageManager = new StorageManager(db, user);
+
         var TransferOutDocManager = require('./transfer-out-doc-manager');
-        this.transferOutDocManager = new TransferOutDocManager(db, user); 
-        
+        this.transferOutDocManager = new TransferOutDocManager(db, user);
+
         var SpkManager = require('../merchandiser/efr-pk-manager');
-        this.spkManager = new SpkManager(db, user); 
+        this.spkManager = new SpkManager(db, user);
     }
 
     read(paging) {
@@ -40,7 +40,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-            var regexModuleId = new RegExp(moduleId, "i"); 
+            var regexModuleId = new RegExp(moduleId, "i");
             var filter = {
                 _deleted: false,
                 'code': {
@@ -50,7 +50,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
             var query = _paging.keyword ? {
                 '$and': [filter]
             } : filter;
-            
+
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
                 var filterCode = {
@@ -142,47 +142,47 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         return new Promise((resolve, reject) => {
             //Validate Input Model
             this._validate(expeditionDoc)
-                .then(validatedExpeditionDoc => {   
+                .then(validatedExpeditionDoc => {
                     var getTransferOuts = [];
                     //Create Promise to Create Transfer Out
-                    for(var spkDocument of validatedExpeditionDoc.spkDocuments) {
-                        var code = generateCode(moduleId); 
+                    for (var spkDocument of validatedExpeditionDoc.spkDocuments) {
+                        var code = generateCode(moduleId);
                         var validTransferOutDoc = {};
                         validTransferOutDoc.code = code;
                         validTransferOutDoc.reference = spkDocument.spkDocument.packingList;
                         validTransferOutDoc.sourceId = spkDocument.spkDocument.sourceId;
                         validTransferOutDoc.destinationId = expeditionDoc.destinationId;
-                        validTransferOutDoc.items = []; 
-                        for(var item of spkDocument.spkDocument.items){ 
-                            var newitem = {}; 
+                        validTransferOutDoc.items = [];
+                        for (var item of spkDocument.spkDocument.items) {
+                            var newitem = {};
                             newitem.articleVariantId = item.articleVariantId;
                             newitem.quantity = item.quantity;
                             validTransferOutDoc.items.push(newitem);
-                        }  
-                        getTransferOuts.push(this.transferOutDocManager.create(validTransferOutDoc)); 
-                    }   
+                        }
+                        getTransferOuts.push(this.transferOutDocManager.create(validTransferOutDoc));
+                    }
                     //Create Transfer Out
                     Promise.all(getTransferOuts)
                         .then(results => {
                             getTransferOuts = [];
                             //Create Promise Get Transfer Out using ID
-                            for(var transferOutResultId of results) {
-                                getTransferOuts.push(this.transferOutDocManager.getByIdOrDefault(transferOutResultId)); 
-                            } 
+                            for (var transferOutResultId of results) {
+                                getTransferOuts.push(this.transferOutDocManager.getByIdOrDefault(transferOutResultId));
+                            }
                             //Get Transfer Out
                             Promise.all(getTransferOuts)
-                                .then(transferOutResults => {  
+                                .then(transferOutResults => {
                                     //Create Expedition Model
                                     var validExpeditionDoc = {};
-                                    validExpeditionDoc.code = code; 
-                                    validExpeditionDoc.expedition = validatedExpeditionDoc.expedition; 
-                                    validExpeditionDoc.weight = validatedExpeditionDoc.weight; 
-                                    validExpeditionDoc.transferOutDocuments = []; 
-                                    validExpeditionDoc.spkDocuments = validatedExpeditionDoc.spkDocuments 
-                                    for(var transferOut of transferOutResults) {  
-                                        validExpeditionDoc.transferOutDocuments.push(transferOut); 
-                                    } 
-                                    validExpeditionDoc = new ExpeditionDoc(validExpeditionDoc);  
+                                    validExpeditionDoc.code = code;
+                                    validExpeditionDoc.expedition = validatedExpeditionDoc.expedition;
+                                    validExpeditionDoc.weight = validatedExpeditionDoc.weight;
+                                    validExpeditionDoc.transferOutDocuments = [];
+                                    validExpeditionDoc.spkDocuments = validatedExpeditionDoc.spkDocuments
+                                    for (var transferOut of transferOutResults) {
+                                        validExpeditionDoc.transferOutDocuments.push(transferOut);
+                                    }
+                                    validExpeditionDoc = new ExpeditionDoc(validExpeditionDoc);
                                     //Create Promise Expedition 
                                     this.expeditionDocCollection.insert(validExpeditionDoc)
                                         .then(resultExpeditionId => {
@@ -191,15 +191,15 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                 .then(resultExpedition => {
                                                     var getSPKData = [];
                                                     //Create Promise get SPK Data for update
-                                                    for(var spkDocument of validExpeditionDoc.spkDocuments) {
+                                                    for (var spkDocument of validExpeditionDoc.spkDocuments) {
                                                         getSPKData.push(this.spkManager.getByIdOrDefault(spkDocument.spkDocumentId));
-                                                    } 
+                                                    }
                                                     //Get SPK Data
                                                     Promise.all(getSPKData)
-                                                        .then(resultSPKs => { 
+                                                        .then(resultSPKs => {
                                                             //Create Promise Update SPK Data
                                                             var getUpdateSPKData = [];
-                                                            for(var resultSPK of resultSPKs) {
+                                                            for (var resultSPK of resultSPKs) {
                                                                 resultSPK.expeditionDocumentId = resultExpeditionId;
                                                                 resultSPK.expeditionDocument = resultExpedition;
                                                                 resultSPK = new SPK(resultSPK);
@@ -207,32 +207,32 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                             }
                                                             //Update SPK Data
                                                             Promise.all(getUpdateSPKData)
-                                                                .then(resultUpdateSPKs => {  
-                                                                    resolve(resultExpeditionId); 
-                                                                }) 
+                                                                .then(resultUpdateSPKs => {
+                                                                    resolve(resultExpeditionId);
+                                                                })
                                                                 .catch(e => {
                                                                     reject(e);
-                                                                });  
-                                                        }) 
+                                                                });
+                                                        })
                                                         .catch(e => {
                                                             reject(e);
-                                                        });  
+                                                        });
                                                 })
                                                 .catch(e => {
                                                     reject(e);
-                                                });  
+                                                });
                                         })
                                         .catch(e => {
                                             reject(e);
-                                        });  
+                                        });
                                 })
                                 .catch(e => {
                                     reject(e);
-                                }); 
+                                });
                         })
                         .catch(e => {
                             reject(e);
-                        });  
+                        });
                 })
                 .catch(e => {
                     reject(e);
@@ -257,67 +257,129 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         return new Promise((resolve, reject) => {
             var valid = expeditionDoc;
             var getPromise = [];
-            for(var spk of valid.spkDocuments){
-                getPromise.push(this.spkManager.getByIdOrDefault(spk.spkDocumentId));
+
+            if (!valid.destinationId || valid.destinationId == '')
+                errors["destinationId"] = "destinationId is required";
+
+            if (!valid.weight || valid.weight == '')
+                errors["weight"] = "weight is required";
+
+            if (!valid.expedition || valid.expedition == '')
+                errors["expedition"] = "expedition is required";
+
+            if (!valid.spkDocuments || valid.spkDocuments.length == 0) {
+                errors["spkDocuments"] = "spkDocuments is required";
             }
-            
-            Promise.all(getPromise)
-                .then(spks => {
-                    var spkErrors = [];
-                    var itemErrors = [];
-                    var index = 0;
-                    for(var spk of valid.spkDocuments){
-                        var spkError = {};
-                        
-                        for(var item of spk.spkDocument.items) {
-                            var itemError = {};
-                            if(item.quantitySend != item.quantity) {
-                                itemError.quantitySend = "Quantity Send not Match";
+            else {
+                var spkDocumentErrors = [];
+                for (var spkDocument of valid.spkDocuments) {
+                    var spkDocumentError = {};
+                    if (!spkDocument.spkDocumentId || spkDocument.spkDocumentId == "") {
+                        spkDocumentError["spkDocumentId"] = "packing list is required";
+                        getPromise.push(Promise.resolve(null));
+                    }
+                    else {
+                        for (var i = valid.spkDocuments.indexOf(spkDocument) + 1; i < valid.spkDocuments.length; i++) {
+                            var otherItem = valid.spkDocuments[i];
+                            if (spkDocument.spkDocumentId == otherItem.spkDocumentId) {
+                                spkDocumentError["spkDocumentId"] = "spkDocumentId already exists on another detail";
                             }
-                            itemErrors.push(itemError);
                         }
-                        
-                        if(spks[index]){
-                            spk.spkDocument = spks[index];
-                        }
-                        else{
-                            spkError["spkDocument"] = "SPK Document not found";
-                        }
-                        
-                        for (var itemError of itemErrors) {
-                            for (var prop in itemError) {
-                                spkError.spkDocument = {};
-                                spkError.spkDocument.items = itemErrors;
+                        getPromise.push(this.spkManager.getByIdOrDefault(spkDocument.spkDocumentId));
+                    }
+                    spkDocumentErrors.push(spkDocumentError);
+                }
+                for (var spkDocumentError of spkDocumentErrors) {
+                    for (var prop in spkDocumentError) {
+                        errors.spkDocuments = spkDocumentErrors;
+                        break;
+                    }
+                    if (errors.spkDocuments)
+                        break;
+                }
+            }
+            for (var prop in errors) {
+                var ValidationError = require('../../validation-error');
+                reject(new ValidationError('data does not pass validation', errors));
+            }
+
+            Promise.all(getPromise)
+                .then(spkDocuments => {
+                    var spkDocumentErrors = [];
+                    var index = 0;
+                    for (var spkDocument of valid.spkDocuments) {
+                        var spkDocumentError = {};
+                        if (spkDocuments[index]) { 
+                            var spkspkDocumentError = {};
+                            if (spkDocument.spkDocument) {
+                                if (!spkDocument.spkDocument.items || spkDocument.spkDocument.items.length == 0) {
+                                    spkspkDocumentError["items"] = "items is required";
+                                }
+                                else {
+                                    var itemErrors = [];
+                                    for (var item of spkDocument.spkDocument.items) {
+                                        var itemError = {};
+                                        if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
+                                            itemError["quantity"] = "quantity is required";
+                                        }
+                                        else if (parseInt(item.quantity) <= 0) {
+                                            itemError["quantity"] = "quantity must be greater than 0";
+                                        }
+                                        if (item.quantitySend == undefined || (item.quantitySend && item.quantitySend == '')) {
+                                            itemError["quantitySend"] = "quantitySend is required";
+                                        }
+                                        else if (parseInt(item.quantitySend) <= 0) {
+                                            itemError["quantitySend"] = "quantitySend must be greater than 0";
+                                        }
+                                        if (item.quantitySend != item.quantity) {
+                                            itemError["quantitySend"] = "quantitySend not equal to quantity";
+                                        }
+                                        itemErrors.push(itemError);
+                                    }
+                                    for (var itemError of itemErrors) {
+                                        for (var prop in itemError) {
+                                            spkspkDocumentError.items = itemErrors;
+                                            break;
+                                        }
+                                        if (spkspkDocumentError.items)
+                                            break;
+                                    }
+                                }
+                            }
+
+                            for (var prop in spkspkDocumentError) {
+                                spkDocumentError["spkDocument"] = spkspkDocumentError;
                                 break;
                             }
-                            if (spkError.spkDocument) {
-                                if(spkError.spkDocument.items)
-                                    break;
-                            }
+                            spkDocument.spkDocument = spkDocuments[index];
                         }
-                    
+                        // else {
+                        //     spkDocumentError["spkDocument"] = "SPK Document not found";
+                        // } 
                         index++;
-                        spkErrors.push(spkError);
-                    } 
-                    for (var spkError of spkErrors) {
-                        for (var prop in spkError) {
-                            errors.spkDocuments = spkErrors;
+                        spkDocumentErrors.push(spkDocumentError);
+                    }
+                    for (var spkDocumentError of spkDocumentErrors) {
+                        for (var prop in spkDocumentError) {
+                            errors.spkDocuments = spkDocumentErrors;
                             break;
                         }
                         if (errors.spkDocuments)
                             break;
                     }
+
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
+
                     valid = new ExpeditionDoc(valid);
                     valid.stamp(this.user.username, 'manager');
                     resolve(valid)
                 })
                 .catch(e => {
                     reject(e);
-                });  
+                });
         });
-    } 
+    }
 };

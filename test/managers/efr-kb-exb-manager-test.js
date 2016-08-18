@@ -2,36 +2,58 @@ var should = require('should');
 var helper = require('../helper');
 var validate = require('bateeq-models').validator.inventory;
 var manager;
+var testData;
 
 function getData() {
-    var expeditionDoc = {};
-    var now = new Date();
-    var stamp = now / 1000 | 0;
-    var code = stamp.toString(36);
+    return new Promise((resolve, reject) => {
+        var spkHelper = require('../spk-helper');
+        spkHelper.createSpkPba()
+            .then(data => {
+                var source = testData.storages["UT-FNG"];
+                var destination = testData.storages["UT-BJB"];
+                var variant = testData.variants["UT-AV1"];
+                var spk = data;
 
-    expeditionDoc.code = code;
-    expeditionDoc.date = now; 
-    expeditionDoc.sourceId = '57738435e8a64fc532cd5bf1';
-    expeditionDoc.destinationId = '57738460d53dae9234ae0ae1'; 
-    expeditionDoc.reference = `reference[${code}]`; 
-    expeditionDoc.spkDocuments = [ { spkDocumentId: '57a9b5c5fd67c240cc3e6355' } ];
-        
-    // var spk = {};
-    // spk.spkDocumentId = '57a3018b9259e20a8840880f';
-    //spk.spkDocument = { _id : "57a3018b9259e20a8840880f", items : [] } 
-    //spk.spkDocument.items.push( { articleVariantId: "578855c4964302281454fa51", quantity: 10 } )
-         
-    return expeditionDoc;
+                var expeditionDoc = {};
+                var now = new Date();
+                var stamp = now / 1000 | 0;
+                var code = stamp.toString(36);
+                
+                for(var item of spk.items){
+                    item.quantitySend = item.quantity;
+                }
+ 
+                expeditionDoc.code = code;
+                expeditionDoc.date = now;
+                expeditionDoc.expedition = "expedition";
+                expeditionDoc.weight = "1";
+                expeditionDoc.sourceId = source._id;
+                expeditionDoc.destinationId = destination._id;
+                expeditionDoc.reference = `reference[${code}]`;
+                expeditionDoc.spkDocuments = [{ spkDocumentId: spk._id, spkDocument: spk }];
+
+                resolve(expeditionDoc);
+            })
+            .catch(e => {
+                reject(e);
+            })
+    }); 
 }
 
 before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
-            var PusatBarangBaruKirimBarangJadiAksesorisManager = require('../../src/managers/inventory/efr-kb-exb-manager');
-            manager = new PusatBarangBaruKirimBarangJadiAksesorisManager(db, {
-                username: 'unit-test'
-            });
-            done();
+            var data = require("../data");
+            data(db)
+                .then(result => {
+                    var PusatBarangBaruKirimBarangJadiAksesorisManager = require('../../src/managers/inventory/efr-kb-exb-manager');
+                    manager = new PusatBarangBaruKirimBarangJadiAksesorisManager(db, {
+                        username: 'unit-test'
+                    });
+                    testData = result;
+
+                    done();
+                });
         })
         .catch(e => {
             done(e);
@@ -39,13 +61,18 @@ before('#00. connect db', function (done) {
 });
 
 var createdId;
-it('#01. should success when create new data', function(done) {
-    var data = getData();
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done();
+it('#01. should success when create new data', function (done) {
+    getData()
+        .then(data => {
+            manager.create(data)
+                .then(id => {
+                    id.should.be.Object();
+                    createdId = id;
+                    done();
+                })
+                .catch(e => {
+                    done(e);
+                })
         })
         .catch(e => {
             done(e);
@@ -53,8 +80,8 @@ it('#01. should success when create new data', function(done) {
 });
 
 var createdData;
-it(`#02. should success when get created data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+it(`#02. should success when get created data with id`, function (done) {
+    manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             createdData = data;
             done();
@@ -63,4 +90,39 @@ it(`#02. should success when get created data with id`, function(done) {
             done(e);
         })
 });
- 
+
+
+it('#03. should error with property SPKDocuments minimum one', function(done) {
+    manager.create({})
+        .then(id => {
+            done("Should not be error with property SPKDocuments minimum one");
+        })
+        .catch(e => {
+            try { 
+                e.errors.should.have.property('destinationId');
+                e.errors.should.have.property('expedition');
+                e.errors.should.have.property('weight');
+                e.errors.should.have.property('spkDocuments');
+                e.errors.spkDocuments.should.String();
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        })
+});
+
+it('#04. should error with property Quantity Send not same with Quantity', function(done) {  
+    manager.create({createdData})
+        .then(id => {
+            done("Should not be error with property Quantity Send not same with Quantity");
+        })
+        .catch(e => {
+            try {  
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        })
+});

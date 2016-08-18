@@ -2,21 +2,26 @@ var should = require('should');
 var helper = require('../helper');
 var validate = require('bateeq-models').validator.merchandiser;
 var manager;
+var testData;
 
-function getData() {
-    var SpkDoc = require('bateeq-models').merchandiser.SPK;
-    var SpkItem = require('bateeq-models').merchandiser.SPKItem;
-    var spkDoc = new SpkDoc();
-    var now = new Date();
-    spkDoc.date = now;
-    spkDoc.sourceId = '57738435e8a64fc532cd5bf1';
-    spkDoc.destinationId = '57738460d53dae9234ae0ae1';
+// function getData() {
+//     var source = testData.storages["UT-ACC"];
+//     var destination = testData.storages["UT-ST1"];
+//     var variant = testData.variants["UT-AV1"];
 
-    spkDoc.reference = `reference[${spkDoc.date}]`;
+//     var SpkDoc = require('bateeq-models').merchandiser.SPK;
+//     var SpkItem = require('bateeq-models').merchandiser.SPKItem;
+//     var spkDoc = new SpkDoc();
+//     var now = new Date();
+//     spkDoc.date = now;
+//     spkDoc.sourceId = source._id;
+//     spkDoc.destinationId = destination._id;
 
-    spkDoc.items.push(new SpkItem({ articleVariantId: "578855c4964302281454fa51", quantity: 1, remark: 'SPK PBA.test' }));
-    return spkDoc;
-}
+//     spkDoc.reference = `reference[${spkDoc.date}]`;
+
+//     spkDoc.items.push(new SpkItem({ articleVariantId: variant._id, quantity: 1, remark: 'SPK PBA.test' }));
+//     return spkDoc;
+// }
 
 before('#00. connect db', function (done) {
     helper.getDb()
@@ -25,7 +30,12 @@ before('#00. connect db', function (done) {
             manager = new SPKBarangEmbalaseManager(db, {
                 username: 'unit-test'
             });
+            // var data = require("../data");
+            // data(db)
+            //     .then(result => {
+            //         testData = result;
             done();
+            //     });
         })
         .catch(e => {
             done(e);
@@ -34,12 +44,18 @@ before('#00. connect db', function (done) {
 
 var createdId;
 it('#01. should success when create new data', function (done) {
-    var data = getData();
-    manager.create(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done();
+    var spkHelper = require('../spk-helper');
+    spkHelper.newSpkPba()
+        .then(data => {
+            manager.create(data)
+                .then(id => {
+                    id.should.be.Object();
+                    createdId = id;
+                    done();
+                })
+                .catch(e => {
+                    done(e);
+                })
         })
         .catch(e => {
             done(e);
@@ -49,7 +65,7 @@ it('#01. should success when create new data', function (done) {
 var createdData;
 it(`#02. should success when get created data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
-        .then(data => { 
+        .then(data => {
             createdData = data;
             done();
         })
@@ -59,12 +75,18 @@ it(`#02. should success when get created data with id`, function (done) {
 });
 
 it('#03. should success when save draft new data', function (done) {
-     var data = getData();
-    manager.createDraft(data)
-        .then(id => {
-            id.should.be.Object();
-            createdId = id;
-            done();
+    var spkHelper = require('../spk-helper');
+    spkHelper.newSpkPba()
+        .then(data => {
+            manager.createDraft(data)
+                .then(id => {
+                    id.should.be.Object();
+                    createdId = id;
+                    done();
+                })
+                .catch(e => {
+                    done(e);
+                })
         })
         .catch(e => {
             done(e);
@@ -74,7 +96,7 @@ it('#03. should success when save draft new data', function (done) {
 var createdDataDraft;
 it(`#04. should success when get drafted data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
-        .then(data => { 
+        .then(data => {
             createdDataDraft = data;
             done();
         })
@@ -86,9 +108,9 @@ it(`#04. should success when get drafted data with id`, function (done) {
 it(`#05. should success when update created data`, function (done) {
 
     createdData.reference += '[updated]';
-    createdData.remark += '[updated]'; 
+    createdData.remark += '[updated]';
     manager.update(createdData)
-        .then(id => { 
+        .then(id => {
             done();
         })
         .catch(e => {
@@ -99,9 +121,9 @@ it(`#05. should success when update created data`, function (done) {
 it(`#06. should success when update drafted data`, function (done) {
 
     createdDataDraft.reference += 'Draft [updated]';
-    createdDataDraft.remark += 'Draft [updated]'; 
+    createdDataDraft.remark += 'Draft [updated]';
     manager.updateDraft(createdDataDraft)
-        .then(id => { 
+        .then(id => {
             done();
         })
         .catch(e => {
@@ -112,7 +134,7 @@ it(`#06. should success when update drafted data`, function (done) {
 
 it(`#07. should success when delete data`, function (done) {
     manager.delete(createdData)
-        .then(id => { 
+        .then(id => {
             done();
         })
         .catch(e => {
