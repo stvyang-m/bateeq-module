@@ -5,8 +5,8 @@ var manager;
 var testData;
 
 function getData() {
-    var source = testData.storages["UT-FNG"];
-    var destination = testData.storages["UT-BJB"];
+    var source = testData.storages["UT-ACC"];
+    var destination = testData.storages["UT-FNG"];
     var variant = testData.variants["UT-AV1"];
     var variantComponent = testData.variants["UT-AV2"];
     var finishingDoc = {};

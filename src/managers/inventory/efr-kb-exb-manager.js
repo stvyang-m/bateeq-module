@@ -29,6 +29,9 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
 
         var SpkManager = require('../merchandiser/efr-pk-manager');
         this.spkManager = new SpkManager(db, user);
+        
+        var ModuleManager = require('../core/module-manager');
+        this.moduleManager = new ModuleManager(db, user);
     }
 
     read(paging) {
@@ -255,130 +258,158 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
     _validate(expeditionDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = expeditionDoc;
-            var getPromise = [];
+            var valid = expeditionDoc; 
+            this.moduleManager.getByCode(moduleId)
+                .then(module => {
+                    var config = module.config;
+                    var getPromise = [];
 
-            if (!valid.destinationId || valid.destinationId == '')
-                errors["destinationId"] = "destinationId is required";
-
-            if (!valid.weight || valid.weight == '')
-                errors["weight"] = "weight is required";
-
-            if (!valid.expedition || valid.expedition == '')
-                errors["expedition"] = "expedition is required";
-
-            if (!valid.spkDocuments || valid.spkDocuments.length == 0) {
-                errors["spkDocuments"] = "spkDocuments is required";
-            }
-            else {
-                var spkDocumentErrors = [];
-                for (var spkDocument of valid.spkDocuments) {
-                    var spkDocumentError = {};
-                    if (!spkDocument.spkDocumentId || spkDocument.spkDocumentId == "") {
-                        spkDocumentError["spkDocumentId"] = "packing list is required";
-                        getPromise.push(Promise.resolve(null));
-                    }
+                    if (!valid.destinationId || valid.destinationId == '')
+                        errors["destinationId"] = "destinationId is required";
                     else {
-                        for (var i = valid.spkDocuments.indexOf(spkDocument) + 1; i < valid.spkDocuments.length; i++) {
-                            var otherItem = valid.spkDocuments[i];
-                            if (spkDocument.spkDocumentId == otherItem.spkDocumentId) {
-                                spkDocumentError["spkDocumentId"] = "spkDocumentId already exists on another detail";
-                            }
-                        }
-                        getPromise.push(this.spkManager.getByIdOrDefault(spkDocument.spkDocumentId));
-                    }
-                    spkDocumentErrors.push(spkDocumentError);
-                }
-                for (var spkDocumentError of spkDocumentErrors) {
-                    for (var prop in spkDocumentError) {
-                        errors.spkDocuments = spkDocumentErrors;
-                        break;
-                    }
-                    if (errors.spkDocuments)
-                        break;
-                }
-            }
-            for (var prop in errors) {
-                var ValidationError = require('../../validation-error');
-                reject(new ValidationError('data does not pass validation', errors));
-            }
-
-            Promise.all(getPromise)
-                .then(spkDocuments => {
-                    var spkDocumentErrors = [];
-                    var index = 0;
-                    for (var spkDocument of valid.spkDocuments) {
-                        var spkDocumentError = {};
-                        if (spkDocuments[index]) { 
-                            var spkspkDocumentError = {};
-                            if (spkDocument.spkDocument) {
-                                if (!spkDocument.spkDocument.items || spkDocument.spkDocument.items.length == 0) {
-                                    spkspkDocumentError["items"] = "items is required";
+                        if (config) {
+                            if (config.destination) {
+                                var isAny = false;
+                                if (config.destination.type == "selection") {
+                                    for (var destinationId of config.destination.value) {
+                                        if (destinationId.toString() == valid.destinationId.toString()) {
+                                            isAny = true;
+                                            break;
+                                        }
+                                    }
                                 }
                                 else {
-                                    var itemErrors = [];
-                                    for (var item of spkDocument.spkDocument.items) {
-                                        var itemError = {};
-                                        if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
-                                            itemError["quantity"] = "quantity is required";
-                                        }
-                                        else if (parseInt(item.quantity) <= 0) {
-                                            itemError["quantity"] = "quantity must be greater than 0";
-                                        }
-                                        if (item.quantitySend == undefined || (item.quantitySend && item.quantitySend == '')) {
-                                            itemError["quantitySend"] = "quantitySend is required";
-                                        }
-                                        else if (parseInt(item.quantitySend) <= 0) {
-                                            itemError["quantitySend"] = "quantitySend must be greater than 0";
-                                        }
-                                        if (item.quantitySend != item.quantity) {
-                                            itemError["quantitySend"] = "quantitySend not equal to quantity";
-                                        }
-                                        itemErrors.push(itemError);
-                                    }
-                                    for (var itemError of itemErrors) {
-                                        for (var prop in itemError) {
-                                            spkspkDocumentError.items = itemErrors;
-                                            break;
-                                        }
-                                        if (spkspkDocumentError.items)
-                                            break;
+                                    if (config.destination.value.toString() == valid.destinationId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["destinationId"] = "destinationId is not valid";
+                            }
+                        }
+                    }
+
+                    if (!valid.weight || valid.weight == '')
+                        errors["weight"] = "weight is required";
+
+                    if (!valid.expedition || valid.expedition == '')
+                        errors["expedition"] = "expedition is required";
+
+                    if (!valid.spkDocuments || valid.spkDocuments.length == 0) {
+                        errors["spkDocuments"] = "spkDocuments is required";
+                    }
+                    else {
+                        var spkDocumentErrors = [];
+                        for (var spkDocument of valid.spkDocuments) {
+                            var spkDocumentError = {};
+                            if (!spkDocument.spkDocumentId || spkDocument.spkDocumentId == "") {
+                                spkDocumentError["spkDocumentId"] = "packing list is required";
+                                getPromise.push(Promise.resolve(null));
+                            }
+                            else {
+                                for (var i = valid.spkDocuments.indexOf(spkDocument) + 1; i < valid.spkDocuments.length; i++) {
+                                    var otherItem = valid.spkDocuments[i];
+                                    if (spkDocument.spkDocumentId == otherItem.spkDocumentId) {
+                                        spkDocumentError["spkDocumentId"] = "spkDocumentId already exists on another detail";
                                     }
                                 }
+                                getPromise.push(this.spkManager.getByIdOrDefault(spkDocument.spkDocumentId));
                             }
-
-                            for (var prop in spkspkDocumentError) {
-                                spkDocumentError["spkDocument"] = spkspkDocumentError;
+                            spkDocumentErrors.push(spkDocumentError);
+                        }
+                        for (var spkDocumentError of spkDocumentErrors) {
+                            for (var prop in spkDocumentError) {
+                                errors.spkDocuments = spkDocumentErrors;
                                 break;
                             }
-                            spkDocument.spkDocument = spkDocuments[index];
+                            if (errors.spkDocuments)
+                                break;
                         }
-                        // else {
-                        //     spkDocumentError["spkDocument"] = "SPK Document not found";
-                        // } 
-                        index++;
-                        spkDocumentErrors.push(spkDocumentError);
                     }
-                    for (var spkDocumentError of spkDocumentErrors) {
-                        for (var prop in spkDocumentError) {
-                            errors.spkDocuments = spkDocumentErrors;
-                            break;
-                        }
-                        if (errors.spkDocuments)
-                            break;
-                    }
-
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 
-                    valid = new ExpeditionDoc(valid);
-                    valid.stamp(this.user.username, 'manager');
-                    resolve(valid)
+                    Promise.all(getPromise)
+                        .then(spkDocuments => {
+                            var spkDocumentErrors = [];
+                            var index = 0;
+                            for (var spkDocument of valid.spkDocuments) {
+                                var spkDocumentError = {};
+                                if (spkDocuments[index]) {
+                                    var spkspkDocumentError = {};
+                                    if (spkDocument.spkDocument) {
+                                        if (!spkDocument.spkDocument.items || spkDocument.spkDocument.items.length == 0) {
+                                            spkspkDocumentError["items"] = "items is required";
+                                        }
+                                        else {
+                                            var itemErrors = [];
+                                            for (var item of spkDocument.spkDocument.items) {
+                                                var itemError = {};
+                                                if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
+                                                    itemError["quantity"] = "quantity is required";
+                                                }
+                                                else if (parseInt(item.quantity) <= 0) {
+                                                    itemError["quantity"] = "quantity must be greater than 0";
+                                                }
+                                                if (item.quantitySend == undefined || (item.quantitySend && item.quantitySend == '')) {
+                                                    itemError["quantitySend"] = "quantitySend is required";
+                                                }
+                                                else if (parseInt(item.quantitySend) <= 0) {
+                                                    itemError["quantitySend"] = "quantitySend must be greater than 0";
+                                                }
+                                                if (item.quantitySend != item.quantity) {
+                                                    itemError["quantitySend"] = "quantitySend not equal to quantity";
+                                                }
+                                                itemErrors.push(itemError);
+                                            }
+                                            for (var itemError of itemErrors) {
+                                                for (var prop in itemError) {
+                                                    spkspkDocumentError.items = itemErrors;
+                                                    break;
+                                                }
+                                                if (spkspkDocumentError.items)
+                                                    break;
+                                            }
+                                        }
+                                    }
+
+                                    for (var prop in spkspkDocumentError) {
+                                        spkDocumentError["spkDocument"] = spkspkDocumentError;
+                                        break;
+                                    }
+                                    spkDocument.spkDocument = spkDocuments[index];
+                                }
+                                // else {
+                                //     spkDocumentError["spkDocument"] = "SPK Document not found";
+                                // } 
+                                index++;
+                                spkDocumentErrors.push(spkDocumentError);
+                            }
+                            for (var spkDocumentError of spkDocumentErrors) {
+                                for (var prop in spkDocumentError) {
+                                    errors.spkDocuments = spkDocumentErrors;
+                                    break;
+                                }
+                                if (errors.spkDocuments)
+                                    break;
+                            }
+
+                            for (var prop in errors) {
+                                var ValidationError = require('../../validation-error');
+                                reject(new ValidationError('data does not pass validation', errors));
+                            }
+
+                            valid = new ExpeditionDoc(valid);
+                            valid.stamp(this.user.username, 'manager');
+                            resolve(valid)
+                        })
+                        .catch(e => {
+                            reject(e);
+                        }); 
                 })
                 .catch(e => {
-                    reject(e);
+                    reject(new Error(`Unable to load module:${moduleId}`));
                 });
         });
     }
