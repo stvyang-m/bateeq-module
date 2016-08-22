@@ -261,63 +261,163 @@ module.exports = class FinishedGoodsManager {
     _validate(finishedGoodDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = finishedGoodDoc;
-            var getItemComponents = [];
+            var valid = finishedGoodDoc; 
+            this.moduleManager.getByCode(moduleId)
+                .then(module => {
+                    var config = module.config; 
+                    var getItemComponents = [];
 
-            if (!valid.sourceId || valid.sourceId == '')
-                errors["sourceId"] = "sourceId is required";
-
-            if (!valid.destinationId || valid.destinationId == '')
-                errors["destinationId"] = "destinationId is required";
-
-            if (!valid.items || valid.items.length == 0) {
-                errors["items"] = "items is required";
-            }
-            else {
-                var itemErrors = [];
-                for (var item of valid.items) {
-                    var itemError = {};
-                    if (!item.articleVariantId || item.articleVariantId == "") {
-                        itemError["articleVariantId"] = "articleVariantId is required";
-                    }
+                    if (!valid.sourceId || valid.sourceId == '')
+                        errors["sourceId"] = "sourceId is required";
                     else {
-                        for (var i = valid.items.indexOf(item) + 1; i < valid.items.length; i++) {
-                            var otherItem = valid.items[i];
-                            if (item.articleVariantId == otherItem.articleVariantId) {
-                                itemError["articleVariantId"] = "articleVariantId already exists on another detail";
-                            }
-                        }
-                        var articleVariantError = {};
-                        if (item.articleVariant) {
-                            if (!item.articleVariant.finishings || item.articleVariant.finishings.length == 0) {
-                                articleVariantError["finishings"] = "Component is required";
-                            }
-                            else {
-                                var finishingErrors = [];
-                                for (var finishing of item.articleVariant.finishings) {
-                                    var getItemComponent = Promise.resolve(null);
-                                    var finishingError = {};
-                                    if (!finishing.articleVariantId || finishing.articleVariantId == "") {
-                                        finishingError["articleVariantId"] = "Component ArticleVariantId is required";
-                                    }
-                                    else {
-                                        for (var i = item.articleVariant.finishings.indexOf(finishing) + 1; i < item.articleVariant.finishings.length; i++) {
-                                            var otherItem = item.articleVariant.finishings[i];
-                                            if (finishing.articleVariantId == otherItem.articleVariantId) {
-                                                finishingError["articleVariantId"] = "Component articleVariantId already exists on another detail";
-                                            }
+                        if (config) {
+                            if (config.source) {
+                                var isAny = false;
+                                if (config.source.type == "selection") {
+                                    for (var sourceId of config.source.value) {
+                                        if (sourceId.toString() == valid.sourceId.toString()) {
+                                            isAny = true;
+                                            break;
                                         }
                                     }
-                                    if (finishing.quantity == undefined || (finishing.quantity && finishing.quantity == '')) {
-                                        finishingError["quantity"] = "quantity is required";
+                                }
+                                else {
+                                    if (config.source.value.toString() == valid.sourceId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["sourceId"] = "sourceId is not valid";
+                            }
+                        }
+                    }
+
+                    if (!valid.destinationId || valid.destinationId == '')
+                        errors["destinationId"] = "destinationId is required";
+                    else {
+                        if (config) {
+                            if (config.destination) {
+                                var isAny = false;
+                                if (config.destination.type == "selection") {
+                                    for (var destinationId of config.destination.value) {
+                                        if (destinationId.toString() == valid.destinationId.toString()) {
+                                            isAny = true;
+                                            break;
+                                        }
                                     }
-                                    else if (parseInt(finishing.quantity) <= 0) {
-                                        finishingError["quantity"] = "quantity must be greater than 0";
+                                }
+                                else {
+                                    if (config.destination.value.toString() == valid.destinationId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["destinationId"] = "destinationId is not valid";
+                            }
+                        }
+                    }
+                    
+                    if (!valid.items || valid.items.length == 0) {
+                        errors["items"] = "items is required";
+                    }
+                    else {
+                        var itemErrors = [];
+                        for (var item of valid.items) {
+                            var itemError = {};
+                            if (!item.articleVariantId || item.articleVariantId == "") {
+                                itemError["articleVariantId"] = "articleVariantId is required";
+                            }
+                            else {
+                                for (var i = valid.items.indexOf(item) + 1; i < valid.items.length; i++) {
+                                    var otherItem = valid.items[i];
+                                    if (item.articleVariantId == otherItem.articleVariantId) {
+                                        itemError["articleVariantId"] = "articleVariantId already exists on another detail";
+                                    }
+                                }
+                                var articleVariantError = {};
+                                if (item.articleVariant) {
+                                    if (!item.articleVariant.finishings || item.articleVariant.finishings.length == 0) {
+                                        articleVariantError["finishings"] = "Component is required";
                                     }
                                     else {
-                                        getItemComponent = this.inventoryManager.getByStorageIdAndArticleVarianId(valid.sourceId, finishing.articleVariantId);
-                                    } 
-                                    getItemComponents.push(getItemComponent)
+                                        var finishingErrors = [];
+                                        for (var finishing of item.articleVariant.finishings) {
+                                            var getItemComponent = Promise.resolve(null);
+                                            var finishingError = {};
+                                            if (!finishing.articleVariantId || finishing.articleVariantId == "") {
+                                                finishingError["articleVariantId"] = "Component ArticleVariantId is required";
+                                            }
+                                            else {
+                                                for (var i = item.articleVariant.finishings.indexOf(finishing) + 1; i < item.articleVariant.finishings.length; i++) {
+                                                    var otherItem = item.articleVariant.finishings[i];
+                                                    if (finishing.articleVariantId == otherItem.articleVariantId) {
+                                                        finishingError["articleVariantId"] = "Component articleVariantId already exists on another detail";
+                                                    }
+                                                }
+                                            }
+                                            if (finishing.quantity == undefined || (finishing.quantity && finishing.quantity == '')) {
+                                                finishingError["quantity"] = "quantity is required";
+                                            }
+                                            else if (parseInt(finishing.quantity) <= 0) {
+                                                finishingError["quantity"] = "quantity must be greater than 0";
+                                            }
+                                            else {
+                                                getItemComponent = this.inventoryManager.getByStorageIdAndArticleVarianId(valid.sourceId, finishing.articleVariantId);
+                                            }
+                                            getItemComponents.push(getItemComponent)
+                                            finishingErrors.push(finishingError);
+                                        }
+                                        for (var finishingError of finishingErrors) {
+                                            for (var prop in finishingError) {
+                                                articleVariantError.finishings = finishingErrors;
+                                                break;
+                                            }
+                                            if (articleVariantError.finishings)
+                                                break;
+                                        }
+                                    }
+                                }
+                                for (var prop in articleVariantError) {
+                                    itemError["articleVariant"] = articleVariantError;
+                                    break;
+                                }
+                            }
+                            if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
+                                itemError["quantity"] = "quantity is required";
+                            }
+                            else if (parseInt(item.quantity) <= 0) {
+                                itemError["quantity"] = "quantity must be greater than 0";
+                            }
+                            itemErrors.push(itemError);
+                        }
+                        for (var itemError of itemErrors) {
+                            for (var prop in itemError) {
+                                errors.items = itemErrors;
+                                break;
+                            }
+                            if (errors.items)
+                                break;
+                        }
+                    }
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
+
+                    Promise.all(getItemComponents)
+                        .then(itemComponents => {
+                            var itemErrors = [];
+                            for (var item of valid.items) {
+                                var itemError = {};
+                                var articleVariantError = {};
+                                var finishingErrors = [];
+                                var index = 0;
+                                for (var finishing of item.articleVariant.finishings) {
+                                    var finishingError = {};
+                                    if (itemComponents[index]) {
+                                        if (finishing.quantity > itemComponents[index].quantity) {
+                                            finishingError["quantity"] = "Quantity is bigger than Stock";
+                                        }
+                                    }
+                                    index++;
                                     finishingErrors.push(finishingError);
                                 }
                                 for (var finishingError of finishingErrors) {
@@ -328,81 +428,30 @@ module.exports = class FinishedGoodsManager {
                                     if (articleVariantError.finishings)
                                         break;
                                 }
-                            }
-                        }
-                        for (var prop in articleVariantError) {
-                            itemError["articleVariant"] = articleVariantError;
-                            break;
-                        }
-                    }
-                    if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
-                        itemError["quantity"] = "quantity is required";
-                    }
-                    else if (parseInt(item.quantity) <= 0) {
-                        itemError["quantity"] = "quantity must be greater than 0";
-                    }
-                    itemErrors.push(itemError);
-                }
-                for (var itemError of itemErrors) {
-                    for (var prop in itemError) {
-                        errors.items = itemErrors;
-                        break;
-                    }
-                    if (errors.items)
-                        break;
-                }
-            }
-            for (var prop in errors) {
-                var ValidationError = require('../../validation-error');
-                reject(new ValidationError('data does not pass validation', errors));
-            }
-
-            Promise.all(getItemComponents)
-                .then(itemComponents => {
-                    var itemErrors = [];
-                    for (var item of valid.items) {
-                        var itemError = {};
-                        var articleVariantError = {};
-                        var finishingErrors = [];
-                        var index = 0;
-                        for (var finishing of item.articleVariant.finishings) {
-                            var finishingError = {};
-                            if (itemComponents[index]) {
-                                if (finishing.quantity > itemComponents[index].quantity) {
-                                    finishingError["quantity"] = "Quantity is bigger than Stock";
+                                for (var prop in articleVariantError) {
+                                    itemError["articleVariant"] = articleVariantError;
+                                    break;
                                 }
+                                itemErrors.push(itemError);
                             }
-                            index++;
-                            finishingErrors.push(finishingError);
-                        }
-                        for (var finishingError of finishingErrors) {
-                            for (var prop in finishingError) {
-                                articleVariantError.finishings = finishingErrors;
-                                break;
+                            for (var itemError of itemErrors) {
+                                for (var prop in itemError) {
+                                    errors.items = itemErrors;
+                                    break;
+                                }
+                                if (errors.items)
+                                    break;
                             }
-                            if (articleVariantError.finishings)
-                                break;
-                        }
-                        for (var prop in articleVariantError) {
-                            itemError["articleVariant"] = articleVariantError;
-                            break;
-                        }
-                        itemErrors.push(itemError);
-                    }
-                    for (var itemError of itemErrors) {
-                        for (var prop in itemError) {
-                            errors.items = itemErrors;
-                            break;
-                        }
-                        if (errors.items)
-                            break;
-                    }
-                    for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
-                        reject(new ValidationError('data does not pass validation', errors));
-                    } 
-                    resolve(valid);
+                            for (var prop in errors) {
+                                var ValidationError = require('../../validation-error');
+                                reject(new ValidationError('data does not pass validation', errors));
+                            }
+                            resolve(valid);
+                        })
                 })
+                .catch(e => {
+                    reject(new Error(`Unable to load module:${moduleId}`));
+                });
         });
     }
 };
