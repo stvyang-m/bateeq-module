@@ -1,4 +1,4 @@
- 'use strict';
+'use strict';
 
 // external deps 
 var ObjectId = require('mongodb').ObjectId;
@@ -12,39 +12,43 @@ var generateCode = require('../../utils/code-generator');
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
-const moduleId = "EFR-TB/ALT";
+const moduleId = "EFR-KB/ALT";
 
-module.exports = class AlterationInManager {
-    constructor(db, user){
+module.exports = class AlterationOutManager {
+    constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
+        this.transferOutDocCollection = this.db.use(map.inventory.TransferOutDoc);
 
-        var TransferInDocManager = require('./transfer-in-doc-manager');
-        this.transferInDocManager = new TransferInDocManager(db,user);
+        var TransferOutDocManager = require('./transfer-out-doc-manager');
+        this.transferOutDocManager = new TransferOutDocManager(db, user);
 
-        var AlterationOutManager = require('./efr-kb-alt-manager');
-        this.alterationOutManager = new AlterationOutManager(db,user);
+        var FinishingTerimaBarangReturManager = require('./efr-tb-bjr-manager');
+        this.finishingTerimaBarangReturManager = new FinishingTerimaBarangReturManager(db, user);
 
         var ModuleManager = require('../core/module-manager');
-        this.moduleManager = new ModuleManager(db,user);
+        this.moduleManager = new ModuleManager(db, user);
+
+        var InventoryManager = require('./inventory-manager');
+        this.inventoryManager = new InventoryManager(db, user);
     }
 
-    read(paging){
+    read(paging) {
         var _paging = Object.assign({
-            page : 1,
-            size : 20,
+            page: 1,
+            size: 20,
             order: "_id",
-            asc : true
-        },paging);
+            asc: true
+        }, paging);
 
         return new Promise((resolve, reject) => {
             var deleted = {
                 _deleted: false,
                 code: {
-                        '$regex': new RegExp("^[A-Z0-9]+\/" + moduleId + "\/[0-9]{2}\/[0-9]{4}$","i")}
+                    '$regex': new RegExp("^[A-Z0-9]+\/" + moduleId + "\/[0-9]{2}\/[0-9]{4}$", "i")
+                }
             };
-            
+
             var query = _paging.keyword ? {
                 '$and': [deleted]
             } : deleted;
@@ -62,13 +66,29 @@ module.exports = class AlterationInManager {
                 query['$and'].push($or);
             }
 
-            this.transferInDocCollection
+            this.transferOutDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(transferInDocs => {
-                    resolve(transferInDocs);
+                .then(transferOutDocs => {
+                    resolve(transferOutDocs);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getByCode(code) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                code: code,
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -99,8 +119,8 @@ module.exports = class AlterationInManager {
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -110,23 +130,10 @@ module.exports = class AlterationInManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.transferInDocCollection
+            this.transferOutDocCollection
                 .single(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    getSingleOrDefaultByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.transferInDocCollection
-                .singleOrDefault(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
                 })
                 .catch(e => {
                     reject(e);
@@ -134,15 +141,30 @@ module.exports = class AlterationInManager {
         });
     }
 
-    create(transferInDoc) {
+
+
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.transferOutDocCollection
+                .singleOrDefault(query)
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    create(transferOutDoc) {
         return new Promise((resolve, reject) => {
 
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    validTransferInDoc.code = generateCode(moduleId)
-                    this.transferInDocManager.create(validTransferInDoc)
+            this._validate(transferOutDoc)
+                .then(validTransferOutDoc => {
+                    validTransferOutDoc.code = generateCode(moduleId)
+                    this.transferOutDocManager.create(validTransferOutDoc)
                         .then(id => {
-                                resolve(id);
+                            resolve(id);
                         })
                         .catch(e => {
                             reject(e);
@@ -154,50 +176,111 @@ module.exports = class AlterationInManager {
         });
     }
 
-    update(transferOutDoc){
-        return new Promise((resolve,reject) =>{
+    update(transferOutDoc) {
+        return new Promise((resolve, reject) => {
 
         });
     }
 
-    _validate(transferInDoc){
+    _validate(transferOutDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = transferInDoc;
+            var valid = transferOutDoc;
             this.moduleManager.getByCode(moduleId)
-            .then(module => {
-                var config = module.config;
-                valid.source = config.source;
-                valid.sourceId = config.source.value.toString();
-                valid.destination = config.destination;
-                valid.destinationId = config.destination.value.toString();
+                .then(module => {
+                    var config = module.config;
+                    valid.source = config.source;
+                    valid.sourceId = config.source.value.toString();
+                    valid.destination = config.destination;
+                    valid.destinationId = config.destination.value.toString();
 
-                var getAltOutById = this.alterationOutManager.getByCode(valid.reference);
-                var getAltInByRef = this.getByReference(valid.reference);
-                Promise.all([getAltOutById, getAltInByRef])
-                .then(results =>{
-                    var altOut = results[0];
-                    var altIn = results[1];
-                    if(!altOut){
-                        errors["reference"] = "reference not found";
+                    var getbjrInByCode = this.finishingTerimaBarangReturManager.getByCode(valid.reference);
+                    var getAltOutByRef = this.getByReference(valid.reference);
+
+                    var tasks = []
+                    tasks.push(getbjrInByCode);
+                    tasks.push(getAltOutByRef);
+
+                    var getItem = [];
+                    if (valid.items && valid.items.length > 0) {
+                        for (var item of valid.items) {
+                            tasks.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item.articleVariantId))
+                        }
                     }
-                    // if(altIn){
-                    //     errors["reference"] = "reference already used";
-                    // }
-                    for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
-                        reject(new ValidationError('data does not pass validation', errors));
+                    else {
+                        errors["items"] = "items is required";
                     }
-                    resolve(valid);
+
+
+                    Promise.all(tasks)
+                        .then(results => {
+                            var bjrTransferIn = results[0];
+                            var altTransferOut = results[1];
+                            var checkInventory = [];
+                            for (var i = 2; i < results.length; i++) {
+                                checkInventory.push(results[i]);
+                            }
+                            var itemErrors = [];
+                            if (bjrTransferIn) {
+                                if (valid.items && valid.items.length > 0) {
+
+                                    for (var item of valid.items) {
+                                        var itemError = {};
+                                        for (var item2 of bjrTransferIn.items) {
+                                            if (item.articleVariantId.toString() == item2.articleVariantId.toString()) {
+                                                if (item.quantity > item2.quantity) {
+                                                    itemError["articleVariantId"] = "item retur harus lebih kecil atau sama dengan item reference";
+                                                }
+                                            }
+                                        }
+                                        for (var item2 of checkInventory) {
+                                            if (item.articleVariantId.toString() == item2.articleVariantId.toString() && item.quantity > item2.quantity) {
+                                                itemError["articleVariantId"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
+                                            }
+                                        }
+                                        itemErrors.push(itemError);
+                                        itemErrors.push(itemError);
+                                    }
+
+                                } else {
+                                    errors["items"] = "items is required";
+                                }
+                            } else {
+                                errors["reference"] = "reference not found";
+                            }
+
+                            var index = 0;
+
+                            for (var itemError of itemErrors) {
+                                for (var prop in itemError) {
+                                    errors.items = itemErrors;
+                                    break;
+                                }
+                                if (errors.items)
+                                    break;
+                            }
+
+                            // if(altTransferOut){
+                            //         errors["reference"] = "reference already used";
+                            // }
+
+                            // 2c. begin: check if data has any error, reject if it has.
+
+
+                            for (var prop in errors) {
+                                var ValidationError = require('../../validation-error');
+                                reject(new ValidationError('data does not pass validation', errors));
+                            }
+                            resolve(valid);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+
                 })
                 .catch(e => {
-                    reject(e);
+                    reject(new Error(`Unable to load module:${moduleId}`));
                 });
-
-            })
-            .catch(e => {
-                reject(new Error(`Unable to load module:${moduleId}`));
-            });
         });
     }
 }

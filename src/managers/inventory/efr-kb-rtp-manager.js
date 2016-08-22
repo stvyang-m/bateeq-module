@@ -43,8 +43,8 @@ module.exports = class TokoKirimBarangReturnManager {
             asc: true
         }, paging);
 
-        return new Promise((resolve, reject) => {
-           var regexModuleId = new RegExp(moduleId, "i"); 
+        return new Promise((resolve, reject) => { 
+            var regexModuleId = new RegExp(moduleId, "i");  
             var filter = {
                 _deleted: false,
                 'code': {

@@ -207,16 +207,17 @@ module.exports = class PusatReturTokoTerimaBarangReturSelesaiPerbaikanManager {
     _validate(transferInDoc) {
         return new Promise((resolve, reject) => {
             var valid = transferInDoc;
-            this.moduleManager.getByCode(moduleId)
-                .then(module => {
-                    var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
-                    resolve(valid);
-                })
-                .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
-                });
+            // this.moduleManager.getByCode(moduleId)
+            //     .then(module => {
+            //         var config = module.config;
+            //         valid.sourceId = config.sourceId;
+            //         valid.destinationId = config.destinationId;
+            //         resolve(valid);
+            //     })
+            //     .catch(e => {
+            //         reject(new Error(`Unable to load module:${moduleId}`));
+            //     });
+            resolve(valid);
         });
     }
 
