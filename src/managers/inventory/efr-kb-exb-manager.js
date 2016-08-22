@@ -156,10 +156,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                         validTransferOutDoc.sourceId = spkDocument.spkDocument.sourceId;
                         validTransferOutDoc.destinationId = expeditionDoc.destinationId;
                         validTransferOutDoc.items = [];
-                        for (var item of spkDocument.spkDocument.items) {
+                        for (var item of spkDocument.spkDocument.items) { 
                             var newitem = {};
                             newitem.articleVariantId = item.articleVariantId;
-                            newitem.quantity = item.quantity;
+                            newitem.quantity = item.quantity; 
                             validTransferOutDoc.items.push(newitem);
                         }
                         getTransferOuts.push(this.transferOutDocManager.create(validTransferOutDoc));
@@ -312,6 +312,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                         spkDocumentError["spkDocumentId"] = "spkDocumentId already exists on another detail";
                                     }
                                 }
+                                
+                                if(spkDocument.spkDocument.destinationId.toString() != valid.destinationId.toString())
+                                    spkDocumentError["spkDocumentId"] = "spkDocumentId's Destination is not right";
+                                
                                 getPromise.push(this.spkManager.getByIdOrDefault(spkDocument.spkDocumentId));
                             }
                             spkDocumentErrors.push(spkDocumentError);
