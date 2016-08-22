@@ -32,6 +32,36 @@ function getData() {
     return transferOutDoc;
 }
 
+function getDataItemQuantityIsWrong() {
+    var source = testData.storages["UT-FNG"];
+    var destination = testData.storages["UT-BJR"];
+    var variant = testData.variants["UT-AV1"];
+    
+    var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
+    var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
+    var transferOutDoc = new TransferOutDoc();
+
+    var now = new Date();
+    var stamp = now / 1000 | 0;
+    var code = stamp.toString(36);
+
+    transferOutDoc.code = code;
+    transferOutDoc.date = now;
+
+    transferOutDoc.destinationId = destination._id;
+    transferOutDoc.sourceId = source._id;
+
+    transferOutDoc.reference = `reference[${code}]`;
+
+    transferOutDoc.remark = `remark for ${code}`;
+
+    transferOutDoc.items.push({ });
+    transferOutDoc.items.push({ articleVariantId: variant._id });
+    transferOutDoc.items.push({ quantity: 0 });
+
+    return transferOutDoc;
+}
+
 before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
@@ -154,11 +184,8 @@ it('#07. should error with property items minimum one', function (done) {
 });
 
 it('#08. should error with property items must be greater one', function (done) {
-    manager.create({
-        items: [{},
-            { articleVariantId: '578dd8a976d4f1003e0d7a3f' },
-            { quantity: 0 }]
-    })
+    var data = getDataItemQuantityIsWrong();
+    manager.create(data)
         .then(id => {
             done("Should not be error with property items must be greater one");
         })
@@ -167,7 +194,6 @@ it('#08. should error with property items must be greater one', function (done) 
                 e.errors.should.have.property('items');
                 e.errors.items.should.Array();
                 for (var i of e.errors.items) {
-                    i.should.have.property('articleVariantId');
                     i.should.have.property('quantity');
                 }
                 done();
