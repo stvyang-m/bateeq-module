@@ -210,26 +210,71 @@ module.exports = class FinishingKirimBarangReturSelesaiPerbaikanManager {
                     valid.sourceId = config.source.value;
                     valid.destinationId = config.destination.value;
                     if(valid.items) {
-                        var itemErrors = [];
-                        for(var item of valid.items) {
-                            var itemError = {};
-                            if(item.quantityStock) {
-                                if(item.quantityStock < item.quantity) {
-                                    itemError["quantity"] = "Quantity Bigger than Stock";
-                                }
-                            }
-                            itemErrors.push(itemError);
-                        } 
-                        for (var itemError of itemErrors) {
-                            for (var prop in itemError) {
-                                errors.items = itemErrors;
-                                break;
-                            }
-                            if (errors.items)
-                                break;
+                        var itemsData = [];
+                        for(var item of valid.items) { 
+                            if(item.articleVariantNewID && item.articleVariantNewId != '') {
+                                item.articleVariantId = item.articleVariantNewId;
+                                item.articleVariant = item.articleVariantNew;
+                            } 
+                            itemsData.push(this.articleVariantManager.getById(item.articleVariantId));
                         }
+                        //get Article Variant
+                        Promise.all(itemsData)
+                            .then(resultItems => {
+                                itemsData = [];
+                                for(var item of resultItems) {
+                                    if(item) {
+                                        itemsData.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item.ArticleVariantId));
+                                    } 
+                                    else {
+                                        itemsData.push(Promise.resolve(null));
+                                    }
+                                }
+                                //get Inventory
+                                Promise.all(itemsData)
+                                    .then(resultInventories => {   
+                                        var itemErrors = [];
+                                        var index = 0;
+                                        for(var item of valid.items) {
+                                            var itemError = {}; 
+                                            var stock = 0; 
+                                            item.articleVariantId = resultItems[index]._id;
+                                            item.articleVariant = resultItems[index]; 
+                                            if(resultInventories[index]) {
+                                                stock = resultInventories[index].quantity; 
+                                            }  
+                                            if(stock < item.quantity) {
+                                                itemError["quantity"] = "Quantity Bigger than Stock";
+                                            } 
+                                            itemErrors.push(itemError);
+                                            index++;
+                                        }   
+                                        for (var itemError of itemErrors) {
+                                            for (var prop in itemError) {
+                                                errors.items = itemErrors;
+                                                break;
+                                            }
+                                            if (errors.items)
+                                                break;
+                                        }  
+                                        for (var prop in errors) {
+                                            var ValidationError = require('../../validation-error');
+                                            reject(new ValidationError('data does not pass validation', errors));
+                                        } 
+                                        valid = new TransferOutDoc(valid);
+                                        resolve(valid); 
+                                    })
+                                    .catch(e => {
+                                        reject(e);
+                                    });  
+                            })
+                            .catch(e => {
+                                reject(e);
+                            }); 
                     }
-                    
+                    else {
+                        errors.items = "Please Choose One Item";
+                    } 
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
