@@ -28,8 +28,8 @@ module.exports = class FinishingTerimaAksesorisManager {
         var InventoryManager = require('./inventory-manager');
         this.inventoryManager = new InventoryManager(db, user);
 
-        var TransferInDocManager = require('./transfer-in-doc-manager');
-        this.transferInDocManager = new TransferInDocManager(db, user);
+        var TransferInDocExtManager = require('./transfer-in-doc-ext-manager');
+        this.transferInDocExtManager = new TransferInDocExtManager(db, user);
 
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db, user); 
@@ -44,12 +44,16 @@ module.exports = class FinishingTerimaAksesorisManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
+           var regexModuleId = new RegExp(moduleId, "i");
+            var filter = {
+                _deleted: false,
+                'code': {
+                    '$regex': regexModuleId
+                }
             };
-            var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
+             var query = _paging.keyword ? {
+                '$and': [filter]
+            } : filter;
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
@@ -143,7 +147,7 @@ module.exports = class FinishingTerimaAksesorisManager {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
                     validTransferInDoc.code = generateCode(moduleId);
-                    this.transferInDocManager.create(validTransferInDoc)
+                     this.transferInDocExtManager.create(validTransferInDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -161,7 +165,7 @@ module.exports = class FinishingTerimaAksesorisManager {
         return new Promise((resolve, reject) => {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
-                    this.transferInDocManager.update(transferInDoc)
+                     this.transferInDocExtManager .update(transferInDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -179,7 +183,7 @@ module.exports = class FinishingTerimaAksesorisManager {
         return new Promise((resolve, reject) => {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
-                    this.transferInDocManager.delete(transferInDoc)
+                     this.transferInDocExtManager .delete(transferInDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -198,8 +202,7 @@ module.exports = class FinishingTerimaAksesorisManager {
             var valid = transferInDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-                    var config = module.config;
-                    valid.sourceId = config.source.value;
+                    var config = module.config; 
                     valid.destinationId = config.destination.value;
                     resolve(valid);
                 })

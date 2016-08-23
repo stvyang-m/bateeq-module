@@ -202,8 +202,53 @@ module.exports = class TokoTransferStokManager {
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
                     var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
+                    if (!valid.sourceId || valid.sourceId == '')
+                       errors["sourceId"] = "sourceId is required";
+                   else {
+                       if (config) {
+                           if (config.source) {
+                               var isAny = false;
+                               if (config.source.type == "selection") {
+                                   for (var sourceId of config.source.value) {
+                                       if (sourceId.toString() == valid.sourceId.toString()) {
+                                           isAny = true;
+                                           break;
+                                       }
+                                   }
+                               }
+                               else {
+                                   if (config.source.value.toString() == valid.sourceId.toString())
+                                       isAny = true;
+                               }
+                               if (!isAny)
+                                   errors["sourceId"] = "sourceId is not valid";
+                           }
+                       }
+                   }
+
+                   if (!valid.destinationId || valid.destinationId == '')
+                       errors["destinationId"] = "destinationId is required";
+                   else {
+                       if (config) {
+                           if (config.destination) {
+                               var isAny = false;
+                               if (config.destination.type == "selection") {
+                                   for (var destinationId of config.destination.value) {
+                                       if (destinationId.toString() == valid.destinationId.toString()) {
+                                           isAny = true;
+                                           break;
+                                       }
+                                   }
+                               }
+                               else {
+                                   if (config.destination.value.toString() == valid.destinationId.toString())
+                                       isAny = true;
+                               }
+                               if (!isAny)
+                                   errors["destinationId"] = "destinationId is not valid";
+                           }
+                       }
+                   }
                     resolve(valid);
                 })
                 .catch(e => {

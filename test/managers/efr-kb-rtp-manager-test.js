@@ -2,8 +2,13 @@ var should = require('should');
 var helper = require('../helper');
 var validate = require('bateeq-models').validator.inventory;
 var manager;
+var testData;
 
 function getData() {
+    var source = testData.storages["UT-ST1"];
+    var destination = testData.storages["UT-BJR"];
+    var variant = testData.variants["UT-AV1"];
+
     var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
     var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
     var transferOutDoc = new TransferOutDoc();
@@ -14,27 +19,33 @@ function getData() {
 
     transferOutDoc.code = code;
     transferOutDoc.date = now;
-    
-    transferOutDoc.destinationId = '57738435e8a64fc532cd5bf1';
-    transferOutDoc.sourceId = '57738460d53dae9234ae0ae1';
-    
+
+    transferOutDoc.destinationId = destination._id;
+    transferOutDoc.sourceId = source._id;
+
     transferOutDoc.reference = `reference[${code}]`;
-    
+
     transferOutDoc.remark = `remark for ${code}`;
-    
-    transferOutDoc.items.push(new TransferOutItem({articleVariantId:"578855c4964302281454fa51", quantity: 1, remark:'transferOutDoc.test'})); 
+
+    transferOutDoc.items.push(new TransferOutItem({ articleVariantId: variant._id, quantity: 1, remark: 'doc efr-kb-rtp' }));
 
     return transferOutDoc;
 }
 
-before('#00. connect db', function(done) {
+before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
-            var TokoKirimBarangReturnManager = require('../../src/managers/inventory/efr-kb-rtp-manager');
-            manager = new TokoKirimBarangReturnManager(db, {
-                username: 'unit-test'
-            });
-            done();
+
+            var data = require("../data");
+            data(db)
+                .then(result => {
+                    var TokoKirimBarangReturnManager = require('../../src/managers/inventory/efr-kb-rtp-manager');
+                    manager = new TokoKirimBarangReturnManager(db, {
+                        username: 'unit-test'
+                    });
+                    testData = result;
+                    done();
+                });
         })
         .catch(e => {
             done(e);
@@ -42,7 +53,7 @@ before('#00. connect db', function(done) {
 });
 
 var createdId;
-it('#01. should success when create new data', function(done) {
+it('#01. should success when create new data', function (done) {
     var data = getData();
     manager.create(data)
         .then(id => {
@@ -56,8 +67,8 @@ it('#01. should success when create new data', function(done) {
 });
 
 var createdData;
-it(`#02. should success when get created data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+it(`#02. should success when get created data with id`, function (done) {
+    manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferOutDoc(data);
             createdData = data;
@@ -68,12 +79,12 @@ it(`#02. should success when get created data with id`, function(done) {
         })
 });
 
-it(`#03. should success when update created data`, function(done) {
- 
+it(`#03. should success when update created data`, function (done) {
+
     createdData.reference += '[updated]';
     createdData.remark += '[updated]';
-    
-    var TransferOutItem = require('bateeq-models').inventory.TransferOutItem; 
+
+    var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
 
     manager.update(createdData)
         .then(id => {
@@ -85,12 +96,12 @@ it(`#03. should success when update created data`, function(done) {
         });
 });
 
-it(`#04. should success when get updated data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+it(`#04. should success when get updated data with id`, function (done) {
+    manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferOutDoc(data);
             data.remark.should.equal(createdData.remark);
-            data.reference.should.equal(createdData.reference); 
+            data.reference.should.equal(createdData.reference);
             data.items.length.should.equal(1);
             done();
         })
@@ -99,7 +110,7 @@ it(`#04. should success when get updated data with id`, function(done) {
         })
 });
 
-it(`#05. should success when delete data`, function(done) { 
+it(`#05. should success when delete data`, function (done) {
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -110,8 +121,8 @@ it(`#05. should success when delete data`, function(done) {
         });
 });
 
-it(`#06. should _deleted=true`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+it(`#06. should _deleted=true`, function (done) {
+    manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferOutDoc(data);
             data._deleted.should.be.Boolean();
@@ -122,15 +133,17 @@ it(`#06. should _deleted=true`, function(done) {
             done(e);
         })
 });
- 
+
 
 it('#07. should error with property items minimum one', function (done) {
-    manager.create({})
+    var data = getData();
+    data.items = [];
+    manager.create(data)
         .then(id => {
             done("Should not be error with property items minimum one");
         })
         .catch(e => {
-            try { 
+            try {
                 e.errors.should.have.property('items');
                 e.errors.items.should.String();
                 done();
@@ -140,27 +153,25 @@ it('#07. should error with property items minimum one', function (done) {
         })
 });
 
-it('#08. should error with property items must be greater one', function(done) { 
-   manager.create({items:[{},
-                          {articleVariantId:'578dd8a976d4f1003e0d7a3f'},
-                          {quantity:0}]})
-       .then(id => { 
-           done("Should not be error with property items must be greater one");
-       })
-       .catch(e => { 
-          try
-          { 
-              e.errors.should.have.property('items');
-              e.errors.items.should.Array();
-              for(var i of e.errors.items)
-              {
-                i.should.have.property('articleVariantId');
-                i.should.have.property('quantity');
-              }
-               done();
-          }catch(ex)
-          {
-              done(ex);
-          } 
-       })
+it('#08. should error with property items must be greater one', function (done) {
+    var data = getData();
+    data.items = [{ articleVariantId: '578dd8a976d4f1003e0d7a3f' },
+        { quantity: 0 }];
+    manager.create(data)
+        .then(id => {
+            done("Should not be error with property items must be greater one");
+        })
+        .catch(e => {
+            try {
+                e.errors.should.have.property('items');
+                e.errors.items.should.Array();
+                for (var i of e.errors.items) {
+                    i.should.have.property('articleVariantId');
+                    i.should.have.property('quantity');
+                }
+                done();
+            } catch (ex) {
+                done(ex);
+            }
+        })
 });
