@@ -2,13 +2,12 @@ var should = require('should');
 var helper = require('../helper');
 var validate = require('bateeq-models').validator.inventory;
 var manager;
+var manager2;
 var testData;
 
-
 function getData() {
-
-    var source = testData.storages["UT-BJR"];
-    var destination = testData.storages["UT-ST1"];
+    var source = testData.storages["UT-FNG"];
+    var destination = testData.storages["UT-BJB"];
     var variant = testData.variants["UT-AV1"];
 
     var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
@@ -21,17 +20,44 @@ function getData() {
 
     transferOutDoc.code = code;
     transferOutDoc.date = now;
-
     transferOutDoc.destinationId = destination._id;
     transferOutDoc.sourceId = source._id;
-
-    transferOutDoc.reference = `reference[${code}]`;
-
+    transferOutDoc.reference = `reference for ${code}`;
     transferOutDoc.remark = `remark for ${code}`;
-
     transferOutDoc.items.push(new TransferOutItem({ articleVariantId: variant._id, quantity: 1, remark: 'transferOutDoc.test' }));
 
     return transferOutDoc;
+
+}
+
+function getDataHp() {
+    var source = testData.storages["UT-FNG"];
+    var destination = testData.storages["UT-FNG"];
+    var variant = testData.variants["UT-AV1"];
+    var variantComponent = testData.variants["UT-AV2"];
+
+    var finishingDoc = {};
+    var now = new Date();
+    var stamp = now / 1000 | 0;
+    var code = stamp.toString(36);
+
+    finishingDoc.date = now;
+    finishingDoc.sourceId = source._id;
+    finishingDoc.destinationId = destination._id;
+    finishingDoc.reference = `reference[${code}]`;
+    finishingDoc.remark = `remark for ${code}`;
+    finishingDoc.items = [];
+
+    var item = {};
+    item.quantity = 1;
+    item.articleVariantId = variant._id;
+    item.articleVariant = variant;
+    item.articleVariant.finishings = [];
+    item.articleVariant.finishings.push({ articleVariantId: variantComponent._id, quantity: 1, articleVariant: variantComponent });
+    finishingDoc.items.push(item);
+
+    return finishingDoc;
+
 }
 
 before('#00. connect db', function (done) {
@@ -44,6 +70,12 @@ before('#00. connect db', function (done) {
                     manager = new FinishingKirimBarangBaruManager(db, {
                         username: 'unit-test'
                     });
+
+                    var FinishedGoodsManager = require('../../src/managers/inventory/efr-hp-fng-manager');
+                    manager2 = new FinishedGoodsManager(db, {
+                        username: 'unit-test'
+                    });
+
                     testData = result;
                     done();
                 });
@@ -53,13 +85,13 @@ before('#00. connect db', function (done) {
         })
 });
 
-var createdId;
-it('#01. should success when create new data', function (done) {
-    var data = getData();
-    manager.create(data)
+var dataHpId;
+it('#01. should success when create new data hasil produksi', function (done) {
+    var data = getDataHp();
+    manager2.create(data)
         .then(id => {
             id.should.be.Object();
-            createdId = id;
+            dataHpId = id;
             done();
         })
         .catch(e => {
@@ -67,8 +99,43 @@ it('#01. should success when create new data', function (done) {
         })
 });
 
+var dataHp;
+it('#02. should success when get data by id hasil produksi', function (done) {
+    manager2.getSingleByQuery({ _id: dataHpId })
+        .then(data => {
+            dataHp = data;
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
+var createdId;
+it('#03. should success when create new data', function (done) {
+    var data;
+    manager2.getByCodeOrDefault(dataHp.code)
+        .then(HpDataByCode => {
+            data = getData();
+            data.reference = HpDataByCode.code;
+            data.items = HpDataByCode.transferInDocument.items;
+            manager.create(data)
+                .then(id => {
+                    id.should.be.Object();
+                    createdId = id;
+                    done();
+                })
+                .catch(e => {
+                    done(e);
+                })
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
 var createdData;
-it(`#02. should success when get created data with id`, function (done) {
+it(`#04. should success when get created data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferOutDoc(data);
@@ -80,13 +147,9 @@ it(`#02. should success when get created data with id`, function (done) {
         })
 });
 
-it(`#03. should success when update created data`, function (done) {
-
-    createdData.reference += '[updated]';
+it(`#05. should success when update created data`, function (done) { 
     createdData.remark += '[updated]';
-
     var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
-
     manager.update(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -97,12 +160,10 @@ it(`#03. should success when update created data`, function (done) {
         });
 });
 
-it(`#04. should success when get updated data with id`, function (done) {
+it(`#06. should success when get updated data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
-            validate.transferOutDoc(data);
-            data.remark.should.equal(createdData.remark);
-            data.reference.should.equal(createdData.reference);
+            validate.transferOutDoc(data);  
             data.items.length.should.equal(1);
             done();
         })
@@ -111,7 +172,7 @@ it(`#04. should success when get updated data with id`, function (done) {
         })
 });
 
-it(`#05. should success when delete data`, function (done) {
+it(`#07. should success when delete data`, function (done) {
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -122,7 +183,7 @@ it(`#05. should success when delete data`, function (done) {
         });
 });
 
-it(`#06. should _deleted=true`, function (done) {
+it(`#08. should _deleted=true`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferOutDoc(data);
@@ -136,18 +197,58 @@ it(`#06. should _deleted=true`, function (done) {
 });
 
 
-it('#07. should error with property items minimum one', function (done) {
-    manager.create({})
-        .then(id => {
-            done("Should not be error with property items minimum one");
+it('#09. should error with property items minimum one', function (done) {
+    manager2.getByCodeOrDefault(dataHp.code)
+        .then(HpDataByCode => {
+            var data = getData();
+            data.reference = dataHp.code;
+            data.items = [];
+            manager.create(data)
+                .then(id => {
+                    done("Should not be error with property items minimum one");
+                })
+                .catch(e => {
+                    try {
+                        e.errors.should.have.property('items');
+                        e.errors.items.should.String();
+                        done();
+                    } catch (ex) {
+                        done(ex);
+                    }
+                })
         })
         .catch(e => {
-            try {
-                e.errors.should.have.property('items');
-                e.errors.items.should.String();
-                done();
-            } catch (ex) {
-                done(ex);
-            }
+            done(e);
         })
+});
+
+it('#10. should error with property items must be greater one', function (done) {
+    manager2.getByCodeOrDefault(dataHp.code)
+        .then(HpDataByCode => {
+            var data = getData();
+            data.reference = HpDataByCode.code;
+            data.items = [{ articleVariantId: '578dd8a976d4f1003e0d7a3f' },
+                { quantity: 0 }];
+            manager.create(data)
+                .then(id => {
+                    done("Should not be error with property items must be greater one");
+                })
+                .catch(e => {
+                    try {
+                        e.errors.should.have.property('items');
+                        e.errors.items.should.Array();
+                        for (var i of e.errors.items) {
+                            i.should.have.property('articleVariantId');
+                            i.should.have.property('quantity');
+                        }
+                        done();
+                    } catch (ex) {
+                        done(ex);
+                    }
+                })
+        })
+        .catch(e => {
+            done(e);
+        })
+
 });
