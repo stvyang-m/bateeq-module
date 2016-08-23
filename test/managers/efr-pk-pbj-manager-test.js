@@ -2,30 +2,40 @@ var should = require('should');
 var helper = require('../helper');
 var validate = require('bateeq-models').validator.merchandiser;
 var manager;
+var testData;
 
 function getData() {
+    var source = testData.storages["UT-FNG"];
+    var destination = testData.storages["UT-BJB"];
+    var variant = testData.variants["UT-AV1"];
+
     var SpkDoc = require('bateeq-models').merchandiser.SPK;
     var SpkItem = require('bateeq-models').merchandiser.SPKItem;
     var spkDoc = new SpkDoc();
     var now = new Date();
     spkDoc.date = now;
-    spkDoc.sourceId = '57738435e8a64fc532cd5bf1';
-    spkDoc.destinationId = '57738460d53dae9234ae0ae1';
+    spkDoc.sourceId = source._id;
+    spkDoc.destinationId = destination._id;
 
     spkDoc.reference = `reference[${spkDoc.date}]`;
 
-    spkDoc.items.push(new SpkItem({ articleVariantId: "578855c4964302281454fa51", quantity: 1, remark: 'SPK.test' }));
+    spkDoc.items.push(new SpkItem({ articleVariantId: variant._id, quantity: 1, remark: 'SPK.test' }));
     return spkDoc;
 }
 
 before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
-            var SPKBarangJadiManager = require('../../src/managers/merchandiser/efr-pk-pbj-manager');
-            manager = new SPKBarangJadiManager(db, {
-                username: 'unit-test'
-            });
-            done();
+            var data = require("../data");
+            data(db)
+                .then(result => {
+                    var SPKBarangJadiManager = require('../../src/managers/merchandiser/efr-pk-pbj-manager');
+                    manager = new SPKBarangJadiManager(db, {
+                        username: 'unit-test'
+                    });
+                    testData = result;
+                    done();
+                });
         })
         .catch(e => {
             done(e);
@@ -49,7 +59,7 @@ it('#01. should success when create new data', function (done) {
 var createdData;
 it(`#02. should success when get created data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
-        .then(data => { 
+        .then(data => {
             createdData = data;
             done();
         })
@@ -59,7 +69,7 @@ it(`#02. should success when get created data with id`, function (done) {
 });
 
 it('#03. should success when save draft new data', function (done) {
-     var data = getData();
+    var data = getData();
     manager.createDraft(data)
         .then(id => {
             id.should.be.Object();
@@ -74,7 +84,7 @@ it('#03. should success when save draft new data', function (done) {
 var createdDataDraft;
 it(`#04. should success when get drafted data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
-        .then(data => { 
+        .then(data => {
             createdDataDraft = data;
             done();
         })
@@ -86,9 +96,9 @@ it(`#04. should success when get drafted data with id`, function (done) {
 it(`#05. should success when update created data`, function (done) {
 
     createdData.reference += '[updated]';
-    createdData.remark += '[updated]'; 
+    createdData.remark += '[updated]';
     manager.update(createdData)
-        .then(id => { 
+        .then(id => {
             done();
         })
         .catch(e => {
@@ -99,9 +109,9 @@ it(`#05. should success when update created data`, function (done) {
 it(`#06. should success when update drafted data`, function (done) {
 
     createdDataDraft.reference += 'Draft [updated]';
-    createdDataDraft.remark += 'Draft [updated]'; 
+    createdDataDraft.remark += 'Draft [updated]';
     manager.updateDraft(createdDataDraft)
-        .then(id => { 
+        .then(id => {
             done();
         })
         .catch(e => {
@@ -112,7 +122,7 @@ it(`#06. should success when update drafted data`, function (done) {
 
 it(`#07. should success when delete data`, function (done) {
     manager.delete(createdData)
-        .then(id => { 
+        .then(id => {
             done();
         })
         .catch(e => {
