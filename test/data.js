@@ -301,8 +301,8 @@ function getSertModules(db, storages) {
         description: "Unit test data: module EFR-PK/PBA",
         config: {
             source: {
-                type: "fixed",
-                value: storages["UT-ACC"]._id
+                type: "selection",
+                value: [storages["UT-ACC"]._id,  storages["UT-ST2"]._id]
             },
             destination: {
                 type: "selection",
@@ -315,8 +315,8 @@ function getSertModules(db, storages) {
         description: "Unit test data: module EFR-PK/PBJ",
         config: {
             source: {
-                type: "fixed",
-                value: storages["UT-BJB"]._id
+                type: "selection",
+                value: [storages["UT-BJB"]._id, storages["UT-ST2"]._id]
             },
             destination: {
                 type: "selection",
@@ -329,8 +329,8 @@ function getSertModules(db, storages) {
         description: "Unit test data: module EFR-HP/FNG",
         config: {
             source: {
-                type: "fixed",
-                value: storages["UT-BJR"]._id
+                type: "selection",
+                value: [storages["UT-BJR"]._id, , storages["UT-ST2"]._id]
             },
             destination: {
                 type: "selection",
