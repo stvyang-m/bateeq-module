@@ -164,10 +164,12 @@ module.exports = class FinishingTerimaKomponenManager {
                                     NewTransferInDoc.items = [];
                                     for (var item of valid.items) {
                                         for (var finishing of item.articleVariant.finishings) {
-                                            var item = {};
-                                            item.articleVariantId = finishing.articleVariant._id;
-                                            item.quantity = finishing.quantity;
-                                            NewTransferInDoc.items.push(item);
+                                            if(finishing.quantity > 0) {
+                                                var item = {};
+                                                item.articleVariantId = finishing.articleVariant._id;
+                                                item.quantity = finishing.quantity;
+                                                NewTransferInDoc.items.push(item);
+                                            }
                                         }
                                     }
                                     NewTransferInDoc = new TransferInDoc(NewTransferInDoc);
@@ -300,12 +302,16 @@ module.exports = class FinishingTerimaKomponenManager {
                                                     }
                                                 }
                                             }
+                                            
+                                            if (!finishing.articleVariant.name || finishing.articleVariant.name == "") {
+                                                finishingError["articleVariantId"] = "Component ArticleVariantId is required";
+                                            }
 
                                             if (finishing.quantity == undefined || (finishing.quantity && finishing.quantity == '')) {
                                                 finishingError["quantity"] = "quantity is required";
                                             }
-                                            else if (parseInt(finishing.quantity) <= 0) {
-                                                finishingError["quantity"] = "quantity must be greater than 0";
+                                            else if (parseInt(finishing.quantity) < 0) {
+                                                finishingError["quantity"] = "quantity must be greater 0";
                                             }
 
                                             finishingErrors.push(finishingError);
