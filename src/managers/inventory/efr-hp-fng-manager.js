@@ -124,6 +124,22 @@ module.exports = class FinishedGoodsManager {
         });
     }
 
+    getByCodeOrDefault(code) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                code: code,
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(finishedGoodsDoc => {
+                    resolve(finishedGoodsDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.finishedGoodsDocCollection
