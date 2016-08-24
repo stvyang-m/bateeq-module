@@ -223,8 +223,8 @@ function getSertModules(db, storages) {
                 value: [storages["UT-ST1"]._id, storages["UT-ST2"]._id]
             },
             destination: {
-                type: "fixed",
-                value: storages["UT-BJR"]._id
+                type: "selection",
+                value: [storages["UT-BJR"]._id , storages["UT-ST2"]._id]
             }
         }
     }, {
