@@ -1,11 +1,10 @@
 'use strict';
-require('js-toolkit').Promise.ext; 
 
 // external deps 
 var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
-require('mongodb-toolkit'); 
+require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
@@ -166,7 +165,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                         getTransferOuts.push(this.transferOutDocManager.create(validTransferOutDoc));
                     }
                     //Create Transfer Out
-                    Promise.chain(getTransferOuts)
+                    Promise.all(getTransferOuts)
                         .then(results => {
                             getTransferOuts = [];
                             //Create Promise Get Transfer Out using ID
