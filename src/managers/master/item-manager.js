@@ -7,32 +7,14 @@ var ObjectId = require('mongodb').ObjectId;
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
+ 
+var Item = BateeqModels.master.Item; 
 
-var TransferInDoc = BateeqModels.inventory.TransferInDoc;
-var TransferInItem = BateeqModels.inventory.TransferInItem;
-var generateCode = require('../../utils/code-generator');
-
-const moduleId = "EFR-TB/ACC";
-
-module.exports = class FinishingTerimaAksesorisManager {
+module.exports = class ItemManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
-        var StorageManager = require('./storage-manager');
-        this.storageManager = new StorageManager(db, user);
-
-        var ArticleVariantManager = require('../core/article/article-variant-manager');
-        this.articleVariantManager = new ArticleVariantManager(db, user);
-
-        var InventoryManager = require('./inventory-manager');
-        this.inventoryManager = new InventoryManager(db, user);
-
-        var TransferInDocExtManager = require('./transfer-in-doc-ext-manager');
-        this.transferInDocExtManager = new TransferInDocExtManager(db, user);
-
-        var ModuleManager = require('../core/module-manager');
-        this.moduleManager = new ModuleManager(db, user); 
+        this.itemCollection = this.db.use(map.master.Item);
     }
 
     read(paging) {
@@ -44,16 +26,12 @@ module.exports = class FinishingTerimaAksesorisManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-           var regexModuleId = new RegExp(moduleId, "i");
-            var filter = {
-                _deleted: false,
-                'code': {
-                    '$regex': regexModuleId
-                }
+            var deleted = {
+                _deleted: false
             };
-             var query = _paging.keyword ? {
-                '$and': [filter]
-            } : filter;
+            var query = _paging.keyword ? {
+                '$and': [deleted]
+            } : deleted;
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
@@ -62,21 +40,26 @@ module.exports = class FinishingTerimaAksesorisManager {
                         '$regex': regex
                     }
                 };
+                var filterName = {
+                    'name': {
+                        '$regex': regex
+                    }
+                };
                 var $or = {
-                    '$or': [filterCode]
+                    '$or': [filterCode, filterName]
                 };
 
                 query['$and'].push($or);
             }
 
 
-            this.transferInDocCollection
+            this.itemCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(transferInDocs => {
-                    resolve(transferInDocs);
+                .then(items => {
+                    resolve(items);
                 })
                 .catch(e => {
                     reject(e);
@@ -86,13 +69,15 @@ module.exports = class FinishingTerimaAksesorisManager {
 
     getById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(item => {
+                    resolve(item);
                 })
                 .catch(e => {
                     reject(e);
@@ -102,13 +87,15 @@ module.exports = class FinishingTerimaAksesorisManager {
 
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(item => {
+                    resolve(item);
                 })
                 .catch(e => {
                     reject(e);
@@ -118,10 +105,10 @@ module.exports = class FinishingTerimaAksesorisManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.transferInDocCollection
+            this.itemCollection
                 .single(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(item => {
+                    resolve(item);
                 })
                 .catch(e => {
                     reject(e);
@@ -131,10 +118,10 @@ module.exports = class FinishingTerimaAksesorisManager {
 
     getSingleOrDefaultByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.transferInDocCollection
+            this.itemCollection
                 .singleOrDefault(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
+                .then(item => {
+                    resolve(item);
                 })
                 .catch(e => {
                     reject(e);
@@ -142,12 +129,12 @@ module.exports = class FinishingTerimaAksesorisManager {
         })
     }
 
-    create(transferInDoc) {
+    create(item) {
         return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    validTransferInDoc.code = generateCode(moduleId);
-                     this.transferInDocExtManager.create(validTransferInDoc)
+            this._validate(item)
+                .then(validItem => {
+
+                    this.itemCollection.insert(validItem)
                         .then(id => {
                             resolve(id);
                         })
@@ -161,16 +148,16 @@ module.exports = class FinishingTerimaAksesorisManager {
         });
     }
 
-    update(transferInDoc) {
+    update(item) {
         return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                     this.transferInDocExtManager .update(transferInDoc)
+            this._validate(item)
+                .then(validItem => {
+                    this.itemCollection.update(validItem)
                         .then(id => {
                             resolve(id);
                         })
-                        .catch(ex => {
-                            reject(ex);
+                        .catch(e => {
+                            reject(e);
                         })
                 })
                 .catch(e => {
@@ -179,16 +166,17 @@ module.exports = class FinishingTerimaAksesorisManager {
         });
     }
 
-    delete(transferInDoc) {
+    delete(item) {
         return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                     this.transferInDocExtManager .delete(transferInDoc)
+            this._validate(item)
+                .then(validItem => {
+                    validItem._deleted = true;
+                    this.itemCollection.update(validItem)
                         .then(id => {
                             resolve(id);
                         })
-                        .catch(ex => {
-                            reject(ex);
+                        .catch(e => {
+                            reject(e);
                         })
                 })
                 .catch(e => {
@@ -196,20 +184,49 @@ module.exports = class FinishingTerimaAksesorisManager {
                 })
         });
     }
-
-    _validate(transferInDoc) {
+ 
+    _validate(item) {
+        var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = transferInDoc;
-            this.moduleManager.getByCode(moduleId)
-                .then(module => {
-                    var config = module.config; 
-                    valid.destinationId = config.destination.value;
+            var valid = new Item(item);
+            // 1. begin: Declare promises.
+            var getItem = this.itemCollection.singleOrDefault({
+                "$and": [{
+                    _id: {
+                        '$ne': new ObjectId(valid._id)
+                    }
+                }, {
+                        code: valid.code
+                    }]
+            });
+            // 1. end: Declare promises.
+
+            // 2. begin: Validation.
+            Promise.all([getItem])
+                .then(results => {
+                    var _item = results[0];
+
+                    if (!valid.code || valid.code == '')
+                        errors["code"] = "code is required";
+                    else if (_item)
+                        errors["code"] = "code already exists"; 
+                        
+                    if (!valid.name || valid.name == '')
+                        errors["name"] = "name is required";  
+                         
+
+                    // 2c. begin: check if data has any error, reject if it has.
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
+
+                    valid.stamp(this.user.username, 'manager');
                     resolve(valid);
                 })
                 .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
-                });
+                    reject(e);
+                })
         });
     }
-
 };
