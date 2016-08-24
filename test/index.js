@@ -24,12 +24,11 @@ describe('#bateeq-module', function(done) {
     // test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
     // test('@manager/transfer-out-doc-manager', './managers/transfer-out-doc-manager-test');
     // test('@manager/inventory-manager', './managers/inventory-manager-test');
-    // test('@manager/module-manager', './managers/module-manager-test');
-    // test('@manager/module-seed-manager', './managers/module-seed-manager-test');
-    // test('@manager/efr-kb-rtt-manager', './managers/efr-kb-rtt-manager-test');
+    //  test('@manager/module-manager', './managers/module-manager-test');
+   test('@manager/efr-kb-rtt-manager', './managers/efr-kb-rtt-manager-test');
     // test('@manager/efr-kb-fng-manager', './managers/efr-kb-fng-manager-test');
-    // test('@manager/efr-kb-rtp-manager', './managers/efr-kb-rtp-manager-test');
-    // test('@manager/efr-kb-rtf-manager', './managers/efr-kb-rtf-manager-test');
+    //test('@manager/efr-kb-rtp-manager', './managers/efr-kb-rtp-manager-test');
+    //test('@manager/efr-kb-rtf-manager', './managers/efr-kb-rtf-manager-test');
     
 
     // test('@manager/efr-kb-rtd-manager', './managers/efr-kb-rtd-manager-test'); 
@@ -47,7 +46,7 @@ describe('#bateeq-module', function(done) {
     // test('@manager/efr-pk-pbr-manager', './managers/efr-pk-pbr-manager-test');
 
     // test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test');
-    test('@manager/efr-kb-exb-manager', './managers/efr-kb-exb-manager-test');
+    // test('@manager/efr-kb-exb-manager', './managers/efr-kb-exb-manager-test');
     // test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test');
 
     //  test('@manager/supplier-manager', './managers/supplier-manager-test');
