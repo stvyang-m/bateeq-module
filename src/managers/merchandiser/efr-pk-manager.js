@@ -180,6 +180,8 @@ module.exports = class SPKBarangManager  {
 
     getById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
@@ -196,6 +198,8 @@ module.exports = class SPKBarangManager  {
 
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false

@@ -1,26 +1,28 @@
 var should = require('should');
 var helper = require('../helper');
-var validate = require('bateeq-models').validator.core;
+var validate = require('bateeq-models').validator.master;
 var manager;
 
 function getData() {
-    var Account = require('bateeq-models').core.Account;
-    var account = new Account();
+    var Item = require('bateeq-models').master.Item;
+    var item = new Item();
 
     var now = new Date();
     var stamp = now / 1000 | 0;
-    var code = 'dev';//stamp.toString(36);
+    var code = stamp.toString(36);
 
-    account.username = `${code}@unit-test.com`;
-    account.password ='Standar123';// `${code}`;
-    return account;
+    item.code = code;
+    item.name = `name[${code}]`;
+    item.description = `description for ${code}`; 
+
+    return item;
 }
 
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var AccountManager = require('../../src/managers/core/account-manager');
-            manager = new AccountManager(db, {
+            var ItemManager = require('../../src/managers/master/item-manager');
+            manager = new ItemManager(db, {
                 username: 'unit-test'
             });
             done();
@@ -30,9 +32,9 @@ before('#00. connect db', function(done) {
         })
 });
 
-var data = getData();
 var createdId;
 it('#01. should success when create new data', function(done) {
+    var data = getData();
     manager.create(data)
         .then(id => {
             id.should.be.Object();
@@ -50,7 +52,7 @@ it(`#02. should success when get created data with id`, function(done) {
             _id: createdId
         })
         .then(data => {
-            validate.account(data);
+            validate.item(data);
             createdData = data;
             done();
         })
@@ -60,6 +62,10 @@ it(`#02. should success when get created data with id`, function(done) {
 });
 
 it(`#03. should success when update created data`, function(done) {
+
+    createdData.code += '[updated]';
+    createdData.name += '[updated]';
+    createdData.description += '[updated]';
 
     manager.update(createdData)
         .then(id => {
@@ -76,28 +82,18 @@ it(`#04. should success when get updated data with id`, function(done) {
             _id: createdId
         })
         .then(data => {
-            validate.account(data);
-            data.username.should.equal(createdData.username);
-            // data.password.should.equal(createdData.password); 
+            validate.item(data);
+            data.code.should.equal(createdData.code);
+            data.name.should.equal(createdData.name);
+            data.description.should.equal(createdData.description);
             done();
         })
         .catch(e => {
             done(e);
-        });
-});
-
-it('#05. get account using username and password', function(done) {
-    manager.getByUsernameAndPassword(data.username, data.password)
-        .then(account => {
-            validate.account(account);
-            done();
         })
-        .catch(e => {
-            done(e);
-        });
 });
 
-it(`#06. should success when delete data`, function(done) {
+it(`#05. should success when delete data`, function(done) {
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -108,12 +104,12 @@ it(`#06. should success when delete data`, function(done) {
         });
 });
 
-it(`#07. should _deleted=true`, function(done) {
+it(`#06. should _deleted=true`, function(done) {
     manager.getSingleByQuery({
             _id: createdId
         })
         .then(data => {
-            validate.account(data);
+            validate.item(data);
             data._deleted.should.be.Boolean();
             data._deleted.should.equal(true);
             done();
@@ -123,18 +119,19 @@ it(`#07. should _deleted=true`, function(done) {
         })
 });
 
-it('#08. should error when create new data with same username', function(done) {
+
+it('#07. should error when create new data with same code', function(done) {
     var data = Object.assign({}, createdData);
     delete data._id;
     manager.create(data)
         .then(id => {
             id.should.be.Object();
             createdId = id;
-            done("Should not be able to create data with same username");
+            done("Should not be able to create data with same code");
         })
         .catch(e => {
             try {
-                e.errors.should.have.property('username');
+                e.errors.should.have.property('code');
                 done();
             }
             catch (e) {
@@ -143,15 +140,15 @@ it('#08. should error when create new data with same username', function(done) {
         })
 });
 
-it('#09. should error with property username and password ', function(done) {
+it('#08. should error with property code and name', function(done) {
     manager.create({})
         .then(id => {
-            done("Should not be error with property username and password");
+            done("Should not be error with property code and name");
         })
         .catch(e => {
             try {
-                e.errors.should.have.property('username');
-                e.errors.should.have.property('password');
+                e.errors.should.have.property('code');
+                e.errors.should.have.property('name'); 
                 done();
             }
             catch (ex) {
