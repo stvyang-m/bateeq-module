@@ -137,7 +137,7 @@ it(`#06. should _deleted=true`, function (done) {
 });
 
 it('#07. should error with property items minimum one', function (done) {
-    manager.create({})
+    manager.create({reference : "test"})
         .then(id => {
             done("Should not be error with property items minimum one");
         })
@@ -153,7 +153,7 @@ it('#07. should error with property items minimum one', function (done) {
 });
 
 it('#08. should error with property items must be greater one', function (done) {
-    manager.create({
+    manager.create({ reference: "test",
         items: [{},
             { articleVariantId: '578dd8a976d4f1003e0d7a3f' },
             { quantity: 0 }]

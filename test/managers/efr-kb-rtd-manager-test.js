@@ -54,10 +54,8 @@ function getDataItemQuantityIsWrong() {
     transferOutDoc.reference = `reference[${code}]`;
 
     transferOutDoc.remark = `remark for ${code}`;
-
-    transferOutDoc.items.push({ });
-    transferOutDoc.items.push({ articleVariantId: variant._id });
-    transferOutDoc.items.push({ quantity: 0 });
+ 
+    transferOutDoc.items.push({ articleVariantId: variant._id, quantity: 0 }); 
 
     return transferOutDoc;
 }

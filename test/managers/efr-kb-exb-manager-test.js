@@ -18,11 +18,11 @@ function getData() {
                 var now = new Date();
                 var stamp = now / 1000 | 0;
                 var code = stamp.toString(36);
-                
-                for(var item of spk.items){
+
+                for (var item of spk.items) {
                     item.quantitySend = item.quantity;
                 }
- 
+
                 expeditionDoc.code = code;
                 expeditionDoc.date = now;
                 expeditionDoc.expedition = "expedition";
@@ -37,7 +37,7 @@ function getData() {
             .catch(e => {
                 reject(e);
             })
-    }); 
+    });
 }
 
 before('#00. connect db', function (done) {
@@ -53,6 +53,9 @@ before('#00. connect db', function (done) {
                     testData = result;
 
                     done();
+                })
+                .catch(e => {
+                    done(e);
                 });
         })
         .catch(e => {
@@ -92,13 +95,13 @@ it(`#02. should success when get created data with id`, function (done) {
 });
 
 
-it('#03. should error with property SPKDocuments minimum one', function(done) {
+it('#03. should error with property SPKDocuments minimum one', function (done) {
     manager.create({})
         .then(id => {
             done("Should not be error with property SPKDocuments minimum one");
         })
         .catch(e => {
-            try { 
+            try {
                 e.errors.should.have.property('destinationId');
                 e.errors.should.have.property('expedition');
                 e.errors.should.have.property('weight');
@@ -112,13 +115,13 @@ it('#03. should error with property SPKDocuments minimum one', function(done) {
         })
 });
 
-it('#04. should error with property Quantity Send not same with Quantity', function(done) {  
-    manager.create({createdData})
+it('#04. should error with property Quantity Send not same with Quantity', function (done) {
+    manager.create({ createdData })
         .then(id => {
             done("Should not be error with property Quantity Send not same with Quantity");
         })
         .catch(e => {
-            try {  
+            try {
                 done();
             }
             catch (ex) {
