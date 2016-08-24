@@ -104,6 +104,22 @@ module.exports = class StorageManager {
         });
     }
 
+     getByCode(code) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                code: code,
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(storage => {
+                    resolve(storage);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.storageCollection
