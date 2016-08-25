@@ -237,7 +237,6 @@ module.exports = class AlterationOutManager {
                                       itemError["articleVariantId"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
                                    }
                                 }
-                            itemErrors.push(itemError);
                                 itemErrors.push(itemError);
                             }
 

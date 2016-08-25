@@ -180,7 +180,7 @@ module.exports = class AlterationInManager {
                     var altIn = results[1];
                     if(!altOut){
                         errors["reference"] = "reference not found";
-                    }
+                    } 
                     // if(altIn){
                     //     errors["reference"] = "reference already used";
                     // }
