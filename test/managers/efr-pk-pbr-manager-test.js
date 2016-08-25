@@ -6,8 +6,8 @@ var testData;
 
 
 function getData() {
-    var source = testData.storages["UT-FNG"];
-    var destination = testData.storages["UT-BJB"];
+    var source = testData.storages["UT-BJR"];
+    var destination = testData.storages["UT-ST1"];
     var variant = testData.variants["UT-AV1"];
 
     var SpkDoc = require('bateeq-models').merchandiser.SPK;
