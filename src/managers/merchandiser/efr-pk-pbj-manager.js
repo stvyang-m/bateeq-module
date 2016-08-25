@@ -7,6 +7,7 @@ var ObjectId = require('mongodb').ObjectId;
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
+var generateCode = require('../../utils/code-generator');
 
 var SPKDoc = BateeqModels.merchandiser.SPK;
 var SPKItem = BateeqModels.merchandiser.SPKItem;
@@ -24,11 +25,15 @@ module.exports = class SPKBarangJadiManager {
         var ArticleVariantManager = require('../core/article/article-variant-manager');
         this.articleVariantManager = new ArticleVariantManager(db, user);
 
+        var InventoryManager = require('../inventory/inventory-manager');
+        this.inventoryManager = new InventoryManager(db, user);
+
+        var InventoryManager = require('../inventory/inventory-manager');
+        this.inventoryManager = new InventoryManager(db, user);
+
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db, user);
 
-        var ModuleSeedManager = require('../core/module-seed-manager');
-        this.moduleSeedManager = new ModuleSeedManager(db, user);
     }
 
     read(paging) {
@@ -40,7 +45,7 @@ module.exports = class SPKBarangJadiManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-           var regexModuleId = new RegExp(moduleId, "i"); 
+            var regexModuleId = new RegExp(moduleId, "i");
             var filter = {
                 _deleted: false,
                 'code': {
@@ -145,47 +150,21 @@ module.exports = class SPKBarangJadiManager {
         return new Promise((resolve, reject) => {
             this._validate(spkDoc)
                 .then(validSpkDoc => {
-                    var now = new Date();
-                    var year = now.getFullYear();
-                    var month = now.getMonth() + 1;
-                    var date = now.getDay();
-                    this.moduleSeedManager
-                        .getModuleSeed(moduleId, year, month)
-                        .then(moduleSeed => {
-                            var number = ++moduleSeed.seed;
-                            var zero = 4 - number.toString().length + 1;
-                            var runningNumber = Array(+(zero > 0 && zero)).join("0") + number;
-                            zero = 2 - month.toString().length + 1;
-                            var formattedMonth = Array(+(zero > 0 && zero)).join("0") + month;
-                            var formatteddate = Array(+(zero > 0 && zero)).join("0") + date;
-                            validSpkDoc.code = `${runningNumber}/${moduleId}/${formattedMonth}/${year}`;
-                            validSpkDoc.packingList = `${runningNumber}/EFR-KB/PBJ/${formattedMonth}/${year}`;
-                            validSpkDoc.password = `${runningNumber}${formatteddate}${formattedMonth}${year}`; 
-                            this.SPKDocCollection.insert(validSpkDoc)
-                                .then(id => {
-                                    this.moduleSeedManager
-                                        .update(moduleSeed)
-                                        .then(seedId => {
-                                            resolve(id);
-                                        })
-                                        .catch(e => {
-                                            reject(e);
-                                        })
-                                })
-                                .catch(e => {
-                                    reject(e);
-                                })
+                    validSpkDoc.code = generateCode(moduleId);
+                    this.SPKDocCollection.insert(validSpkDoc)
+                        .then(id => {
+                            resolve(id);
                         })
                         .catch(e => {
                             reject(e);
-                        });
+                        })
                 })
                 .catch(e => {
                     reject(e);
-                })
+                });
         });
     }
-    
+
     createDraft(spkDoc) {
         return new Promise((resolve, reject) => {
             spkDoc.isDraft = true;
@@ -198,7 +177,7 @@ module.exports = class SPKBarangJadiManager {
                 })
         });
     }
-    
+
     update(spkDoc) {
         return new Promise((resolve, reject) => {
             this._validate(spkDoc)
@@ -217,7 +196,7 @@ module.exports = class SPKBarangJadiManager {
         });
     }
 
-   updateDraft(spkDoc) {
+    updateDraft(spkDoc) {
         return new Promise((resolve, reject) => {
             spkDoc.isDraft = true;
             this.update(spkDoc)
@@ -230,7 +209,7 @@ module.exports = class SPKBarangJadiManager {
         });
 
     }
-    
+
     updateNotDraft(spkDoc) {
         return new Promise((resolve, reject) => {
             spkDoc.isDraft = false;
@@ -280,77 +259,92 @@ module.exports = class SPKBarangJadiManager {
                                 code: valid.code
                             }]
                     });
-                    // 1. end: Declare promises.
                     var config = module.config;
-                    var getSource = this.storageManager.getByIdOrDefault(valid.sourceId);
-                    // var destination = config.destination.value;
-                    // var getDestination;
-                    // for (var i = 0; i < destination.value.length; i++) {
-                    //     if (destination[i]==ObjectId(valid.destinationId))
-                    //         getDestination = this.storageManager.getByIdOrDefault(valid.destinationId);
-                    // }
+                    if (!valid.sourceId || valid.sourceId == '')
+                        errors["sourceId"] = "sourceId is required";
+                    else {
+                        if (config) {
+                            if (config.source) {
+                                var isAny = false;
+                                if (config.source.type == "selection") {
+                                    for (var sourceId of config.source.value) {
+                                        if (sourceId.toString() == valid.sourceId.toString()) {
+                                            isAny = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if (config.source.value.toString() == valid.sourceId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["sourceId"] = "sourceId is not valid";
+                            }
+                        }
+                    }
 
-                    var getDestination = this.storageManager.getByIdOrDefault(valid.destinationId);
-                    var getItems = [];
+                    if (!valid.destinationId || valid.destinationId == '')
+                        errors["destinationId"] = "destinationId is required";
+                    else {
+                        if (config) {
+                            if (config.destination) {
+                                var isAny = false;
+                                if (config.destination.type == "selection") {
+                                    for (var destinationId of config.destination.value) {
+                                        if (destinationId.toString() == valid.destinationId.toString()) {
+                                            isAny = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if (config.destination.value.toString() == valid.destinationId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["destinationId"] = "destinationId is not valid";
+                            }
+                        }
+                    }
+
+                    var getItem = [];
 
                     if (valid.items && valid.items.length > 0) {
                         for (var item of valid.items) {
-                            getItems.push(this.articleVariantManager.getByIdOrDefault(item.articleVariantId));
+                            // getItems.push(this.articleVariantManager.getByIdOrDefault(item.articleVariantId));
+                            getItem.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item.articleVariantId))
                         }
                     }
                     else {
                         errors["items"] = "items is required";
                     }
-                    Promise.all([getSPKDoc, getSource, getDestination].concat(getItems))
+                    Promise.all([getSPKDoc].concat(getItem))
                         .then(results => {
                             var _spkDoc = results[0];
-                            var source = results[1];
-                            var destination = results[2];
 
-                            if (valid._id=='') {
-                                var getSPKDoc= this.SPKDocCollection.where(valid._id);
-                                if (getSPKDoc.isDraft==0) 
-                                {
-                                     errors["isDraft"] = "this doc can not update because status not draft";
-                                } 
-                            }
-                            
-                            if (!source) {
-                                errors["sourceId"] = "sourceId in storage is not found";
-                            }
-                            else {
-                                valid.sourceId = source._id;
-                                valid.source = source;
+                            if (valid._id == '') {
+                                var getSPKDoc = this.SPKDocCollection.where(valid._id);
+                                if (getSPKDoc.isDraft == false) {
+                                    errors["isDraft"] = "this doc can not update because status not draft";
+                                }
                             }
 
-
-                            if (!destination) {
-                                errors["destinationId"] = "destinationId in storage is not found";
-                            }
-                            else {
-                                valid.destinationId = destination._id;
-                                valid.destination = destination;
+                            if (valid.date == "mm/dd/yyyy" || valid.date == "") {
+                                errors["date"] = "date is required";
                             }
 
-                            var articleVariants = results.slice(3, results.length)
+                            var inventoryVariants = results.slice(1, results.length)
                             // 2a. begin: Validate error on item level.
-                            if (articleVariants.length > 0) {
+                             if (inventoryVariants[0]!=null) {
                                 var itemErrors = [];
-                                for (var variant of articleVariants) {
-                                    var index = articleVariants.indexOf(variant);
+                                for (var variant of inventoryVariants) {
+                                    var index = inventoryVariants.indexOf(variant);
                                     var item = valid.items[index];
                                     var itemError = {};
 
                                     if (!item.articleVariantId || item.articleVariantId == '') {
                                         itemError["articleVariantId"] = "articleVariantId is required";
-                                    }
-                                    else {
-                                        for (var i = valid.items.indexOf(item) + 1; i < valid.items.length; i++) {
-                                            var otherItem = valid.items[i];
-                                            if (item.articleVariantId == otherItem.articleVariantId) {
-                                                itemError["articleVariantId"] = "articleVariantId already exists on another detail";
-                                            }
-                                        }
                                     }
                                     if (!variant) {
                                         itemError["articleVariantId"] = "articleVariantId not found";
@@ -366,6 +360,16 @@ module.exports = class SPKBarangJadiManager {
                                     else if (parseInt(item.quantity) <= 0) {
                                         itemError["quantity"] = "quantity must be greater than 0";
                                     }
+
+                                    if (inventoryVariants[index] == null) {
+                                        var inventoryQuantity = 0;
+                                    } else {
+                                        var inventoryQuantity = inventoryVariants[index].quantity;
+                                    }
+                                    if (item.quantity > inventoryQuantity) {
+                                        itemError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
+                                    }
+
                                     itemErrors.push(itemError);
                                 }
                                 // 2a. end: Validate error on item level.
@@ -394,7 +398,7 @@ module.exports = class SPKBarangJadiManager {
                         });
                 })
                 .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
+                    reject(e);
                 });
         });
     }
