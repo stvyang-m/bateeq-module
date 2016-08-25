@@ -157,7 +157,7 @@ module.exports = class TokoTransferStokManager {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
                     validTransferOutDoc.code = generateCode(moduleId);
-                    this.storageManager.getByCode("PST-003")
+                    this.storageManager.getByCode("PST-3")
                         .then(storage => {
                             var transferinDoc = {};
                             transferinDoc.source = validTransferOutDoc.source;
