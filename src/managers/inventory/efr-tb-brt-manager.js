@@ -44,7 +44,7 @@ module.exports = class PusatReturTokoTerimaBarangReturManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-            var regexModuleId = new RegExp(moduleId, "i"); 
+            var regexModuleId = new RegExp(moduleId, "i");
             var filter = {
                 _deleted: false,
                 'code': {
@@ -84,7 +84,6 @@ module.exports = class PusatReturTokoTerimaBarangReturManager {
         });
     }
 
-
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
@@ -100,8 +99,6 @@ module.exports = class PusatReturTokoTerimaBarangReturManager {
                 });
         });
     }
-
-
 
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
@@ -203,20 +200,17 @@ module.exports = class PusatReturTokoTerimaBarangReturManager {
     }
 
     _validate(transferInDoc) {
+        var errors = {};
         return new Promise((resolve, reject) => {
             var valid = transferInDoc;
-            this.moduleManager.getByCode(moduleId)
-                .then(module => {
-                    var config = module.config;
-                    valid.sourceId = config.source.value;
-                    valid.destinationId = config.destination.value;
-                    resolve(valid);
-                })
-                .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
-                });
+            if (!valid.reference || valid.reference == '')
+                errors["reference"] = "reference is required";
+
+            for (var prop in errors) {
+                var ValidationError = require('../../validation-error');
+                reject(new ValidationError('data does not pass validation', errors));
+            }
+            resolve(valid);
         });
     }
-
-
 };

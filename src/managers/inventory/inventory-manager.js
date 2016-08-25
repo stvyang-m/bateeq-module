@@ -47,6 +47,11 @@ module.exports = class InventoryManager {
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
+                var filterArticleCode = {
+                    'articleVariant.code': {
+                        '$regex': regex
+                    }
+                };
                 var filterArticleName = {
                     'articleVariant.name': {
                         '$regex': regex
@@ -58,7 +63,7 @@ module.exports = class InventoryManager {
                     }
                 };
                 var $or = {
-                    '$or': [filterArticleName, filterStorageName]
+                    '$or': [filterArticleCode, filterArticleName, filterStorageName]
                 };
 
                 query['$and'].push($or);

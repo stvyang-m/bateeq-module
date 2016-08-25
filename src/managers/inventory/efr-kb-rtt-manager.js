@@ -13,7 +13,7 @@ var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 
 const moduleId = "EFR-KB/RTT";
-
+const modulePackingList = "EFR-KB/PBR";
 module.exports = class TokoTransferStokManager {
     constructor(db, user) {
         this.db = db;
@@ -33,6 +33,16 @@ module.exports = class TokoTransferStokManager {
 
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db, user);
+
+        var PusatReturTokoTerimaBarangReturManager = require('./efr-tb-brt-manager');
+        this.pusatReturTokoTerimaBarangReturManager = new PusatReturTokoTerimaBarangReturManager(db, user);
+
+        var SPKBarangJadiReturManager = require('../merchandiser/efr-pk-pbr-manager');
+        this.spkBarangJadiReturManager = new SPKBarangJadiReturManager(db, user);
+
+        var PusatBarangBaruKirimBarangJadiAksesorisManager = require('./efr-kb-exb-manager');
+        this.pusatBarangBaruKirimBarangJadiAksesorisManager = new PusatBarangBaruKirimBarangJadiAksesorisManager(db, user);
+
     }
 
     read(paging) {
@@ -44,7 +54,7 @@ module.exports = class TokoTransferStokManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-           var regexModuleId = new RegExp(moduleId, "i"); 
+            var regexModuleId = new RegExp(moduleId, "i");
             var filter = {
                 _deleted: false,
                 'code': {
@@ -147,16 +157,54 @@ module.exports = class TokoTransferStokManager {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
                     validTransferOutDoc.code = generateCode(moduleId);
-                    this.transferOutDocManager.create(validTransferOutDoc)
-                        .then(id => {
-                            resolve(id);
+                    this.storageManager.getByCode("PST-003")
+                        .then(storage => {
+                            var transferinDoc = {};
+                            transferinDoc.source = validTransferOutDoc.source;
+                            transferinDoc.sourceId = validTransferOutDoc.sourceId;
+                            transferinDoc.destination = storage;
+                            transferinDoc.destinationId = storage._id;
+                            transferinDoc.items = validTransferOutDoc.items;
+                            transferinDoc.reference = validTransferOutDoc.code;
+
+                            var spkDoc = {};
+                            spkDoc.source = storage;
+                            spkDoc.sourceId = storage._id;
+                            spkDoc.destination = validTransferOutDoc.destination;
+                            spkDoc.destinationId = validTransferOutDoc.destinationId;
+                            spkDoc.items = validTransferOutDoc.items;
+                            spkDoc.packingList = generateCode(modulePackingList);
+                            spkDoc.isDraft = false;
+                            spkDoc.isReceived = false;
+                            spkDoc.reference = validTransferOutDoc.code;
+
+                            var ekspedisiDoc = {};
+                            ekspedisiDoc.destination = validTransferOutDoc.destination;
+                            ekspedisiDoc.destinationId = validTransferOutDoc.destinationId;
+                            ekspedisiDoc.items = validTransferOutDoc.items;
+                            ekspedisiDoc.expedition = "Dikirim Sendiri";
+                            ekspedisiDoc.weight = 0;
+
+                            this.transferOutDocManager.create(validTransferOutDoc)
+                                .then(id => {
+                                    this.pusatReturTokoTerimaBarangReturManager.create(transferinDoc);
+                                    this.spkBarangJadiReturManager.create(spkDoc);
+                                    this.pusatBarangBaruKirimBarangJadiAksesorisManager.create(ekspedisiDoc);
+                                    resolve(id);
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                })
                         })
                         .catch(e => {
                             reject(e);
                         })
                 })
+                .catch(e => {
+                    reject(e);
+                })
+        })
 
-        });
     }
 
     update(transferOutDoc) {
@@ -197,18 +245,112 @@ module.exports = class TokoTransferStokManager {
     }
 
     _validate(transferOutDoc) {
+        var errors={};
         return new Promise((resolve, reject) => {
             var valid = transferOutDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
                     var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
-                    resolve(valid);
+                    if (!valid.sourceId || valid.sourceId == '')
+                        errors["sourceId"] = "sourceId is required";
+                    else {
+                        if (config) {
+                            if (config.source) {
+                                var isAny = false;
+                                if (config.source.type == "selection") {
+                                    for (var sourceId of config.source.value) {
+                                        if (sourceId.toString() == valid.sourceId.toString()) {
+                                            isAny = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if (config.source.value.toString() == valid.sourceId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["sourceId"] = "sourceId is not valid";
+                            }
+                        }
+                    }
+
+                    if (!valid.destinationId || valid.destinationId == '')
+                        errors["destinationId"] = "destinationId is required";
+                    else {
+                        if (config) {
+                            if (config.destination) {
+                                var isAny = false;
+                                if (config.destination.type == "selection") {
+                                    for (var destinationId of config.destination.value) {
+                                        if (destinationId.toString() == valid.destinationId.toString()) {
+                                            isAny = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if (config.destination.value.toString() == valid.destinationId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["destinationId"] = "destinationId is not valid";
+                            }
+                        }
+                    }
+                    var getItem = [];
+                    if (valid.items && valid.items.length > 0) {
+                        for (var item of valid.items) {
+                            getItem.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item.articleVariantId))
+                        }
+                    }
+                    else {
+                        errors["items"] = "items is required";
+                    }
+
+                    Promise.all(getItem)
+                        .then(results => {
+                            var index = 0;
+                            var itemErrors = [];
+                            var itemError = {};
+
+                            if (results.length > 0) {
+                                for (var item of valid.items) {
+                                    if (results[index] == null) {
+                                        var inventoryQuantity = 0;
+                                    } else {
+                                        var inventoryQuantity = results[index].quantity;
+                                    }
+                                    index++;
+                                    if (item.quantity > inventoryQuantity) {
+                                        itemError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
+                                    }
+                                    itemErrors.push(itemError);
+                                }
+                            }
+                            for (var itemError of itemErrors) {
+                                for (var prop in itemError) {
+                                    errors.items = itemErrors;
+                                    break;
+                                }
+                                if (errors.items)
+                                    break;
+                            }
+                            for (var prop in errors) {
+                                var ValidationError = require('../../validation-error');
+                                reject(new ValidationError('data does not pass validation', errors));
+                            }
+                            resolve(valid); 
+                        }).catch(e => {
+                            reject(e);
+                        }); 
                 })
                 .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
+                    reject(e);
                 });
         });
     }
-}; 
+};
+
+
+

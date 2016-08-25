@@ -82,6 +82,8 @@ module.exports = class SPKBarangJadiManager {
 
     getById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false

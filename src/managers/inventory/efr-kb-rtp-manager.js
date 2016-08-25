@@ -33,6 +33,9 @@ module.exports = class TokoKirimBarangReturnManager {
 
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db, user);
+
+        var SPKBarangManager = require('../merchandiser/efr-pk-manager');
+        this.spkBarangManager = new SPKBarangManager(db, user);
     }
 
     read(paging) {
@@ -44,7 +47,7 @@ module.exports = class TokoKirimBarangReturnManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-           var regexModuleId = new RegExp(moduleId, "i"); 
+            var regexModuleId = new RegExp(moduleId, "i");
             var filter = {
                 _deleted: false,
                 'code': {
@@ -104,6 +107,23 @@ module.exports = class TokoKirimBarangReturnManager {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+
+    getByCodeOrDefault(code) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                code: code,
                 _deleted: false
             };
             this.getSingleOrDefaultByQuery(query)
@@ -200,17 +220,119 @@ module.exports = class TokoKirimBarangReturnManager {
     }
 
     _validate(transferOutDoc) {
+        var errors = {};
         return new Promise((resolve, reject) => {
             var valid = transferOutDoc;
+            var getSpk;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
                     var config = module.config;
-                    valid.sourceId = config.sourceId;
-                    valid.destinationId = config.destinationId;
-                    resolve(valid);
+                    if (!valid.sourceId || valid.sourceId == '')
+                        errors["sourceId"] = "sourceId is required";
+                    else {
+                        if (config) {
+                            if (config.source) {
+                                var isAny = false;
+                                if (config.source.type == "selection") {
+                                    for (var sourceId of config.source.value) {
+                                        if (sourceId.toString() == valid.sourceId.toString()) {
+                                            isAny = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if (config.source.value.toString() == valid.sourceId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["sourceId"] = "sourceId is not valid";
+                            }
+                        }
+                    }
+
+                    if (!valid.destinationId || valid.destinationId == '')
+                        errors["destinationId"] = "destinationId is required";
+                    else {
+                        if (config) {
+                            if (config.destination) {
+                                var isAny = false;
+                                if (config.destination.type == "selection") {
+                                    for (var destinationId of config.destination.value) {
+                                        if (destinationId.toString() == valid.destinationId.toString()) {
+                                            isAny = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if (config.destination.value.toString() == valid.destinationId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["destinationId"] = "destinationId is not valid";
+                            }
+                        }
+                    }
+                    if (!valid.reference) {
+                        errors["reference"] = "reference is required";
+                    }
+                    else {
+                        getSpk = this.spkBarangManager.getByPackingList(valid.reference);
+                    }
+                    var getItem = [];
+                    if (valid.items && valid.items.length > 0) {
+                        for (var item of valid.items) {
+                            getItem.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item.articleVariantId))
+                        }
+                    }
+                    else {
+                        errors["items"] = "items is required";
+                    }
+                    Promise.all([getSpk].concat(getItem))
+                        .then(results => {
+                            var index = 0;
+                            var itemErrors = [];
+                            var itemError = {};
+
+                            var dataSpk = results[0];
+                            if (!dataSpk) {
+                                errors["reference"] = "reference not found";
+                            }
+                            var items = results.slice(1, results.length)
+                            if (items.length > 0) {
+                                for (var item of valid.items) {
+                                    if (items[index] == null) {
+                                        var inventoryQuantity = 0;
+                                    } else {
+                                        var inventoryQuantity = items[index].quantity;
+                                    }
+                                    index++;
+                                    if (item.quantity > inventoryQuantity) {
+                                        itemError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
+                                    }
+                                    itemErrors.push(itemError);
+                                }
+                            }
+                            for (var itemError of itemErrors) {
+                                for (var prop in itemError) {
+                                    errors.items = itemErrors;
+                                    break;
+                                }
+                                if (errors.items)
+                                    break;
+                            }
+                            for (var prop in errors) {
+                                var ValidationError = require('../../validation-error');
+                                reject(new ValidationError('data does not pass validation', errors));
+                            }
+                            resolve(valid);
+                        }).catch(e => {
+                            reject(e);
+                        })
                 })
                 .catch(e => {
-                    reject(new Error(`Unable to load module:${moduleId}`));
+                    reject(e);
                 });
         });
     }

@@ -1,4 +1,4 @@
- 'use strict';
+'use strict';
 
 // external deps 
 var ObjectId = require('mongodb').ObjectId;
@@ -200,15 +200,15 @@ module.exports = class AlterationOutManager {
                 tasks.push(getbjrInByCode);
                 tasks.push(getAltOutByRef);
 
-                 var getItem = [];
-                   if (valid.items && valid.items.length > 0) {
-                       for (var item of valid.items) {
-                          tasks.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item.articleVariantId))
-                       }
-                   }
-                   else {
-                       errors["items"] = "items is required";
-                   }
+                 var getItem = [];
+                   if (valid.items && valid.items.length > 0) {
+                       for (var item of valid.items) {
+                          tasks.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item.articleVariantId))
+                       }
+                   }
+                   else {
+                       errors["items"] = "items is required";
+                   }
 
 
                 Promise.all(tasks)
@@ -233,10 +233,11 @@ module.exports = class AlterationOutManager {
                                     }
                                 }
                                 for(var item2 of checkInventory){
-                                   if (item.articleVariantId.toString() == item2.articleVariantId.toString() && item.quantity > item2.quantity) {
-                                      itemError["articleVariantId"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
-                                   }
+                                   if (item.articleVariantId.toString() == item2.articleVariantId.toString() && item.quantity > item2.quantity) {
+                                      itemError["articleVariantId"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
+                                   }
                                 }
+                            itemErrors.push(itemError);
                                 itemErrors.push(itemError);
                             }
 

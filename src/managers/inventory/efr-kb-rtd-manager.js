@@ -45,7 +45,7 @@ module.exports = class FinishingKirimBarangReturSelesaiPerbaikanManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-            var regexModuleId = new RegExp(moduleId, "i"); 
+            var regexModuleId = new RegExp(moduleId, "i");
             var filter = {
                 _deleted: false,
                 'code': {
@@ -206,35 +206,131 @@ module.exports = class FinishingKirimBarangReturSelesaiPerbaikanManager {
             var valid = transferOutDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-                    var config = module.config; 
-                    valid.sourceId = config.source.value;
-                    valid.destinationId = config.destination.value;
-                    if(valid.items) {
-                        var itemErrors = [];
-                        for(var item of valid.items) {
-                            var itemError = {};
-                            if(item.quantityStock) {
-                                if(item.quantityStock < item.quantity) {
-                                    itemError["quantity"] = "Quantity Bigger than Stock";
+                    var config = module.config;
+
+                    if (!valid.reference || valid.reference == '')
+                        errors["reference"] = "reference is required";
+
+                    if (!valid.sourceId || valid.sourceId == '')
+                        errors["sourceId"] = "sourceId is required";
+                    else {
+                        if (config) {
+                            if (config.source) {
+                                var isAny = false;
+                                if (config.source.type == "selection") {
+                                    for (var sourceId of config.source.value) {
+                                        if (sourceId.toString() == valid.sourceId.toString()) {
+                                            isAny = true;
+                                            break;
+                                        }
+                                    }
                                 }
+                                else {
+                                    if (config.source.value.toString() == valid.sourceId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["sourceId"] = "sourceId is not valid";
                             }
-                            itemErrors.push(itemError);
-                        } 
-                        for (var itemError of itemErrors) {
-                            for (var prop in itemError) {
-                                errors.items = itemErrors;
-                                break;
-                            }
-                            if (errors.items)
-                                break;
                         }
                     }
-                    
+
+                    if (!valid.destinationId || valid.destinationId == '')
+                        errors["destinationId"] = "destinationId is required";
+                    else {
+                        if (config) {
+                            if (config.destination) {
+                                var isAny = false;
+                                if (config.destination.type == "selection") {
+                                    for (var destinationId of config.destination.value) {
+                                        if (destinationId.toString() == valid.destinationId.toString()) {
+                                            isAny = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if (config.destination.value.toString() == valid.destinationId.toString())
+                                        isAny = true;
+                                }
+                                if (!isAny)
+                                    errors["destinationId"] = "destinationId is not valid";
+                            }
+                        }
+                    }
+
+                    if (valid.items) {
+                        var itemsData = [];
+                        for (var item of valid.items) {
+                            if (item.articleVariantNewId && item.articleVariantNewId != '') { 
+                                itemsData.push(this.articleVariantManager.getById(item.articleVariantNewId));
+                            }
+                            else { 
+                                itemsData.push(this.articleVariantManager.getById(item.articleVariantId));
+                            }
+                        }
+                        //get Article Variant
+                        Promise.all(itemsData)
+                            .then(resultItems => {
+                                itemsData = [];
+                                for (var item of resultItems) {
+                                    if (item) {
+                                        itemsData.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item._id));
+                                    }
+                                    else {
+                                        itemsData.push(Promise.resolve(null));
+                                    }
+                                }
+                                //get Inventory
+                                Promise.all(itemsData)
+                                    .then(resultInventories => {
+                                        var itemErrors = [];
+                                        var index = 0;
+                                        for (var item of valid.items) {
+                                            var itemError = {};
+                                            var stock = 0;
+                                            item.articleVariantId = resultItems[index]._id;
+                                            item.articleVariant = resultItems[index];
+                                            if (resultInventories[index]) {
+                                                stock = resultInventories[index].quantity;
+                                            }
+                                            if (stock < item.quantity) {
+                                                itemError["quantity"] = "Quantity Bigger than Stock";
+                                            }
+                                            itemErrors.push(itemError);
+                                            index++;
+                                        }
+                                        for (var itemError of itemErrors) {
+                                            for (var prop in itemError) {
+                                                errors.items = itemErrors;
+                                                break;
+                                            }
+                                            if (errors.items)
+                                                break;
+                                        }
+                                        for (var prop in errors) {
+                                            var ValidationError = require('../../validation-error');
+                                            reject(new ValidationError('data does not pass validation', errors));
+                                        }
+                                        valid = new TransferOutDoc(valid);
+                                        resolve(valid);
+                                    })
+                                    .catch(e => {
+                                        reject(e);
+                                    });
+                            })
+                            .catch(e => {
+                                reject(e);
+                            });
+                    }
+                    else {
+                        errors["items"] = "Please Choose One Item";
+                    }
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
-                    } 
-                    resolve(valid);
+                    }
+                    //resolve(valid);
                 })
                 .catch(e => {
                     reject(new Error(`Unable to load module:${moduleId}`));

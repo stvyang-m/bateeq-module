@@ -40,12 +40,16 @@ module.exports = class SPKBarangEmbalaseManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
+            var regexModuleId = new RegExp(moduleId, "i"); 
+            var filter = {
+                _deleted: false,
+                'code': {
+                    '$regex': regexModuleId
+                }
             };
             var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
+                '$and': [filter]
+            } : filter;
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
@@ -81,6 +85,8 @@ module.exports = class SPKBarangEmbalaseManager {
 
     getById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
