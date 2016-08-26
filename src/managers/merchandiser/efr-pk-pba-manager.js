@@ -151,6 +151,7 @@ module.exports = class SPKBarangEmbalaseManager {
             this._validate(spkDoc)
                 .then(validSpkDoc => {
                     validSpkDoc.code = generateCode(moduleId);
+                    validSpkDoc.packingList = generateCode('EFR-KB/PBA');
                     this.SPKDocCollection.insert(validSpkDoc)
                         .then(id => {
                             resolve(id);

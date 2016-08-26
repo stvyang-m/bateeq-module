@@ -151,6 +151,7 @@ module.exports = class SPKBarangJadiManager {
             this._validate(spkDoc)
                 .then(validSpkDoc => {
                     validSpkDoc.code = generateCode(moduleId);
+                    validSpkDoc.packingList = generateCode('EFR-KB/PBJ');
                     this.SPKDocCollection.insert(validSpkDoc)
                         .then(id => {
                             resolve(id);
