@@ -61,6 +61,7 @@ var createdData;
 it(`#02. should success when get created data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
+            validate.SPKDoc(data);
             createdData = data;
             done();
         })
@@ -69,7 +70,40 @@ it(`#02. should success when get created data with id`, function (done) {
         })
 });
 
-it('#03. should success when save draft new data', function (done) {
+it(`#03. should success when password has value`, function (done) {
+    manager.getSingleByQuery({ _id: createdId })
+        .then(data => {
+            validate.SPKDoc(data);
+            if (data.password != "") {
+                done();
+            }
+            else {
+                done("password has no value");
+            }
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
+it(`#04. should success when packingList has value`, function (done) {
+    manager.getSingleByQuery({ _id: createdId })
+        .then(data => {
+            validate.SPKDoc(data);
+            if (data.packingList != "") {
+                done();
+            }
+            else {
+                done("packingList has no value");
+            }
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
+
+it('#05. should success when save draft new data', function (done) {
     var data = getData();
     manager.createDraft(data)
         .then(id => {
@@ -83,7 +117,7 @@ it('#03. should success when save draft new data', function (done) {
 });
 
 var createdDataDraft;
-it(`#04. should success when get drafted data with id`, function (done) {
+it(`#06. should success when get drafted data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             createdDataDraft = data;
@@ -94,7 +128,7 @@ it(`#04. should success when get drafted data with id`, function (done) {
         })
 });
 
-it(`#05. should success when update created data`, function (done) {
+it(`#07. should success when update created data`, function (done) {
 
     createdData.reference += '[updated]';
     createdData.remark += '[updated]';
@@ -107,7 +141,7 @@ it(`#05. should success when update created data`, function (done) {
         });
 });
 
-it(`#06. should success when update drafted data`, function (done) {
+it(`#08. should success when update drafted data`, function (done) {
 
     createdDataDraft.reference += 'Draft [updated]';
     createdDataDraft.remark += 'Draft [updated]';
@@ -121,7 +155,7 @@ it(`#06. should success when update drafted data`, function (done) {
 });
 
 
-it(`#07. should success when delete data`, function (done) {
+it(`#09. should success when delete data`, function (done) {
     manager.delete(createdData)
         .then(id => {
             done();
