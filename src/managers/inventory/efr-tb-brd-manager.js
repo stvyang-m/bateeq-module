@@ -32,10 +32,7 @@ module.exports = class PusatReturTokoTerimaBarangReturSelesaiPerbaikanManager {
         this.transferInDocManager = new TransferInDocManager(db, user);
 
         var ModuleManager = require('../core/module-manager');
-        this.moduleManager = new ModuleManager(db, user);
-
-        var ModuleSeedManager = require('../core/module-seed-manager');
-        this.moduleSeedManager = new ModuleSeedManager(db, user);
+        this.moduleManager = new ModuleManager(db, user); 
     }
 
     read(paging) {
