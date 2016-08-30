@@ -152,6 +152,9 @@ module.exports = class SPKBarangJadiManager {
                 .then(validSpkDoc => {
                     validSpkDoc.code = generateCode(moduleId);
                     validSpkDoc.packingList = generateCode('EFR-KB/PBJ');
+                    var date = new Date();
+                    var password = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
+                    validSpkDoc.password = password;
                     this.SPKDocCollection.insert(validSpkDoc)
                         .then(id => {
                             resolve(id);
@@ -308,6 +311,8 @@ module.exports = class SPKBarangJadiManager {
                             }
                         }
                     }
+                    var getDestination = this.storageManager.getByIdOrDefault(valid.destinationId);
+                    var getSource = this.storageManager.getByIdOrDefault(valid.sourceId);
 
                     var getItem = [];
 
@@ -320,9 +325,26 @@ module.exports = class SPKBarangJadiManager {
                     else {
                         errors["items"] = "items is required";
                     }
-                    Promise.all([getSPKDoc].concat(getItem))
+                    Promise.all([getSPKDoc, getDestination, getSource].concat(getItem))
                         .then(results => {
                             var _spkDoc = results[0];
+                            var destination = results[1];
+                            var source = results[2];
+
+                            if (!destination) {
+                                errors["destinationId"] = "destinationId in storage is not found";
+                            } else {
+                                valid.destinationId = destination._id;
+                                valid.destination = destination;
+                            }
+
+                            if (!source) {
+                                errors["sourceId"] = "sourceId in storage is not found";
+                            }
+                            else {
+                                valid.sourceId = source._id;
+                                valid.source = source;
+                            }
 
                             if (valid._id == '') {
                                 var getSPKDoc = this.SPKDocCollection.where(valid._id);
@@ -331,28 +353,30 @@ module.exports = class SPKBarangJadiManager {
                                 }
                             }
 
-                            if (valid.date == "mm/dd/yyyy" || valid.date == "") {
+                            if (valid.date == "mm/dd/yyyy" || valid.date == "" || valid.date == undefined) {
                                 errors["date"] = "date is required";
                             }
 
-                            var inventoryVariants = results.slice(1, results.length)
+                            var inventoryItems = results.slice(3, results.length)
                             // 2a. begin: Validate error on item level.
-                             if (inventoryVariants[0]!=null) {
+                            if (inventoryItems.length > 0) {
                                 var itemErrors = [];
-                                for (var variant of inventoryVariants) {
-                                    var index = inventoryVariants.indexOf(variant);
+                                for (var inventoryItem of inventoryItems) {
+                                    var index = inventoryItems.indexOf(inventoryItem);
                                     var item = valid.items[index];
                                     var itemError = {};
 
                                     if (!item.articleVariantId || item.articleVariantId == '') {
                                         itemError["articleVariantId"] = "articleVariantId is required";
                                     }
-                                    if (!variant) {
-                                        itemError["articleVariantId"] = "articleVariantId not found";
-                                    }
-                                    else {
-                                        item.articleVariantId = variant._id;
-                                        item.articleVariant = variant;
+                                    if (inventoryItems[index] != null) {
+                                        if (!inventoryItem.articleVariantId) {
+                                            itemError["articleVariantId"] = "articleVariantId not found";
+                                        }
+                                        else {
+                                            item.articleVariantId = inventoryItem.articleVariantId;
+                                            item.articleVariant = inventoryItem.articleVariant;
+                                        }
                                     }
 
                                     if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
@@ -362,10 +386,10 @@ module.exports = class SPKBarangJadiManager {
                                         itemError["quantity"] = "quantity must be greater than 0";
                                     }
 
-                                    if (inventoryVariants[index] == null) {
+                                    if (inventoryItems[index] == null) {
                                         var inventoryQuantity = 0;
                                     } else {
-                                        var inventoryQuantity = inventoryVariants[index].quantity;
+                                        var inventoryQuantity = inventoryItems[index].quantity;
                                     }
                                     if (item.quantity > inventoryQuantity) {
                                         itemError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
