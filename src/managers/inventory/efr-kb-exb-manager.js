@@ -1,4 +1,5 @@
 'use strict';
+//require('js-toolkit').Promise.ext;
 
 // external deps 
 var ObjectId = require('mongodb').ObjectId;
@@ -29,7 +30,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
 
         var SpkManager = require('../merchandiser/efr-pk-manager');
         this.spkManager = new SpkManager(db, user);
-        
+
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db, user);
     }
@@ -149,23 +150,31 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                     var getTransferOuts = [];
                     //Create Promise to Create Transfer Out
                     for (var spkDocument of validatedExpeditionDoc.spkDocuments) {
-                        var code = generateCode(moduleId);
-                        var validTransferOutDoc = {};
-                        validTransferOutDoc.code = code;
-                        validTransferOutDoc.reference = spkDocument.spkDocument.packingList;
-                        validTransferOutDoc.sourceId = spkDocument.spkDocument.sourceId;
-                        validTransferOutDoc.destinationId = expeditionDoc.destinationId;
-                        validTransferOutDoc.items = [];
-                        for (var item of spkDocument.spkDocument.items) { 
-                            var newitem = {};
-                            newitem.articleVariantId = item.articleVariantId;
-                            newitem.quantity = item.quantity; 
-                            validTransferOutDoc.items.push(newitem);
-                        }
-                        getTransferOuts.push(this.transferOutDocManager.create(validTransferOutDoc));
+                        //getTransferOuts.push(this.transferOutDocManager.create(validTransferOutDoc));
+                        var f = (spkDoc, outManager) => {
+                            return () => {
+                                var code = generateCode(moduleId);
+                                var validTransferOutDoc = {};
+                                validTransferOutDoc.code = code;
+                                validTransferOutDoc.reference = spkDoc.spkDocument.packingList;
+                                validTransferOutDoc.sourceId = spkDoc.spkDocument.sourceId;
+                                validTransferOutDoc.destinationId = expeditionDoc.destinationId;
+                                validTransferOutDoc.items = [];
+                                for (var item of spkDoc.spkDocument.items) {
+                                    var newitem = {};
+                                    newitem.articleVariantId = item.articleVariantId;
+                                    newitem.quantity = item.quantity;
+                                    validTransferOutDoc.items.push(newitem);
+                                }
+                                return outManager.create(validTransferOutDoc)
+                            }
+                        };
+                        getTransferOuts.push(f(spkDocument, this.transferOutDocManager));
                     }
                     //Create Transfer Out
-                    Promise.all(getTransferOuts)
+                    //Promise.all(getTransferOuts)
+                    require('js-toolkit').Promise.ext;
+                    Promise.chain(getTransferOuts)
                         .then(results => {
                             getTransferOuts = [];
                             //Create Promise Get Transfer Out using ID
@@ -177,7 +186,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                 .then(transferOutResults => {
                                     //Create Expedition Model
                                     var validExpeditionDoc = {};
-                                    validExpeditionDoc.code = code;
+                                    validExpeditionDoc.code = generateCode(moduleId);
                                     validExpeditionDoc.expedition = validatedExpeditionDoc.expedition;
                                     validExpeditionDoc.weight = validatedExpeditionDoc.weight;
                                     validExpeditionDoc.transferOutDocuments = [];
@@ -258,7 +267,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
     _validate(expeditionDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = expeditionDoc; 
+            var valid = expeditionDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
                     var config = module.config;
@@ -312,10 +321,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                         spkDocumentError["spkDocumentId"] = "spkDocumentId already exists on another detail";
                                     }
                                 }
-                                
-                                if(spkDocument.spkDocument.destinationId.toString() != valid.destinationId.toString())
+
+                                if (spkDocument.spkDocument.destinationId.toString() != valid.destinationId.toString())
                                     spkDocumentError["spkDocumentId"] = "spkDocumentId's Destination is not right";
-                                
+
                                 getPromise.push(this.spkManager.getByIdOrDefault(spkDocument.spkDocumentId));
                             }
                             spkDocumentErrors.push(spkDocumentError);
@@ -410,7 +419,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                         })
                         .catch(e => {
                             reject(e);
-                        }); 
+                        });
                 })
                 .catch(e => {
                     reject(new Error(`Unable to load module:${moduleId}`));

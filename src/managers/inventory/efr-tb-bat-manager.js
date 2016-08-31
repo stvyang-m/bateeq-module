@@ -102,7 +102,7 @@ module.exports = class TokoTerimaAksesorisManager {
                 _deleted: false
             };
 
-            var regex = new RegExp("^[0-9]+\/[A-Z\-]+\/PBA\/[0-9]{2}\/[0-9]{4}$", "i");
+            var regex = new RegExp("EFR\-PK/\PBA", "i");
             var filterCode = {
                     'code': {
                         '$regex': regex
