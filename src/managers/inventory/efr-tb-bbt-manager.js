@@ -99,7 +99,7 @@ module.exports = class TokoTerimaBarangBaruManager {
                 _deleted: false
             };
             
-            var regex = new RegExp("^[0-9]+\/[A-Z\-]+\/PBJ|PBR\/[0-9]{2}\/[0-9]{4}$","i");
+            var regex = new RegExp("EFR\-PK/\PBJ|EFR\-PK/\PBR","i");
             var filterCode = {
                     'code': {
                         '$regex': regex
