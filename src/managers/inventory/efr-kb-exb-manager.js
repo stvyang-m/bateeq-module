@@ -151,22 +151,25 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                     //Create Promise to Create Transfer Out
                     for (var spkDocument of validatedExpeditionDoc.spkDocuments) {
                         //getTransferOuts.push(this.transferOutDocManager.create(validTransferOutDoc));
-                        getTransferOuts.push(function () {
-                            var code = generateCode(moduleId);
-                            var validTransferOutDoc = {};
-                            validTransferOutDoc.code = code;
-                            validTransferOutDoc.reference = spkDocument.spkDocument.packingList;
-                            validTransferOutDoc.sourceId = spkDocument.spkDocument.sourceId;
-                            validTransferOutDoc.destinationId = expeditionDoc.destinationId;
-                            validTransferOutDoc.items = [];
-                            for (var item of spkDocument.spkDocument.items) {
-                                var newitem = {};
-                                newitem.articleVariantId = item.articleVariantId;
-                                newitem.quantity = item.quantity;
-                                validTransferOutDoc.items.push(newitem);
+                        var f = (spkDoc, outManager) => {
+                            return () => {
+                                var code = generateCode(moduleId);
+                                var validTransferOutDoc = {};
+                                validTransferOutDoc.code = code;
+                                validTransferOutDoc.reference = spkDoc.spkDocument.packingList;
+                                validTransferOutDoc.sourceId = spkDoc.spkDocument.sourceId;
+                                validTransferOutDoc.destinationId = expeditionDoc.destinationId;
+                                validTransferOutDoc.items = [];
+                                for (var item of spkDoc.spkDocument.items) {
+                                    var newitem = {};
+                                    newitem.articleVariantId = item.articleVariantId;
+                                    newitem.quantity = item.quantity;
+                                    validTransferOutDoc.items.push(newitem);
+                                }
+                                return outManager.create(validTransferOutDoc)
                             }
-                            return this.transferOutDocManager.create(validTransferOutDoc)
-                        }.bind(this));
+                        };
+                        getTransferOuts.push(f(spkDocument, this.transferOutDocManager));
                     }
                     //Create Transfer Out
                     //Promise.all(getTransferOuts)
