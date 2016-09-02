@@ -7,7 +7,7 @@ var testData;
 
 function getData() {
     var source = testData.suppliers["UT-S01"];
-    var destination = testData.storages["UT-BJB"];
+    var destination = testData.storages["UT-ACC"];
     var variant = testData.variants["UT-AV1"];
 
     var TransferInDoc = require('bateeq-models').inventory.TransferInDoc;
@@ -39,7 +39,7 @@ before('#00. connect db', function (done) {
             var data = require("../data");
             data(db)
                 .then(result => {
-                    var FinishingTerimaAksesorisManager = require('../../src/managers/inventory/efr-tb-acc-manager');
+                    var FinishingTerimaAksesorisManager = require('../../src/managers/inventory/efr-tb-act-manager');
                     manager = new FinishingTerimaAksesorisManager(db, {
                         username: 'unit-test'
                     });

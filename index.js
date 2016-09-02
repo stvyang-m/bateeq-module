@@ -12,7 +12,7 @@ inventoryMap.set("efr-kb-rtp", require('./src/managers/inventory/efr-kb-rtp-mana
 inventoryMap.set("efr-kb-rtd", require('./src/managers/inventory/efr-kb-rtd-manager'));
 inventoryMap.set("efr-kb-exb", require('./src/managers/inventory/efr-kb-exb-manager')); 
 inventoryMap.set("efr-kb-alt", require('./src/managers/inventory/efr-kb-alt-manager'));
-inventoryMap.set("efr-tb-acc", require('./src/managers/inventory/efr-tb-acc-manager'));
+inventoryMap.set("efr-tb-act", require('./src/managers/inventory/efr-tb-act-manager'));
 inventoryMap.set("efr-tb-bat", require('./src/managers/inventory/efr-tb-bat-manager'));
 inventoryMap.set("efr-tb-bbt", require('./src/managers/inventory/efr-tb-bbt-manager')); 
 inventoryMap.set("efr-tb-bjb", require('./src/managers/inventory/efr-tb-bjb-manager'));

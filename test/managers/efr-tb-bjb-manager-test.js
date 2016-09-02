@@ -2,8 +2,64 @@ var should = require('should');
 var helper = require('../helper');
 var validate = require('bateeq-models').validator.inventory;
 var manager;
+var manager2;
+var manager3;
 var testData;
 
+function getDataHp() {
+    var source = testData.storages["UT-FNG"];
+    var destination = testData.storages["UT-FNG"];
+    var variant = testData.variants["UT-AV1"];
+    var variantComponent = testData.variants["UT-AV2"];
+
+    var finishingDoc = {};
+    var now = new Date();
+    var stamp = now / 1000 | 0;
+    var code = stamp.toString(36);
+
+    finishingDoc.date = now;
+    finishingDoc.sourceId = source._id;
+    finishingDoc.destinationId = destination._id;
+    finishingDoc.reference = `reference[${code}]`;
+    finishingDoc.remark = `remark for ${code}`;
+    finishingDoc.items = [];
+
+    var item = {};
+    item.quantity = 1;
+    item.articleVariantId = variant._id;
+    item.articleVariant = variant;
+    item.articleVariant.finishings = [];
+    item.articleVariant.finishings.push({ articleVariantId: variantComponent._id, quantity: 1, articleVariant: variantComponent });
+    finishingDoc.items.push(item);
+
+    return finishingDoc;
+
+}
+
+function getDataKbFng() {
+    var source = testData.storages["UT-FNG"];
+    var destination = testData.storages["UT-BJB"];
+    var variant = testData.variants["UT-AV1"];
+
+    var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
+    var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
+    var transferOutDoc = new TransferOutDoc();
+
+    var now = new Date();
+    var stamp = now / 1000 | 0;
+    var code = stamp.toString(36);
+
+    transferOutDoc.code = code;
+    transferOutDoc.date = now;
+    transferOutDoc.destinationId = destination._id;
+    transferOutDoc.sourceId = source._id;
+    transferOutDoc.reference = `reference for ${code}`;
+    transferOutDoc.remark = `remark for ${code}`;
+    transferOutDoc.items.push(new TransferOutItem({ articleVariantId: variant._id, quantity: 1, remark: 'transferOutDoc.test' }));
+
+    return transferOutDoc;
+
+}
 
 function getData() {
     var source = testData.storages["UT-FNG"];
@@ -43,22 +99,33 @@ before('#00. connect db', function (done) {
                     manager = new PusatBarangBaruTerimaBarangBaruManager(db, {
                         username: 'unit-test'
                     });
+                    var FinishingKirimBarangBaruManager = require('../../src/managers/inventory/efr-kb-fng-manager');
+                    manager2 = new FinishingKirimBarangBaruManager(db, {
+                        username: 'unit-test'
+                    });
+                    var FinishedGoodsManager = require('../../src/managers/inventory/efr-hp-fng-manager');
+                    manager3 = new FinishedGoodsManager(db, {
+                        username: 'unit-test'
+                    });
                     testData = result;
                     done();
-                });
+                })
+                .catch(e => {
+                    done(e);
+                })
         })
         .catch(e => {
             done(e);
         })
 });
 
-var createdId;
-it('#01. should success when create new data', function (done) {
-    var data = getData();
-    manager.create(data)
+var dataHpId;
+it('#01. should success when create new data hasil produksi', function (done) {
+    var data = getDataHp();
+    manager3.create(data)
         .then(id => {
             id.should.be.Object();
-            createdId = id;
+            dataHpId = id;
             done();
         })
         .catch(e => {
@@ -66,8 +133,78 @@ it('#01. should success when create new data', function (done) {
         })
 });
 
+var dataHp;
+it('#02. should success when get data by id hasil produksi', function (done) {
+    manager3.getSingleByQuery({ _id: dataHpId })
+        .then(data => {
+            dataHp = data;
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
+var dataKbFngId;
+it('#03. should success when create new data', function (done) {
+    var data;
+    manager3.getByCodeOrDefault(dataHp.code)
+        .then(HpDataByCode => {
+            data = getData();
+            data.reference = HpDataByCode.code;
+            data.items = HpDataByCode.transferInDocument.items;
+            manager2.create(data)
+                .then(id => {
+                    id.should.be.Object();
+                    dataKbFngId = id;
+                    done();
+                })
+                .catch(e => {
+                    done(e);
+                })
+        })
+        .catch(e => {
+            done(e);
+        })
+}); 
+
+var dataKbFng;
+it('#04. should success when get data by id kb fng', function (done) {
+    manager2.getSingleByQuery({ _id: dataKbFngId })
+        .then(data => {
+            dataKbFng = data;
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
+var createdId;
+it('#05. should success when create new data', function (done) {
+    var data;
+    manager2.getByCodeOrDefault(dataKbFng.code)
+        .then(KbFngData => {
+            data = getData();
+            data.reference = KbFngData.code;
+            data.items = KbFngData.items;
+            manager.create(data)
+                .then(id => {
+                    id.should.be.Object();
+                    createdId = id;
+                    done();
+                })
+                .catch(e => {
+                    done(e);
+                })
+        })
+        .catch(e => {
+            done(e);
+        })
+}); 
+
 var createdData;
-it(`#02. should success when get created data with id`, function (done) {
+it(`#06. should success when get created data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferInDoc(data);
@@ -79,7 +216,7 @@ it(`#02. should success when get created data with id`, function (done) {
         })
 });
 
-it(`#03. should success when update created data`, function (done) {
+it(`#07. should success when update created data`, function (done) {
 
     createdData.reference += '[updated]';
     createdData.remark += '[updated]';
@@ -96,7 +233,7 @@ it(`#03. should success when update created data`, function (done) {
         });
 });
 
-it(`#04. should success when get updated data with id`, function (done) {
+it(`#08. should success when get updated data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferInDoc(data);
@@ -110,7 +247,7 @@ it(`#04. should success when get updated data with id`, function (done) {
         })
 });
 
-it(`#05. should success when delete data`, function (done) {
+it(`#09. should success when delete data`, function (done) {
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -121,7 +258,7 @@ it(`#05. should success when delete data`, function (done) {
         });
 });
 
-it(`#06. should _deleted=true`, function (done) {
+it(`#10. should _deleted=true`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferInDoc(data);
@@ -134,7 +271,7 @@ it(`#06. should _deleted=true`, function (done) {
         })
 });
 
-it('#07. should error with property items minimum one', function (done) {
+it('#11. should error with property items minimum one', function (done) {
     manager.create({})
         .then(id => {
             done("Should not be error with property items minimum one");
@@ -150,7 +287,7 @@ it('#07. should error with property items minimum one', function (done) {
         })
 });
 
-it('#08. should error with property items must be greater one', function (done) {
+it('#12. should error with property items must be greater one', function (done) {
     manager.create({
         items: [
             { articleVariantId: '578dd8a976d4f1003e0d7a3f' },

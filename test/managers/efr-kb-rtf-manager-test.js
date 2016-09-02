@@ -8,8 +8,8 @@ var manager4;
 var testData;
 
 function getData() {
-    var source = testData.storages["UT-BJR"];
-    var destination = testData.storages["UT-FNG"];
+    var source = testData.storages["UT-ACC"];
+    var destination = testData.storages["UT-ST2"];
     var variant = testData.variants["UT-AV1"];
 
     var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
@@ -36,8 +36,8 @@ function getData() {
 }
 
 function getDataKbRtp() {
-    var source = testData.storages["UT-ST1"];
-    var destination = testData.storages["UT-BJR"];
+    var source = testData.storages["UT-ACC"];
+    var destination = testData.storages["UT-ST2"];
     var variant = testData.variants["UT-AV1"];
 
     var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
@@ -64,8 +64,8 @@ function getDataKbRtp() {
 }
 
 function getDataSPK() {
-    var source = testData.storages["UT-FNG"];
-    var destination = testData.storages["UT-BJB"];
+    var source = testData.storages["UT-ACC"];
+    var destination = testData.storages["UT-ST2"];
     var variant = testData.variants["UT-AV1"];
 
     var SpkDoc = require('bateeq-models').merchandiser.SPK;
@@ -276,8 +276,7 @@ it('#10. should error with property items must be greater one', function (done) 
             try {
                 e.errors.should.have.property('items');
                 e.errors.items.should.Array();
-                for (var i of e.errors.items) {
-                    i.should.have.property('articleVariantId');
+                for (var i of e.errors.items) { 
                     i.should.have.property('quantity');
                 }
                 done();

@@ -119,6 +119,22 @@ module.exports = class FinishingKirimBarangBaruManager {
         });
     }
 
+    getByCodeOrDefault(code) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                code: code,
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(transferOutDoc => {
+                    resolve(transferOutDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.transferOutDocCollection
@@ -275,28 +291,34 @@ module.exports = class FinishingKirimBarangBaruManager {
                     }
                     Promise.all([getHPFNG].concat(getItem))
                         .then(results => {
-                            var index = 0;
-                            var itemErrors = [];
-                            var itemError = {};
 
                             var dataHPFNG = results[0];
                             if (!dataHPFNG) {
                                 errors["reference"] = "reference not found";
                             }
-                            var items = results.slice(1, results.length)
-                            if (items.length > 0) {
-                                for (var item of valid.items) { 
-                                    if (items[index]==null)
-                                    {
-                                         var inventoryQuantity = 0;
-                                    }else
-                                    {
-                                         var inventoryQuantity = items[index].quantity;
+                             var itemErrors = [];
+                            var inventoryItems = results.slice(1, results.length)
+                            if (inventoryItems.length > 0) {
+                                for (var inventoryItem of inventoryItems) {
+                                    var index = inventoryItems.indexOf(inventoryItem);
+                                    var item = valid.items[index];
+                                     var itemError = {};
+                                    if (item.quantity == undefined || item.quantity == "") {
+                                        itemError["quantity"] = "quantity is required";
                                     }
-                                    index++;
+                                    else if (parseInt(item.quantity) <= 0) {
+                                        itemError["quantity"] = "quantity must be greater than 0";
+                                    }
+
+                                    if (inventoryItems[index] == null) {
+                                        var inventoryQuantity = 0;
+                                    } else {
+                                        var inventoryQuantity = inventoryItems[index].quantity;
+                                    }
                                     if (item.quantity > inventoryQuantity) {
                                         itemError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
                                     }
+
                                     itemErrors.push(itemError);
                                 }
                             }
