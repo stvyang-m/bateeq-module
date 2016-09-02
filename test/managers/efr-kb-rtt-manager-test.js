@@ -7,7 +7,7 @@ var testData;
 function getData() {
     var source = testData.storages["UT-ST1"];
     var destination = testData.storages["UT-ST2"];
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.variants["UT-AV2"];
 
     var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
     var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
