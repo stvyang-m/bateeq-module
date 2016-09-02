@@ -7,277 +7,137 @@ var ObjectId = require('mongodb').ObjectId;
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
- 
-var FinishedGoods = BateeqModels.master.FinishedGoods; 
+var ItemManager = require('./item-manager');
+var FinishedGoods = BateeqModels.master.FinishedGoods;
 
-module.exports = class FinishedGoodsManager {
+module.exports = class FinishedGoodsManager extends ItemManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
-        this.itemCollection = this.db.use(map.master.FinishedGoods);
+        super(db, user); 
     }
+    
+    _getQuery(_paging) {
+        var basic = {
+            _deleted: false,
+            _type: 'finished-goods'
+        };
+        var query = _paging.keyword ? {
+            '$and': [basic]
+        } : basic;
 
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
-
-        return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
+        if (_paging.keyword) {
+            var regex = new RegExp(_paging.keyword, "i");
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
             };
-            var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var filterName = {
-                    'name': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode, filterName]
-                };
-
-                query['$and'].push($or);
-            }
-
-
-            this.itemCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(items => {
-                    resolve(items);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getById(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            var filterName = {
+                'name': {
+                    '$regex': regex
+                }
             };
-            this.getSingleByQuery(query)
-                .then(finishedGoods => {
-                    resolve(finishedGoods);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            var $or = {
+                '$or': [filterCode, filterName]
             };
-            this.getSingleOrDefaultByQuery(query)
-                .then(finishedGoods => {
-                    resolve(finishedGoods);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
+
+            query['$and'].push($or);
+        }
+        return query;
     }
 
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.itemCollection
-                .single(query)
-                .then(finishedGoods => {
-                    resolve(finishedGoods);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
 
-    getSingleOrDefaultByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.itemCollection
-                .singleOrDefault(query)
-                .then(finishedGoods => {
-                    resolve(finishedGoods);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
+    _validate(data) {
+        return super._validate(new FinishedGoods(data));
+        // var errors = {};
+        // return new Promise((resolve, reject) => {
+        //     // 1. begin: Declare promises.
+        //     var getFinishedGoods = this.collection.singleOrDefault({
+        //         "$and": [{
+        //             _id: {
+        //                 '$ne': new ObjectId(data._id)
+        //             }
+        //         }, {
+        //             code: data.code
+        //         }]
+        //     });
+        //     // 1. end: Declare promises.
 
-    create(finishedGoods) {
-        return new Promise((resolve, reject) => {
-            this._validate(finishedGoods)
-                .then(validFinishedGoods => {
+        //     // 2. begin: Validation.
+        //     Promise.all([getFinishedGoods])
+        //         .then(results => {
+        //             var _item = results[0];
 
-                    this.itemCollection.insert(validFinishedGoods)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
+        //             if (!data.code || data.code == '')
+        //                 errors["code"] = "code is required";
+        //             else if (_item)
+        //                 errors["code"] = "code already exists";
 
-    update(finishedGoods) {
-        return new Promise((resolve, reject) => {
-            this._validate(finishedGoods)
-                .then(validFinishedGoods => {
-                    this.itemCollection.update(validFinishedGoods)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    delete(finishedGoods) {
-        return new Promise((resolve, reject) => {
-            this._validate(finishedGoods)
-                .then(validFinishedGoods => {
-                    validFinishedGoods._deleted = true;
-                    this.itemCollection.update(validFinishedGoods)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
- 
-    _validate(finishedGoods) {
-        var errors = {};
-        return new Promise((resolve, reject) => {
-            var valid = new FinishedGoods(finishedGoods);
-            // 1. begin: Declare promises.
-            var getFinishedGoods = this.itemCollection.singleOrDefault({
-                "$and": [{
-                    _id: {
-                        '$ne': new ObjectId(valid._id)
-                    }
-                }, {
-                        code: valid.code
-                    }]
-            });
-            // 1. end: Declare promises.
-
-            // 2. begin: Validation.
-            Promise.all([getFinishedGoods])
-                .then(results => {
-                    var _item = results[0];
-
-                    if (!valid.code || valid.code == '')
-                        errors["code"] = "code is required";
-                    else if (_item)
-                        errors["code"] = "code already exists"; 
+        //             if (!data.name || data.name == '')
+        //                 errors["name"] = "name is required";
                         
-                    if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required";  
-                        
-                    // if (!valid.size || valid.size == '')
-                    //     errors["size"] = "size is required";  
-                        
-                    if (valid.domesticCOGS == undefined || (valid.domesticCOGS && valid.domesticCOGS == '')) {
-                        errors["domesticCOGS"] = "domesticCOGS is required";
-                    }
-                    else if (parseInt(valid.domesticCOGS) < 0) {
-                        errors["domesticCOGS"] = "domesticCOGS must be greater with 0";
-                    }
-                    if (valid.domesticWholesale == undefined || (valid.domesticWholesale && valid.domesticWholesale == '')) {
-                        errors["domesticWholesale"] = "domesticWholesale is required";
-                    }
-                    else if (parseInt(valid.domesticWholesale) < 0) {
-                        errors["domesticWholesale"] = "domesticWholesale must be greater with 0";
-                    }
-                    if (valid.domesticRetail == undefined || (valid.domesticRetail && valid.domesticRetail == '')) {
-                        errors["domesticRetail"] = "domesticRetail is required";
-                    }
-                    else if (parseInt(valid.domesticRetail) < 0) {
-                        errors["domesticRetail"] = "domesticRetail must be greater with 0";
-                    } 
-                    if (valid.domesticSale == undefined || (valid.domesticSale && valid.domesticSale == '')) {
-                        errors["domesticSale"] = "domesticSale is required";
-                    }
-                    else if (parseInt(valid.domesticSale) < 0) {
-                        errors["domesticSale"] = "domesticSale must be greater with 0";
-                    } 
-                    if (valid.internationalCOGS == undefined || (valid.internationalCOGS && valid.internationalCOGS == '')) {
-                        errors["internationalCOGS"] = "internationalCOGS is required";
-                    }
-                    else if (parseInt(valid.internationalCOGS) < 0) {
-                        errors["internationalCOGS"] = "internationalCOGS must be greater with 0";
-                    }
-                    if (valid.internationalWholesale == undefined || (valid.internationalWholesale && valid.internationalWholesale == '')) {
-                        errors["internationalWholesale"] = "internationalWholesale is required";
-                    }
-                    else if (parseInt(valid.internationalWholesale) < 0) {
-                        errors["internationalWholesale"] = "internationalWholesale must be greater with 0";
-                    }
-                    if (valid.internationalRetail == undefined || (valid.internationalRetail && valid.internationalRetail == '')) {
-                        errors["internationalRetail"] = "internationalRetail is required";
-                    }
-                    else if (parseInt(valid.internationalRetail) < 0) {
-                        errors["internationalRetail"] = "internationalRetail must be greater with 0";
-                    }
-                    if (valid.internationalSale == undefined || (valid.internationalSale && valid.internationalSale == '')) {
-                        errors["internationalSale"] = "internationalSale is required";
-                    }
-                    else if (parseInt(valid.internationalSale) < 0) {
-                        errors["internationalSale"] = "internationalSale must be greater with 0";
-                    } 
 
-                    // 2c. begin: check if data has any error, reject if it has.
-                    for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
-                        reject(new ValidationError('data does not pass validation', errors));
-                    }
+        //             if (data.domesticCOGS == undefined || (data.domesticCOGS && data.domesticCOGS == '')) {
+        //                 errors["domesticCOGS"] = "domesticCOGS is required";
+        //             }
+        //             else if (parseInt(data.domesticCOGS) < 0) {
+        //                 errors["domesticCOGS"] = "domesticCOGS must be greater with 0";
+        //             }
+        //             if (data.domesticWholesale == undefined || (data.domesticWholesale && data.domesticWholesale == '')) {
+        //                 errors["domesticWholesale"] = "domesticWholesale is required";
+        //             }
+        //             else if (parseInt(data.domesticWholesale) < 0) {
+        //                 errors["domesticWholesale"] = "domesticWholesale must be greater with 0";
+        //             }
+        //             if (data.domesticRetail == undefined || (data.domesticRetail && data.domesticRetail == '')) {
+        //                 errors["domesticRetail"] = "domesticRetail is required";
+        //             }
+        //             else if (parseInt(data.domesticRetail) < 0) {
+        //                 errors["domesticRetail"] = "domesticRetail must be greater with 0";
+        //             }
+        //             if (data.domesticSale == undefined || (data.domesticSale && data.domesticSale == '')) {
+        //                 errors["domesticSale"] = "domesticSale is required";
+        //             }
+        //             else if (parseInt(data.domesticSale) < 0) {
+        //                 errors["domesticSale"] = "domesticSale must be greater with 0";
+        //             }
+        //             if (data.internationalCOGS == undefined || (data.internationalCOGS && data.internationalCOGS == '')) {
+        //                 errors["internationalCOGS"] = "internationalCOGS is required";
+        //             }
+        //             else if (parseInt(data.internationalCOGS) < 0) {
+        //                 errors["internationalCOGS"] = "internationalCOGS must be greater with 0";
+        //             }
+        //             if (data.internationalWholesale == undefined || (data.internationalWholesale && data.internationalWholesale == '')) {
+        //                 errors["internationalWholesale"] = "internationalWholesale is required";
+        //             }
+        //             else if (parseInt(data.internationalWholesale) < 0) {
+        //                 errors["internationalWholesale"] = "internationalWholesale must be greater with 0";
+        //             }
+        //             if (data.internationalRetail == undefined || (data.internationalRetail && data.internationalRetail == '')) {
+        //                 errors["internationalRetail"] = "internationalRetail is required";
+        //             }
+        //             else if (parseInt(data.internationalRetail) < 0) {
+        //                 errors["internationalRetail"] = "internationalRetail must be greater with 0";
+        //             }
+        //             if (data.internationalSale == undefined || (data.internationalSale && data.internationalSale == '')) {
+        //                 errors["internationalSale"] = "internationalSale is required";
+        //             }
+        //             else if (parseInt(data.internationalSale) < 0) {
+        //                 errors["internationalSale"] = "internationalSale must be greater with 0";
+        //             }
 
-                    valid.stamp(this.user.username, 'manager');
-                    resolve(valid);
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
+        //             // 2c. begin: check if data has any error, reject if it has.
+        //             for (var prop in errors) {
+        //                 var ValidationError = require('../../validation-error');
+        //                 reject(new ValidationError('data does not pass validation', errors));
+        //             }
+
+        //             var valid = new FinishedGoods(data);
+        //             valid.stamp(this.user.username, 'manager');
+        //             resolve(valid);
+        //         })
+        //         .catch(e => {
+        //             reject(e);
+        //         })
+        // });
     }
 };

@@ -5,199 +5,159 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
-var BateeqModels = require('bateeq-models');
-var map = BateeqModels.map;
- 
-var Item = BateeqModels.master.Item; 
+var BaseManager = require('../base-manager');
+var ComponentHelper = require('./component-helper');
 
-module.exports = class ItemManager {
+var BateeqModels = require('bateeq-models');
+var Item = BateeqModels.master.Item;
+var FinishedGoods = BateeqModels.master.FinishedGoods;
+var Material = BateeqModels.master.Material;
+var map = BateeqModels.map;
+
+
+module.exports = class ItemManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
-        this.itemCollection = this.db.use(map.master.Item);
+        super(db, user);
+        this.collection = this.db.use(map.master.Item);
+        this.componentHelper = new ComponentHelper(this);
     }
 
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
-
+    upsertComponents(data) {
         return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
-            };
-            var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
+            var tag = `#${data.code}`;
+            var task = [];
+            for (var component of data.components) {
 
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var filterName = {
-                    'name': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode, filterName]
-                };
+                var item = component.item;
+                var tags = (item.tags || '').split(",").filter(el => el && el.trim().length > 0);
+                var tagIndex = tags.findIndex(t => {
+                    return t == tag;
+                });
 
-                query['$and'].push($or);
+                if (tagIndex < 0)
+                    tags.push(tag);
+
+                item.tags = tags.join(",");
+
+                if (item._id)
+                    task.push(this.update(item));
+                else
+                    task.push(this.create(item));
             }
 
+            Promise.all(task)
+                .then(results => {
+                    var getItems = [];
 
-            this.itemCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(items => {
-                    resolve(items);
+                    for (var itemId of results)
+                        getItems.push(this.getSingleById(itemId));
+
+                    Promise.all(getItems)
+                        .then(items => {
+                            var index = 0;
+                            for (var item of items) {
+                                var component = data.components[index++];
+                                component.itemId = item._id;
+                                component.item = item;
+                            }
+                            this.collection.update(data).then(id => {
+                                resolve(id);
+                            });
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
                 })
                 .catch(e => {
                     reject(e);
                 });
+
         });
     }
 
-    getById(id) {
+    create(data) {
         return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            this._validate(data)
+                .then(validData => {
+                    this.collection.insert(validData)
+                        .then(id => {
+                            validData._id = id;
+                            this.upsertComponents(validData)
+                                .then(id => {
+                                    resolve(id);
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                });
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
+    }
+
+    update(data) {
+        return new Promise((resolve, reject) => {
+            this._validate(data)
+                .then(validData => {
+                    this.collection.update(validData)
+                        .then(id => {
+                            resolve(id);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        })
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
+    }
+    _getQuery(paging) {
+        var deleted = {
+            _deleted: false
+        };
+        var query = paging.keyword ? {
+            '$and': [deleted]
+        } : deleted;
+
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
             };
-            this.getSingleByQuery(query)
-                .then(item => {
-                    resolve(item);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            var filterName = {
+                'name': {
+                    '$regex': regex
+                }
             };
-            this.getSingleOrDefaultByQuery(query)
-                .then(item => {
-                    resolve(item);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
+            var $or = {
+                '$or': [filterCode, filterName]
+            };
+
+            query['$and'].push($or);
+        }
+        return query;
     }
 
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.itemCollection
-                .single(query)
-                .then(item => {
-                    resolve(item);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    getSingleOrDefaultByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.itemCollection
-                .singleOrDefault(query)
-                .then(item => {
-                    resolve(item);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    create(item) {
-        return new Promise((resolve, reject) => {
-            this._validate(item)
-                .then(validItem => {
-
-                    this.itemCollection.insert(validItem)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    update(item) {
-        return new Promise((resolve, reject) => {
-            this._validate(item)
-                .then(validItem => {
-                    this.itemCollection.update(validItem)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    delete(item) {
-        return new Promise((resolve, reject) => {
-            this._validate(item)
-                .then(validItem => {
-                    validItem._deleted = true;
-                    this.itemCollection.update(validItem)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
- 
-    _validate(item) {
+    _validate(data) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new Item(item);
             // 1. begin: Declare promises.
-            var getItem = this.itemCollection.singleOrDefault({
+            var getItem = this.collection.singleOrDefault({
                 "$and": [{
                     _id: {
-                        '$ne': new ObjectId(valid._id)
+                        '$ne': new ObjectId(data._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: data.code
+                }]
             });
             // 1. end: Declare promises.
 
@@ -206,23 +166,51 @@ module.exports = class ItemManager {
                 .then(results => {
                     var _item = results[0];
 
-                    if (!valid.code || valid.code == '')
+                    if (!data.code || data.code == '')
                         errors["code"] = "code is required";
                     else if (_item)
-                        errors["code"] = "code already exists"; 
-                        
-                    if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required";  
-                         
+                        errors["code"] = "code already exists";
 
-                    // 2c. begin: check if data has any error, reject if it has.
-                    for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
-                        reject(new ValidationError('data does not pass validation', errors));
-                    }
+                    if (!data.name || data.name == '')
+                        errors["name"] = "name is required";
 
-                    valid.stamp(this.user.username, 'manager');
-                    resolve(valid);
+                    if (!data.uom || data.uom == '')
+                        errors["uom"] = "uom is required";
+
+                    this.componentHelper.validate(data.components)
+                        .then(result => {
+                            data.components = result.components;
+
+                            // 2c. begin: check if data has any error, reject if it has.
+                            for (var prop in errors) {
+                                var ValidationError = require('../../validation-error');
+                                reject(new ValidationError('data does not pass validation', errors));
+                            }
+                            var valid = data;
+                            if (!valid.stamp) {
+                                switch (data._type) {
+                                    case 'material':
+                                        valid = new Material(data);
+                                        break;
+                                    case 'finished-goods':
+                                        valid = new FinishedGoods(data);
+                                        break;
+                                    default:
+                                        valid = new Item(data);
+                                }
+                            }
+                            valid.stamp(this.user.username, 'manager');
+                            resolve(valid);
+                        })
+                        .catch(e => {
+                            errors["components"] = e;
+
+                            // 2c. begin: check if data has any error, reject if it has.
+                            for (var prop in errors) {
+                                var ValidationError = require('../../validation-error');
+                                reject(new ValidationError('data does not pass validation', errors));
+                            }
+                        });
                 })
                 .catch(e => {
                     reject(e);

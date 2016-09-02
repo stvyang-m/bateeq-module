@@ -8,8 +8,10 @@ function test(name, path) {
 describe('#bateeq-module', function(done) {
     this.timeout(2 * 60000);
     // test('@manager/account-manager', './managers/account-manager-test');
-    test('@manager/item-manager', './managers/item-manager-test');
-    test('@manager/finished-goods-manager', './managers/finished-goods-manager-test');
+    test('@manager/master/item-manager', './managers/master/item-manager-test');
+    test('@manager/master/material-manager', './managers/master/material-manager-test');
+    test('@manager/master/finished-goods-manager', './managers/master/finished-goods-manager-test');
+    // test('@manager/finished-goods-manager', './managers/finished-goods-manager-test');
     // test('@manager/article-brand-manager', './managers/article-brand-manager-test');
     // test('@manager/article-category-manager', './managers/article-category-manager-test');
     // test('@manager/article-counter-manager', './managers/article-counter-manager-test');
