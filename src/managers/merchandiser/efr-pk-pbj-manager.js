@@ -379,7 +379,7 @@ module.exports = class SPKBarangJadiManager {
                                         }
                                     }
 
-                                    if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
+                                    if (item.quantity == undefined ||  item.quantity == "") {
                                         itemError["quantity"] = "quantity is required";
                                     }
                                     else if (parseInt(item.quantity) <= 0) {
