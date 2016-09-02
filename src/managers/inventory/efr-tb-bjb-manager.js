@@ -45,7 +45,7 @@ module.exports = class PusatBarangBaruTerimaBarangBaruManager {
         }, paging);
 
         return new Promise((resolve, reject) => {
-           var regexModuleId = new RegExp(moduleId, "i"); 
+            var regexModuleId = new RegExp(moduleId, "i");
             var filter = {
                 _deleted: false,
                 'code': {
@@ -203,11 +203,20 @@ module.exports = class PusatBarangBaruTerimaBarangBaruManager {
     }
 
     _validate(transferInDoc) {
+        var errors = {};
         return new Promise((resolve, reject) => {
             var valid = transferInDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-                    var config = module.config; 
+                    var config = module.config;
+
+                    if (valid.reference == "") {
+                        errors["reference"] = "reference is required";
+                    }
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
                     resolve(valid);
                 })
                 .catch(e => {

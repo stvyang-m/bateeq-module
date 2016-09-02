@@ -12,7 +12,7 @@ var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
 var generateCode = require('../../utils/code-generator');
 
-const moduleId = "EFR-TB/ACC";
+const moduleId = "EFR-TB/ACT";
 
 module.exports = class FinishingTerimaAksesorisManager {
     constructor(db, user) {
@@ -202,7 +202,7 @@ module.exports = class FinishingTerimaAksesorisManager {
             var valid = transferInDoc;
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
-                    var config = module.config; 
+                    var config = module.config;  
                     valid.destinationId = config.destination.value;
                     resolve(valid);
                 })

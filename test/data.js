@@ -203,28 +203,17 @@ function getSertModules(db, storages) {
         code: "EFR-KB/RTF",
         name: "Module EFR-KB/RTF",
         description: "Unit test data: module EFR-KB/RTF",
-        config: {
-            source: {
-                type: "fixed",
-                value: storages["UT-BJR"]._id
-            },
-            destination: {
-                type: "fixed",
-                value: storages["UT-FNG"]._id
-            }
-        }
+        config: {}
     }, {
         code: "EFR-KB/RTP",
         name: "Module EFR-KB/RTP",
         description: "Unit test data: module EFR-KB/RTP",
         config: {
             source: {
-                type: "selection",
-                value: [storages["UT-ST1"]._id, storages["UT-ST2"]._id]
-            },
+              },
             destination: {
                 type: "selection",
-                value: [storages["UT-BJR"]._id , storages["UT-ST2"]._id]
+                value: [storages["UT-BJR"]._id , storages["UT-ST2"]._id, storages["UT-ST1"]._id]
             }
         }
     }, {
@@ -242,9 +231,9 @@ function getSertModules(db, storages) {
             }
         }
     }, {
-        code: "EFR-TB/ACC",
-        name: "Module EFR-TB/ACC",
-        description: "Unit test data: module EFR-TB/ACC",
+        code: "EFR-TB/ACT",
+        name: "Module EFR-TB/ACT",
+        description: "Unit test data: module EFR-TB/ACT",
         config: {
             destination: {
                 type: "fixed",

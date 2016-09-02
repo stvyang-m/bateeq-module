@@ -8,8 +8,8 @@ var testData;
 
 function getData(refNo) {
 
-    var source = testData.storages["UT-FNG"];
-    var destination = testData.storages["UT-BJB"];
+    var source = testData.storages["UT-ACC"];
+    var destination = testData.storages["UT-ST1"];
     var variant = testData.variants["UT-AV1"];
 
     var TransferInDoc = require('bateeq-models').inventory.TransferInDoc;
@@ -36,8 +36,8 @@ function getData(refNo) {
 }
 
 function getDataSPK() {
-    var source = testData.storages["UT-FNG"];
-    var destination = testData.storages["UT-BJB"];
+    var source = testData.storages["UT-ACC"];
+    var destination = testData.storages["UT-ST1"];
     var variant = testData.variants["UT-AV1"];
 
     var SpkDoc = require('bateeq-models').merchandiser.SPK;

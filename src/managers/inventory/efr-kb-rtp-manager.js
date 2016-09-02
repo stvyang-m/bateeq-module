@@ -228,28 +228,7 @@ module.exports = class TokoKirimBarangReturnManager {
                 .then(module => {
                     var config = module.config;
                     if (!valid.sourceId || valid.sourceId == '')
-                        errors["sourceId"] = "sourceId is required";
-                    else {
-                        if (config) {
-                            if (config.source) {
-                                var isAny = false;
-                                if (config.source.type == "selection") {
-                                    for (var sourceId of config.source.value) {
-                                        if (sourceId.toString() == valid.sourceId.toString()) {
-                                            isAny = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                                else {
-                                    if (config.source.value.toString() == valid.sourceId.toString())
-                                        isAny = true;
-                                }
-                                if (!isAny)
-                                    errors["sourceId"] = "sourceId is not valid";
-                            }
-                        }
-                    }
+                        errors["sourceId"] = "sourceId is required"; 
 
                     if (!valid.destinationId || valid.destinationId == '')
                         errors["destinationId"] = "destinationId is required";
