@@ -207,10 +207,10 @@ module.exports = class FinishingKirimBarangReturSelesaiPerbaikanManager {
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
                     var config = module.config;
-                    
+
                     if (!valid.reference || valid.reference == '')
                         errors["reference"] = "reference is required";
-                    
+
                     if (!valid.sourceId || valid.sourceId == '')
                         errors["sourceId"] = "sourceId is required";
                     else {
@@ -258,15 +258,16 @@ module.exports = class FinishingKirimBarangReturSelesaiPerbaikanManager {
                             }
                         }
                     }
- 
+
                     if (valid.items) {
                         var itemsData = [];
                         for (var item of valid.items) {
-                            if (item.articleVariantNewID && item.articleVariantNewId != '') {
-                                item.articleVariantId = item.articleVariantNewId;
-                                item.articleVariant = item.articleVariantNew;
+                            if (item.articleVariantNewId && item.articleVariantNewId != '') { 
+                                itemsData.push(this.articleVariantManager.getById(item.articleVariantNewId));
                             }
-                            itemsData.push(this.articleVariantManager.getById(item.articleVariantId));
+                            else { 
+                                itemsData.push(this.articleVariantManager.getById(item.articleVariantId));
+                            }
                         }
                         //get Article Variant
                         Promise.all(itemsData)
@@ -274,7 +275,7 @@ module.exports = class FinishingKirimBarangReturSelesaiPerbaikanManager {
                                 itemsData = [];
                                 for (var item of resultItems) {
                                     if (item) {
-                                        itemsData.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item.ArticleVariantId));
+                                        itemsData.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item._id));
                                     }
                                     else {
                                         itemsData.push(Promise.resolve(null));
@@ -329,7 +330,7 @@ module.exports = class FinishingKirimBarangReturSelesaiPerbaikanManager {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
-                    resolve(valid);
+                    //resolve(valid);
                 })
                 .catch(e => {
                     reject(new Error(`Unable to load module:${moduleId}`));

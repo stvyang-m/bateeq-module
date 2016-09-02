@@ -1,4 +1,4 @@
- 'use strict';
+'use strict';
 
 // external deps 
 var ObjectId = require('mongodb').ObjectId;
@@ -28,6 +28,9 @@ module.exports = class AlterationOutManager {
 
         var ModuleManager = require('../core/module-manager');
         this.moduleManager = new ModuleManager(db,user);
+
+        var InventoryManager = require('./inventory-manager');
+        this.inventoryManager = new InventoryManager(db,user);
     }
 
     read(paging){
@@ -193,27 +196,61 @@ module.exports = class AlterationOutManager {
                 var getbjrInByCode =  this.finishingTerimaBarangReturManager.getByCode(valid.reference);
                 var getAltOutByRef = this.getByReference(valid.reference);
 
-                Promise.all([getbjrInByCode,getAltOutByRef])
+                var tasks = []
+                tasks.push(getbjrInByCode);
+                tasks.push(getAltOutByRef);
+
+                 var getItem = [];
+                   if (valid.items && valid.items.length > 0) {
+                       for (var item of valid.items) {
+                          tasks.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(valid.sourceId, item.articleVariantId))
+                       }
+                   }
+                   else {
+                       errors["items"] = "items is required";
+                   }
+
+
+                Promise.all(tasks)
                 .then(results =>{
                     var bjrTransferIn = results[0];
                     var altTransferOut = results[1];
+                    var checkInventory = [];
+                    for (var i = 2; i < results.length; i++) { 
+                        checkInventory.push(results[i]);
+                    }
+                    var itemErrors = [];
                     if(bjrTransferIn){
                         if (valid.items && valid.items.length > 0) {
                             
-                        var itemErrors = [];
                             for(var item of valid.items){
                                 var itemError = {};
                                 for(var item2 of bjrTransferIn.items){
                                     if(item.articleVariantId.toString() == item2.articleVariantId.toString()){
                                         if(item.quantity > item2.quantity){
-                                            itemError["articleVariantId"] = "item retur harus lebih kecil atau sama dengan";
+                                            itemError["articleVariantId"] = "item retur harus lebih kecil atau sama dengan item reference";
                                         }
                                     }
                                 }
+                                for(var item2 of checkInventory){
+                                   if (item.articleVariantId.toString() == item2.articleVariantId.toString() && item.quantity > item2.quantity) {
+                                      itemError["articleVariantId"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
+                                   }
+                                }
+                            itemErrors.push(itemError);
                                 itemErrors.push(itemError);
                             }
 
-                            for (var itemError of itemErrors) {
+                        }else{
+                            errors["items"] = "items is required";
+                        }
+                    }else{
+                            errors["reference"] = "reference not found";
+                    }
+
+                    var index = 0;
+
+                    for (var itemError of itemErrors) {
                                 for (var prop in itemError) {
                                     errors.items = itemErrors;
                                     break;
@@ -221,12 +258,6 @@ module.exports = class AlterationOutManager {
                                 if (errors.items)
                                     break;
                             }
-                        }else{
-                            errors["items"] = "items is required";
-                        }
-                    }else{
-                            errors["reference"] = "reference not found";
-                    }
 
                     // if(altTransferOut){
                     //         errors["reference"] = "reference already used";

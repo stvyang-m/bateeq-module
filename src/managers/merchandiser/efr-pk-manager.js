@@ -25,10 +25,7 @@ module.exports = class SPKBarangManager  {
         this.articleVariantManager = new ArticleVariantManager(db, user);
 
         var ModuleManager = require('../core/module-manager');
-        this.moduleManager = new ModuleManager(db, user);
-
-        var ModuleSeedManager = require('../core/module-seed-manager');
-        this.moduleSeedManager = new ModuleSeedManager(db, user);
+        this.moduleManager = new ModuleManager(db, user); 
     }
 
     read(paging) {
@@ -46,6 +43,55 @@ module.exports = class SPKBarangManager  {
             var query = _paging.keyword ? {
                 '$and': [deleted]
             } : deleted;
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterPackingList = {
+                    'packingList': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterPackingList]
+                };
+
+                query['$and'].push($or);
+            } 
+            this.SPKDocCollection
+                .where(query)
+                .page(_paging.page, _paging.size)
+                .orderBy(_paging.order, _paging.asc)
+                .execute()
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    readReceived(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: '_id',
+            asc: true
+        }, paging);
+
+        return new Promise((resolve, reject) => {
+            var filter = {
+                _deleted: false,
+                isReceived: true 
+            };
+            var query = _paging.keyword ? {
+                '$and': [filter]
+            } : filter;
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
@@ -131,6 +177,8 @@ module.exports = class SPKBarangManager  {
 
     getById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
@@ -147,6 +195,8 @@ module.exports = class SPKBarangManager  {
 
     getByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
@@ -166,6 +216,23 @@ module.exports = class SPKBarangManager  {
             var query = {
                 packingList: ref,
                 _deleted: false
+            };
+            this.SPKDocCollection.singleOrDefault(query)
+                .then(SPKDoc => {
+                    resolve(SPKDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getByPackingList(ref){
+        return new Promise((resolve, reject) => {
+            var query = {
+                packingList: ref,
+                _deleted: false,
+                isReceived: true
             };
             this.SPKDocCollection.singleOrDefault(query)
                 .then(SPKDoc => {

@@ -2,6 +2,8 @@ var should = require('should');
 var helper = require('../helper');
 var validate = require('bateeq-models').validator.inventory;
 var manager;
+var manager2;
+var manager3;
 var testData;
 
 function getData() {
@@ -32,6 +34,28 @@ function getData() {
     return transferOutDoc;
 }
 
+
+function getDataSPK() {
+    var source = testData.storages["UT-FNG"];
+    var destination = testData.storages["UT-BJB"];
+    var variant = testData.variants["UT-AV1"];
+
+    var SpkDoc = require('bateeq-models').merchandiser.SPK;
+    var SpkItem = require('bateeq-models').merchandiser.SPKItem;
+    var spkDoc = new SpkDoc();
+    var now = new Date();
+    spkDoc.date = now;
+    spkDoc.sourceId = source._id;
+    spkDoc.destinationId = destination._id;
+
+    spkDoc.isReceived = true;
+
+    spkDoc.reference = `reference[${spkDoc.date}]`;
+
+    spkDoc.items.push(new SpkItem({ articleVariantId: variant._id, quantity: 1, remark: 'SPK PBA.test' }));
+    return spkDoc;
+}
+
 before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
@@ -43,6 +67,14 @@ before('#00. connect db', function (done) {
                     manager = new TokoKirimBarangReturnManager(db, {
                         username: 'unit-test'
                     });
+                    var SPKBarangEmbalaseManager = require('../../src/managers/merchandiser/efr-pk-pba-manager');
+                    manager2 = new SPKBarangEmbalaseManager(db, {
+                        username: 'unit-test'
+                    });
+                     var SPKManager = require('../../src/managers/merchandiser/efr-pk-manager');
+                    manager3 = new SPKManager(db, {
+                        username: 'unit-test'
+                    });
                     testData = result;
                     done();
                 });
@@ -52,9 +84,32 @@ before('#00. connect db', function (done) {
         })
 });
 
+var createdRef;
+var dataSPK;
+it('#01. should success when create new SPK data', function (done) {
+    dataSPK = getDataSPK();
+    manager2.create(dataSPK)
+        .then(id => {
+            id.should.be.Object();
+            manager3.getById(id)
+                .then(spkDoc => {
+                    createdRef = spkDoc.packingList;
+                    dataSPK.password = spkDoc.password;
+                    done();
+                })
+                .catch(e => {
+                    done();
+                })
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
 var createdId;
-it('#01. should success when create new data', function (done) {
+it('#02. should success when create new data', function (done) {
     var data = getData();
+    data.reference=createdRef;
     manager.create(data)
         .then(id => {
             id.should.be.Object();
@@ -67,7 +122,7 @@ it('#01. should success when create new data', function (done) {
 });
 
 var createdData;
-it(`#02. should success when get created data with id`, function (done) {
+it(`#03. should success when get created data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferOutDoc(data);
@@ -79,9 +134,8 @@ it(`#02. should success when get created data with id`, function (done) {
         })
 });
 
-it(`#03. should success when update created data`, function (done) {
-
-    createdData.reference += '[updated]';
+it(`#04. should success when update created data`, function (done) {
+ 
     createdData.remark += '[updated]';
 
     var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
@@ -96,7 +150,7 @@ it(`#03. should success when update created data`, function (done) {
         });
 });
 
-it(`#04. should success when get updated data with id`, function (done) {
+it(`#05. should success when get updated data with id`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferOutDoc(data);
@@ -110,7 +164,7 @@ it(`#04. should success when get updated data with id`, function (done) {
         })
 });
 
-it(`#05. should success when delete data`, function (done) {
+it(`#06. should success when delete data`, function (done) {
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -121,7 +175,7 @@ it(`#05. should success when delete data`, function (done) {
         });
 });
 
-it(`#06. should _deleted=true`, function (done) {
+it(`#07. should _deleted=true`, function (done) {
     manager.getSingleByQuery({ _id: createdId })
         .then(data => {
             validate.transferOutDoc(data);
@@ -135,8 +189,9 @@ it(`#06. should _deleted=true`, function (done) {
 });
 
 
-it('#07. should error with property items minimum one', function (done) {
+it('#08. should error with property items minimum one', function (done) {
     var data = getData();
+   data.reference=createdRef;
     data.items = [];
     manager.create(data)
         .then(id => {
@@ -153,8 +208,9 @@ it('#07. should error with property items minimum one', function (done) {
         })
 });
 
-it('#08. should error with property items must be greater one', function (done) {
+it('#09. should error with property items must be greater one', function (done) {
     var data = getData();
+data.reference=createdRef;
     data.items = [{ articleVariantId: '578dd8a976d4f1003e0d7a3f' },
         { quantity: 0 }];
     manager.create(data)
