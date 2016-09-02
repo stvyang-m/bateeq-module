@@ -134,93 +134,93 @@ it('#03. should success when create new data', function (done) {
         })
 });
 
-// var createdData;
-// it(`#04. should success when get created data with id`, function (done) {
-//     manager.getSingleByQuery({ _id: createdId })
-//         .then(data => {
-//             validate.transferOutDoc(data);
-//             createdData = data;
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         })
-// });
+var createdData;
+it(`#04. should success when get created data with id`, function (done) {
+    manager.getSingleByQuery({ _id: createdId })
+        .then(data => {
+            validate.transferOutDoc(data);
+            createdData = data;
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
 
-// it(`#05. should success when update created data`, function (done) { 
-//     createdData.remark += '[updated]';
-//     var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
-//     manager.update(createdData)
-//         .then(id => {
-//             createdId.toString().should.equal(id.toString());
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         });
-// });
+it(`#05. should success when update created data`, function (done) { 
+    createdData.remark += '[updated]';
+    var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
+    manager.update(createdData)
+        .then(id => {
+            createdId.toString().should.equal(id.toString());
+            done();
+        })
+        .catch(e => {
+            done(e);
+        });
+});
 
-// it(`#06. should success when get updated data with id`, function (done) {
-//     manager.getSingleByQuery({ _id: createdId })
-//         .then(data => {
-//             validate.transferOutDoc(data);  
-//             data.items.length.should.equal(1);
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         })
-// });
+it(`#06. should success when get updated data with id`, function (done) {
+    manager.getSingleByQuery({ _id: createdId })
+        .then(data => {
+            validate.transferOutDoc(data);  
+            data.items.length.should.equal(1);
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
 
-// it(`#07. should success when delete data`, function (done) {
-//     manager.delete(createdData)
-//         .then(id => {
-//             createdId.toString().should.equal(id.toString());
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         });
-// });
+it(`#07. should success when delete data`, function (done) {
+    manager.delete(createdData)
+        .then(id => {
+            createdId.toString().should.equal(id.toString());
+            done();
+        })
+        .catch(e => {
+            done(e);
+        });
+});
 
-// it(`#08. should _deleted=true`, function (done) {
-//     manager.getSingleByQuery({ _id: createdId })
-//         .then(data => {
-//             validate.transferOutDoc(data);
-//             data._deleted.should.be.Boolean();
-//             data._deleted.should.equal(true);
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         })
-// });
+it(`#08. should _deleted=true`, function (done) {
+    manager.getSingleByQuery({ _id: createdId })
+        .then(data => {
+            validate.transferOutDoc(data);
+            data._deleted.should.be.Boolean();
+            data._deleted.should.equal(true);
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
 
 
-// it('#09. should error with property items minimum one', function (done) {
-//     manager2.getByCodeOrDefault(dataHp.code)
-//         .then(HpDataByCode => {
-//             var data = getData();
-//             data.reference = dataHp.code;
-//             data.items = [];
-//             manager.create(data)
-//                 .then(id => {
-//                     done("Should not be error with property items minimum one");
-//                 })
-//                 .catch(e => {
-//                     try {
-//                         e.errors.should.have.property('items');
-//                         e.errors.items.should.String();
-//                         done();
-//                     } catch (ex) {
-//                         done(ex);
-//                     }
-//                 })
-//         })
-//         .catch(e => {
-//             done(e);
-//         })
-// });
+it('#09. should error with property items minimum one', function (done) {
+    manager2.getByCodeOrDefault(dataHp.code)
+        .then(HpDataByCode => {
+            var data = getData();
+            data.reference = dataHp.code;
+            data.items = [];
+            manager.create(data)
+                .then(id => {
+                    done("Should not be error with property items minimum one");
+                })
+                .catch(e => {
+                    try {
+                        e.errors.should.have.property('items');
+                        e.errors.items.should.String();
+                        done();
+                    } catch (ex) {
+                        done(ex);
+                    }
+                })
+        })
+        .catch(e => {
+            done(e);
+        })
+});
 
 it('#10. should error with property items must be greater one', function (done) {
     manager2.getByCodeOrDefault(dataHp.code)
