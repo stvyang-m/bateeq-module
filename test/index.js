@@ -7,7 +7,7 @@ function test(name, path) {
 
 describe('#bateeq-module', function(done) {
     this.timeout(2 * 60000);
-    // test('@manager/account-manager', './managers/account-manager-test'); 
+    //test('@manager/account-manager', './managers/account-manager-test'); 
     test('@manager/master/item-manager', './managers/master/item-manager-test');
     test('@manager/master/material-manager', './managers/master/material-manager-test');
     test('@manager/master/finished-goods-manager', './managers/master/finished-goods-manager-test');
@@ -24,6 +24,7 @@ describe('#bateeq-module', function(done) {
     test('@manager/article-manager', './managers/article-manager-test');
     test('@manager/article-variant-manager', './managers/article-variant-manager-test');
     test('@manager/storage-manager', './managers/storage-manager-test');
+    test('@manager/store-manager', './managers/store-manager-test');
     test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
     test('@manager/transfer-out-doc-manager', './managers/transfer-out-doc-manager-test');
     test('@manager/inventory-manager', './managers/inventory-manager-test');
@@ -31,9 +32,7 @@ describe('#bateeq-module', function(done) {
     test('@manager/efr-kb-rtt-manager', './managers/efr-kb-rtt-manager-test');
     test('@manager/efr-kb-fng-manager', './managers/efr-kb-fng-manager-test');
     test('@manager/efr-kb-rtp-manager', './managers/efr-kb-rtp-manager-test');
-    test('@manager/efr-kb-rtf-manager', './managers/efr-kb-rtf-manager-test');
-
-
+    test('@manager/efr-kb-rtf-manager', './managers/efr-kb-rtf-manager-test'); 
     test('@manager/efr-kb-rtd-manager', './managers/efr-kb-rtd-manager-test');
     test('@manager/efr-tb-act-manager', './managers/efr-tb-act-manager-test');
     test('@manager/efr-tb-bat-manager', './managers/efr-tb-bat-manager-test');
@@ -41,17 +40,20 @@ describe('#bateeq-module', function(done) {
     test('@manager/efr-tb-bjb-manager', './managers/efr-tb-bjb-manager-test');
     test('@manager/efr-tb-bjr-manager', './managers/efr-tb-bjr-manager-test');
     test('@manager/efr-tb-brd-manager', './managers/efr-tb-brd-manager-test');
-    test('@manager/efr-tb-brt-manager', './managers/efr-tb-brt-manager-test');
-
+    test('@manager/efr-tb-brt-manager', './managers/efr-tb-brt-manager-test'); 
     test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test');
     test('@manager/efr-pk-pbj-manager', './managers/efr-pk-pbj-manager-test');
     test('@manager/efr-pk-pba-manager', './managers/efr-pk-pba-manager-test');
-    test('@manager/efr-pk-pbr-manager', './managers/efr-pk-pbr-manager-test');
-
+    test('@manager/efr-pk-pbr-manager', './managers/efr-pk-pbr-manager-test'); 
     test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test');
     test('@manager/efr-kb-exb-manager', './managers/efr-kb-exb-manager-test');
-    test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test');
-
+    test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test'); 
     test('@manager/supplier-manager', './managers/supplier-manager-test');
     test('@manager/transfer-in-doc-ext-manager', './managers/transfer-in-doc-ext-manager-test');
+    
+    test('@manager/bank-manager', './managers/bank-manager-test'); 
+    test('@manager/card-type-manager', './managers/card-type-manager-test'); 
+    test('@manager/reward-type-manager', './managers/reward-type-manager-test');
+    test('@manager/promo-manager', './managers/promo-manager-test');
+    test('@manager/sales-manager', './managers/sales-manager-test');
 })

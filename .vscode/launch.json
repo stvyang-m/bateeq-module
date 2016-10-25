@@ -44,6 +44,7 @@
            "env": {
                "NODE_ENV": "development", 
                "DB_CONNECTIONSTRING": "mongodb://testing:testing@ds015953.mlab.com:15953/unit-testing"
+               //"DB_CONNECTIONSTRING": "mongodb://moonlay:23b3c1e6011074b9d93b2604757c6b62@ds037395.mlab.com:37395/bateeq-dev"
            }
        },
         {

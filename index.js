@@ -34,6 +34,7 @@ merchandiserMap.set("efr-pk-pba", require('./src/managers/merchandiser/efr-pk-pb
 module.exports = {
     inventory: {
         StorageManager: inventoryMap.get("storage"),
+        StoreManager: inventoryMap.get("store"),
         TransferInDocManager: inventoryMap.get("transfer-in-doc"),
         TransferOutDocManager: inventoryMap.get("transfer-out-doc"),
         InventoryManager: inventoryMap.get("inventory"),
@@ -83,6 +84,16 @@ module.exports = {
         SPKBarangEmbalaseManager: require('./src/managers/merchandiser/efr-pk-pba-manager'),
         SPKBarangJadiReturManager: require('./src/managers/merchandiser/efr-pk-pbr-manager'),
         map: merchandiserMap
+    },
+    master: {
+        BankManager: require('./src/managers/master/bank-manager'),
+        CardTypeManager: require('./src/managers/master/card-type-manager'),
+        StoreManager: require('./src/managers/master/store-manager')
+    },
+    sales: {
+        SalesManager: require('./src/managers/sales/sales-manager'),
+        PromoManager: require('./src/managers/sales/promo-manager'),
+        RewardTypeManager: require('./src/managers/sales/reward-type-manager')
     },
     ValidationError: require('./src/validation-error')
 }

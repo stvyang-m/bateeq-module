@@ -83,8 +83,6 @@ function getSertStorages(db) {
     });
 }
 
-
-
 function getSertVariants(db) {
 
     var variants = [{
@@ -143,7 +141,6 @@ function getSertVariants(db) {
             });
     });
 }
-
 
 function getSertModules(db, storages) {
 
@@ -401,7 +398,6 @@ function getSertModules(db, storages) {
     });
 }
 
-
 function getSertSuppliers(db) {
  var suppliers = [{
         code: "UT-S01",
@@ -453,16 +449,325 @@ function getSertSuppliers(db) {
             });
     });
 }
+ 
+function getSertStores(db, storages) {
+
+    var stores = [{
+        code: "ST-FNG",
+        name: "Finishing[UT]",
+        description: "Unit test data: finishing storage.",
+        storageId: storages["UT-FNG"]._id,
+        storage: storages["UT-FNG"],
+        salesCategoryId: {},
+        salesCategory: {}
+    }, {
+        code: "ST-BJB",
+        name: "Pusat - Finished Goods[UT]",
+        description: "Unit test data: finished goods storage.",
+        storageId: storages["UT-BJB"]._id,
+        storage: storages["UT-BJB"],
+        salesCategoryId: {},
+        salesCategory: {}
+    }, {
+        code: "ST-BJR",
+        name: "Pusat - Return Finished Goods[UT]",
+        description: "Unit test data: returned finished goods storage.",
+        storageId: storages["UT-BJR"]._id,
+        storage: storages["UT-BJR"],
+        salesCategoryId: {},
+        salesCategory: {}
+    }, {
+        code: "ST-ACC",
+        name: "Accessories[UT]",
+        description: "Unit test data: accessories storage.",
+        storageId: storages["UT-ACC"]._id,
+        storage: storages["UT-ACC"],
+        salesCategoryId: {},
+        salesCategory: {}
+    }, {
+        code: "ST-SWG",
+        name: "Sewing[UT]",
+        description: "Unit test data: sewing storage.",
+        storageId: storages["UT-SWG"]._id,
+        storage: storages["UT-SWG"],
+        salesCategoryId: {},
+        salesCategory: {}
+    }, {
+        code: "ST-MHD",
+        name: "Merchandiser[UT]",
+        description: "Unit test data: merhandiser storage.",
+        storageId: storages["UT-MHD"]._id,
+        storage: storages["UT-MHD"],
+        salesCategoryId: {},
+        salesCategory: {}
+    }, {
+        code: "ST-ST1",
+        name: "Store 01[UT]",
+        description: "Unit test data: store 01 storage",
+        storageId: storages["UT-ST1"]._id,
+        storage: storages["UT-ST1"],
+        salesCategoryId: {},
+        salesCategory: {}
+    }, {
+        code: "ST-ST2",
+        name: "Store 02[UT]",
+        description: "Unit test data: store 02 storage",
+        storageId: storages["UT-ST2"]._id,
+        storage: storages["UT-ST2"],
+        salesCategoryId: {},
+        salesCategory: {}
+    }];
 
 
+    var StoreManager = require("../src/managers/master/store-manager");
+    return new Promise((resolve, reject) => {
+        var manager = new StoreManager(db, {
+            username: "unit-test"
+        });
+        var promises = [];
+
+        for (var store of stores) {
+            var promise = new Promise((resolve, reject) => {
+                var _store = store;
+                manager.getSingleOrDefaultByQuery({
+                        code: _store.code
+                    })
+                    .then(data => {
+                        if (data)
+                            resolve(data);
+                        else {
+                            manager.create(_store)
+                                .then(id => {
+                                    manager.getById(id).then(createdData => {
+                                        resolve(createdData);
+                                    });
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                });
+                        }
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
+            });
+            promises.push(promise);
+        }
+
+        Promise.all(promises)
+            .then(stores => {
+                resolve(stores);
+            })
+            .catch(e => {
+                reject(e);
+            });
+    });
+}
+
+function getSertBanks(db) {
+
+    var banks = [{
+        code: "BA-BCA",
+        name: "Bank Central Asia",
+        description: "Unit test data: BCA bank."
+    }, {
+        code: "BA-MANDIRI",
+        name: "Mandiri",
+        description: "Unit test data: Mandiri bank."
+    }, {
+        code: "BA-BRI",
+        name: "Bank Rakyat Indonesia",
+        description: "Unit test data: BRI bank."
+    }];
+
+
+    var BankManager = require("../src/managers/master/bank-manager");
+    return new Promise((resolve, reject) => {
+        var manager = new BankManager(db, {
+            username: "unit-test"
+        });
+        var promises = [];
+
+        for (var bank of banks) {
+            var promise = new Promise((resolve, reject) => {
+                var _bank = bank;
+                manager.getSingleOrDefaultByQuery({
+                        code: _bank.code
+                    })
+                    .then(data => {
+                        if (data)
+                            resolve(data);
+                        else {
+                            manager.create(_bank)
+                                .then(id => {
+                                    manager.getById(id).then(createdData => {
+                                        resolve(createdData);
+                                    });
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                });
+                        }
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
+            });
+            promises.push(promise);
+        }
+
+        Promise.all(promises)
+            .then(banks => {
+                resolve(banks);
+            })
+            .catch(e => {
+                reject(e);
+            });
+    });
+}
+ 
+function getSertCardTypes(db) {
+
+    var cardTypes = [{
+        code: "CT-CARD",
+        name: "CARD",
+        description: "Unit test data: CARD card type."
+    }, {
+        code: "CT-VISA",
+        name: "Visa",
+        description: "Unit test data: Visa card type."
+    }, {
+        code: "CT-MASTERCARD",
+        name: "Mastercard",
+        description: "Unit test data: Mastercard card type."
+    }];
+
+
+    var CardTypeManager = require("../src/managers/master/card-type-manager");
+    return new Promise((resolve, reject) => {
+        var manager = new CardTypeManager(db, {
+            username: "unit-test"
+        });
+        var promises = [];
+
+        for (var cardType of cardTypes) {
+            var promise = new Promise((resolve, reject) => {
+                var _cardType = cardType;
+                manager.getSingleOrDefaultByQuery({
+                        code: _cardType.code
+                    })
+                    .then(data => {
+                        if (data)
+                            resolve(data);
+                        else {
+                            manager.create(_cardType)
+                                .then(id => {
+                                    manager.getById(id).then(createdData => {
+                                        resolve(createdData);
+                                    });
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                });
+                        }
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
+            });
+            promises.push(promise);
+        }
+
+        Promise.all(promises)
+            .then(cardTypes => {
+                resolve(cardTypes);
+            })
+            .catch(e => {
+                reject(e);
+            });
+    });
+}
+
+function getSertRewardTypes(db) {
+
+    var rewardTypes = [{
+        code: "RT-DISKON",
+        name: "Diskon",
+        description: "Unit test data: Diskon Reward type."
+    }, {
+        code: "RT-DISKON-PRODUK-TERTENTU",
+        name: "Diskon Produk Tertentu",
+        description: "Unit test data: Diskon Produk Tertentu Reward type."
+    }, {
+        code: "RT-PRODUK-TERTENTU",
+        name: "Produk Tertentu",
+        description: "Unit test data: Produk Tertentu Reward type."
+    }, {
+        code: "RT-HARGA-SPESIAL",
+        name: "Harga Spesial",
+        description: "Unit test data: Harga Spesial Reward type."
+    }, {
+        code: "RT-VOUCHER",
+        name: "Voucher",
+        description: "Unit test data: Voucher Reward type."
+    }];
+
+
+    var RewardTypeManager = require("../src/managers/sales/reward-type-manager");
+    return new Promise((resolve, reject) => {
+        var manager = new RewardTypeManager(db, {
+            username: "unit-test"
+        });
+        var promises = [];
+
+        for (var rewardType of rewardTypes) {
+            var promise = new Promise((resolve, reject) => {
+                var _rewardType = rewardType;
+                manager.getSingleOrDefaultByQuery({
+                        code: _rewardType.code
+                    })
+                    .then(data => {
+                        if (data)
+                            resolve(data);
+                        else {
+                            manager.create(_rewardType)
+                                .then(id => {
+                                    manager.getById(id).then(createdData => {
+                                        resolve(createdData);
+                                    });
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                });
+                        }
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
+            });
+            promises.push(promise);
+        }
+
+        Promise.all(promises)
+            .then(rewardTypes => {
+                resolve(rewardTypes);
+            })
+            .catch(e => {
+                reject(e);
+            });
+    });
+}
 
 module.exports = function(db) {
     return new Promise((resolve, reject) => {
-        Promise.all([getSertStorages(db), getSertVariants(db), getSertSuppliers(db)])
+        Promise.all([getSertStorages(db), getSertVariants(db), getSertSuppliers(db), getSertBanks(db), getSertCardTypes(db), getSertRewardTypes(db)])
             .then(results => {
                 var storages = {};
                 var variants = {};
-                var suppliers={};
+                var suppliers = {}; 
+                var banks = {};
+                var cardTypes = {};
+                var rewardTypes = {};
 
                 for (var storage of results[0])
                     storages[storage.code] = storage;
@@ -470,19 +775,37 @@ module.exports = function(db) {
                 for (var variant of results[1])
                     variants[variant.code] = variant;
                 
-                 for (var supplier of results[2])
-                    suppliers[supplier.code] = supplier;
+                for (var supplier of results[2])
+                    suppliers[supplier.code] = supplier; 
+                    
+                for (var bank of results[3])
+                    banks[bank.code] = bank;
+                    
+                for (var cardType of results[4])
+                    cardTypes[cardType.code] = cardType;
+                    
+                for (var rewardType of results[5])
+                    rewardTypes[rewardType.code] = rewardType;
 
-                getSertModules(db, storages)
-                    .then(results => {
+                Promise.all([getSertModules(db, storages), getSertStores(db, storages)])
+                    .then(results => { 
                         var modules = {};
-                        for (var module of results)
+                        var stores = {};
+                        
+                        for (var module of results[0])
                             modules[module.code] = module;
+                            
+                        for (var store of results[1])
+                            stores[store.code] = store;
 
                         resolve({
                             storages: storages,
                             variants: variants,
-                            suppliers:suppliers,
+                            suppliers : suppliers,
+                            stores : stores,
+                            banks : banks,
+                            cardTypes : cardTypes,
+                            rewardTypes : rewardTypes,
                             modules: modules
                         });
                     })
