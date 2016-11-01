@@ -134,6 +134,28 @@ module.exports = class SalesManager {
                 });
         });
     }
+    
+    getByStoreDatefromDateTo(storeId, dateFrom, dateTo) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                storeId: new ObjectId(storeId),
+                date: { 
+                        $gte : new Date(dateFrom),
+                        $lte : new Date(dateTo)
+                      },
+                _deleted: false
+            };
+            
+            this.salesCollection.where(query)
+                .execute()
+                .then(sales => {
+                    resolve(sales);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        }); 
+    }
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
@@ -247,6 +269,10 @@ module.exports = class SalesManager {
                 errors["storeId"] = "storeId is required"; 
             if (!sales.salesDetail.paymentType || sales.salesDetail.paymentType == '')
                 salesDetailError["paymentType"] = "paymentType is required";
+            if (sales.date == undefined || sales.date == "yyyy/mm/dd" || sales.date == "")
+                errors["date"] = "date is required"; 
+            else
+                valid.date = new Date(sales.date);
             
             for (var prop in salesDetailError) {
                 errors["salesDetail"] = salesDetailError;
