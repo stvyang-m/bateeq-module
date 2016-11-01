@@ -6,7 +6,7 @@ var testData;
 
 function getData() {
     var rewardType = testData.rewardTypes["RT-DISKON"];
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.items["UT-AV1"];
     var stores = [];
     stores.push(testData.stores["ST-FNG"]);
     stores.push(testData.stores["ST-BJB"]);
@@ -39,8 +39,8 @@ function getData() {
     promoDiscount.rewardType = rewardType;
     
     var promoProduct = new PromoProduct();
-    promoProduct.articleVariantId = variant._id;
-    promoProduct.articleVariant = variant;
+    promoProduct.itemId = variant._id;
+    promoProduct.item = variant;
     promoProduct.promoDiscount = promoDiscount;
 
     promo.promoProducts.push(promoProduct);

@@ -19,8 +19,8 @@ module.exports = class SalesManager {
         this.user = user;
         this.salesCollection = this.db.use(map.sales.SalesDoc);
         
-        var ArticleVariantManager = require('../core/article/article-variant-manager');
-        this.articleVariantManager = new ArticleVariantManager(db, user);
+        var ItemManager = require('../master/item-manager');
+        this.itemManager = new ItemManager(db, user);
         
         var StoreManager = require('../master/store-manager');
         this.storeManager = new StoreManager(db, user); 
@@ -83,7 +83,7 @@ module.exports = class SalesManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -101,7 +101,7 @@ module.exports = class SalesManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -109,7 +109,7 @@ module.exports = class SalesManager {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(sales => {
                     resolve(sales);
                 })
@@ -148,7 +148,7 @@ module.exports = class SalesManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
             this.salesCollection
                 .singleOrDefault(query)
@@ -264,14 +264,14 @@ module.exports = class SalesManager {
                         code: valid.code
                     }]
             });  
-            var getStore = this.storeManager.getByIdOrDefault(sales.storeId);
-            var getBank = this.bankManager.getByIdOrDefault(sales.salesDetail.bankId);
-            var getCardType = this.cardTypeManager.getByIdOrDefault(sales.salesDetail.cardTypeId);
+            var getStore = this.storeManager.getSingleByIdOrDefault(sales.storeId);
+            var getBank = this.bankManager.getSingleByIdOrDefault(sales.salesDetail.bankId);
+            var getCardType = this.cardTypeManager.getSingleByIdOrDefault(sales.salesDetail.cardTypeId);
             var getVoucher = Promise.resolve(null);
             var getItems = [];
             if (valid.items && valid.items.length > 0) {
                 for (var item of valid.items) {  
-                    getItems.push(this.articleVariantManager.getByIdOrDefault(item.articleVariantId));
+                    getItems.push(this.itemManager.getSingleByIdOrDefault(item.articleVariantId));
                 }
             }
             else {
@@ -499,7 +499,7 @@ module.exports = class SalesManager {
 
                     var getStocks = [];
                     for (var variant of articleVariants) {
-                        getStocks.push(this.inventoryManager.getByStorageIdAndArticleVarianIdOrDefault(_store.storageId, variant._id));
+                        getStocks.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(_store.storageId, variant._id));
                     } 
                     Promise.all(getStocks) 
                         .then(resultStocks => { 

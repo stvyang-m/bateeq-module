@@ -7,7 +7,7 @@ var testData;
 function getData() {
     var source = testData.storages["UT-FNG"];
     var destination = testData.storages["UT-BJB"];
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.items["UT-AV1"];
 
 
     var TransferInDoc = require('bateeq-models').inventory.TransferInDoc;
@@ -29,7 +29,8 @@ function getData() {
     transferInDoc.remark = `remark for ${code}`;
 
     transferInDoc.items.push(new TransferInItem({
-        articleVariantId: variant._id,
+        itemId: variant._id,
+        item:variant,
         quantity: 5,
         remark: 'transferInDoc.test'
     }));
@@ -51,6 +52,9 @@ before('#00. connect db', function(done) {
                     testData = result;
 
                     done();
+                })
+                .catch(e => {
+                    done(e);
                 });
         })
         .catch(e => {
@@ -84,7 +88,7 @@ it(`#02. should success when get created data with id`, function(done) {
         })
         .catch(e => {
             done(e);
-        })
+        });
 });
 
 it(`#03. should success when update created data`, function(done) {
@@ -184,13 +188,13 @@ it('#08. should error with property items minimum one', function(done) {
             catch (ex) {
                 done(ex);
             }
-        })
+        });
 });
 
 it('#09. should error with property items must be greater one', function(done) {
     manager.create({
             items: [{}, {
-                articleVariantId: '578dd8a976d4f1003e0d7a3f'
+                itemId: '578dd8a976d4f1003e0d7a3f'
             }, {
                 quantity: 0
             }]
@@ -206,7 +210,7 @@ it('#09. should error with property items must be greater one', function(done) {
                 e.errors.should.have.property('items');
                 e.errors.items.should.Array();
                 for (var i of e.errors.items) {
-                    i.should.have.property('articleVariantId');
+                    i.should.have.property('itemId');
                     i.should.have.property('quantity');
                 }
                 done();
@@ -214,5 +218,5 @@ it('#09. should error with property items must be greater one', function(done) {
             catch (ex) {
                 done(ex);
             }
-        })
+        });
 });

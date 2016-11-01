@@ -8,7 +8,7 @@ var testData;
 function getData() {
     var source = testData.storages["UT-FNG"];
     var destination = testData.storages["UT-BJB"];
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.items["UT-AV1"];
 
     var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
     var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
@@ -24,7 +24,7 @@ function getData() {
     transferOutDoc.sourceId = source._id;
     transferOutDoc.reference = `reference for ${code}`;
     transferOutDoc.remark = `remark for ${code}`;
-    transferOutDoc.items.push(new TransferOutItem({ articleVariantId: variant._id, quantity: 1, remark: 'transferOutDoc.test' }));
+    transferOutDoc.items.push(new TransferOutItem({ itemId: variant._id, quantity: 1, remark: 'transferOutDoc.test' }));
 
     return transferOutDoc;
 
@@ -33,8 +33,8 @@ function getData() {
 function getDataHp() {
     var source = testData.storages["UT-FNG"];
     var destination = testData.storages["UT-FNG"];
-    var variant = testData.variants["UT-AV1"];
-    var variantComponent = testData.variants["UT-AV2"];
+    var variant = testData.items["UT-AV1"];
+    var variantComponent = testData.items["UT-AV2"];
 
     var finishingDoc = {};
     var now = new Date();
@@ -50,10 +50,10 @@ function getDataHp() {
 
     var item = {};
     item.quantity = 1;
-    item.articleVariantId = variant._id;
-    item.articleVariant = variant;
-    item.articleVariant.finishings = [];
-    item.articleVariant.finishings.push({ articleVariantId: variantComponent._id, quantity: 1, articleVariant: variantComponent });
+    item.itemId = variant._id;
+    item.item = variant;
+    item.item.finishings = [];
+    item.item.finishings.push({ itemId: variantComponent._id, quantity: 1, item: variantComponent });
     finishingDoc.items.push(item);
 
     return finishingDoc;
@@ -227,7 +227,7 @@ it('#10. should error with property items must be greater one', function (done) 
         .then(HpDataByCode => {
             var data = getData();
             data.reference = HpDataByCode.code;
-            data.items = [{ articleVariantId: '578dd8a976d4f1003e0d7a3f' },
+            data.items = [{ itemId: '578dd8a976d4f1003e0d7a3f' },
                 { quantity: 0 }];
             manager.create(data)
                 .then(id => {

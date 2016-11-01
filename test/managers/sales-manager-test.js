@@ -7,7 +7,7 @@ function getData() {
     var store = testData.stores["ST-FNG"]; 
     var bank = testData.banks["BA-BCA"];                    //BCA, MANDIRI, BRI, dkk
     var cardType = testData.cardTypes["CT-VISA"];           //CARD, MASTERCARD, VISA
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.items["UT-AV1"];
  
     var Sales = require('bateeq-models').sales.Sales;
     var SalesItem = require('bateeq-models').sales.SalesItem;
@@ -28,8 +28,8 @@ function getData() {
     sales.store = store;  
 
     sales.items.push(new SalesItem({
-        articleVariantId: variant._id,
-        articleVariant: variant,
+        itemId: variant._id,
+        item: variant,
         quantity: 1,
         price: 100000,
         discount1: 0,

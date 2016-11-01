@@ -8,29 +8,29 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.core.article.ArticleApproval;
-var ArticleBrand = BateeqModels.core.article.ArticleBrand;
-var ArticleCategory = BateeqModels.core.article.ArticleCategory;
-var ArticleColor = BateeqModels.core.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.core.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.core.article.ArticleCostCalculation;
-var ArticleCounter = BateeqModels.core.article.ArticleCounter;
-var ArticleMaterial = BateeqModels.core.article.ArticleMaterial;
-var ArticleMotif = BateeqModels.core.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.core.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.core.article.ArticleSeason;
-var ArticleSize = BateeqModels.core.article.ArticleSize;
-var ArticleSubCounter = BateeqModels.core.article.ArticleSubCounter;
-var ArticleTheme = BateeqModels.core.article.ArticleTheme;
-var ArticleType = BateeqModels.core.article.ArticleType;
-var ArticleVariant = BateeqModels.core.article.ArticleVariant;
-var Article = BateeqModels.core.article.Article;
+var ArticleApproval = BateeqModels.master.article.ArticleApproval;
+var ArticleBrand = BateeqModels.master.article.ArticleBrand;
+var ArticleCategory = BateeqModels.master.article.ArticleCategory;
+var ArticleColor = BateeqModels.master.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.master.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.master.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.master.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.master.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.master.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.master.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.master.article.ArticleSeason;
+var ArticleSize = BateeqModels.master.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.master.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.master.article.ArticleTheme;
+var ArticleType = BateeqModels.master.article.ArticleType;
+var ArticleVariant = BateeqModels.master.article.ArticleVariant;
+var Article = BateeqModels.master.article.Article;
 
-module.exports = class ArticleOriginManager {
+module.exports = class ArticleCounterManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleOriginCollection = this.db.use(map.core.article.ArticleOrigin);
+        this.articleCounterCollection = this.db.use(map.master.article.ArticleCounter);
     }
 
     read(paging) {
@@ -69,13 +69,13 @@ module.exports = class ArticleOriginManager {
             }
 
 
-            this.articleOriginCollection
+            this.articleCounterCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleOrigins => {
-                    resolve(articleOrigins);
+                .then(articleCounters => {
+                    resolve(articleCounters);
                 })
                 .catch(e => {
                     reject(e);
@@ -83,7 +83,7 @@ module.exports = class ArticleOriginManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -92,16 +92,15 @@ module.exports = class ArticleOriginManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(articleOrigin => {
-                    resolve(articleOrigin);
+                .then(articleCounter => {
+                    resolve(articleCounter);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
     }
-
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -109,9 +108,9 @@ module.exports = class ArticleOriginManager {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
-                .then(articleOrigin => {
-                    resolve(articleOrigin);
+            this.getSingleByQueryOrDefault(query)
+                .then(articleCounter => {
+                    resolve(articleCounter);
                 })
                 .catch(e => {
                     reject(e);
@@ -121,22 +120,23 @@ module.exports = class ArticleOriginManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleOriginCollection
+            this.articleCounterCollection
                 .single(query)
-                .then(articleOrigin => {
-                    resolve(articleOrigin);
+                .then(articleCounter => {
+                    resolve(articleCounter);
                 })
                 .catch(e => {
                     reject(e);
                 });
         })
     }
-    getSingleOrDefaultByQuery(query) {
+
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.articleOriginCollection
+            this.articleCounterCollection
                 .singleOrDefault(query)
-                .then(articleOrigin => {
-                    resolve(articleOrigin);
+                .then(articleCounter => {
+                    resolve(articleCounter);
                 })
                 .catch(e => {
                     reject(e);
@@ -144,12 +144,12 @@ module.exports = class ArticleOriginManager {
         })
     }
 
-    create(articleOrigin) {
+    create(articleCounter) {
         return new Promise((resolve, reject) => {
-            this._validate(articleOrigin)
-                .then(validArticleOrigin => {
+            this._validate(articleCounter)
+                .then(validArticleCounter => {
 
-                    this.articleOriginCollection.insert(validArticleOrigin)
+                    this.articleCounterCollection.insert(validArticleCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -163,11 +163,11 @@ module.exports = class ArticleOriginManager {
         });
     }
 
-    update(articleOrigin) {
+    update(articleCounter) {
         return new Promise((resolve, reject) => {
-            this._validate(articleOrigin)
-                .then(validArticleOrigin => {
-                    this.articleOriginCollection.update(validArticleOrigin)
+            this._validate(articleCounter)
+                .then(validArticleCounter => {
+                    this.articleCounterCollection.update(validArticleCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -181,12 +181,12 @@ module.exports = class ArticleOriginManager {
         });
     }
 
-    delete(articleOrigin) {
+    delete(articleCounter) {
         return new Promise((resolve, reject) => {
-            this._validate(articleOrigin)
-                .then(validArticleOrigin => {
-                    validArticleOrigin._deleted = true;
-                    this.articleOriginCollection.update(validArticleOrigin)
+            this._validate(articleCounter)
+                .then(validArticleCounter => {
+                    validArticleCounter._deleted = true;
+                    this.articleCounterCollection.update(validArticleCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -201,12 +201,12 @@ module.exports = class ArticleOriginManager {
     }
 
 
-    _validate(articleOrigin) {
+    _validate(articleCounter) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new ArticleOrigin(articleOrigin);
-            //1.begin: Declare promises.
-            var getArticleMotif = this.articleOriginCollection.singleOrDefault({
+            var valid = new ArticleCounter(articleCounter);
+            // 1. begin: Declare promises.
+            var getArticleCounter = this.articleCounterCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
@@ -215,23 +215,56 @@ module.exports = class ArticleOriginManager {
                     code: valid.code
                 }]
             });
-            //1. end:Declare promises.
+            // 1. end: Declare promises.
 
-            //2.begin: Validation 
-            Promise.all([getArticleMotif])
+            // 2. begin: Validation.
+            Promise.all([getArticleCounter])
                 .then(results => {
-                    var _articleMotif = results[0];
+                    var _articleCounter = results[0];
 
                     if (!valid.code || valid.code == '')
                         errors["code"] = "code is required";
-                    else if (_articleMotif) {
+                    else if (_articleCounter) {
                         errors["code"] = "code already exists";
                     }
 
                     if (!valid.name || valid.name == '')
                         errors["name"] = "name is required";
 
-                    // 2a. begin: check if data has any error, reject if it has.
+                    // 2a. begin: Validate error on item level.
+                    var itemErrors = [];
+                    for (var item of valid.subCounters) {
+                        var itemError = {};
+
+                        if (!item.code || item.code == '') {
+                            itemError["code"] = "code is required";
+                        }
+                        else {
+                            for (var i = valid.subCounters.indexOf(item) + 1; i < valid.subCounters.length; i++) {
+                                var otherItem = valid.subCounters[i];
+                                if (item.code == otherItem.code) {
+                                    itemError["code"] = "code already exists on another sub-counter";
+                                }
+                            }
+                        }
+
+                        if (!item.name || item.name == '') {
+                            itemError["name"] = "name is required";
+                        }
+                        itemErrors.push(itemError);
+                    }
+                    // 2a. end: Validate error on item level.
+                    // 2b. add item level errors to parent error, if any.
+                    for (var itemError of itemErrors) {
+                        for (var prop in itemError) {
+                            errors.subCounters = itemErrors;
+                            break;
+                        }
+                        if (errors.subCounters)
+                            break;
+                    }
+
+                    // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
                         var ValidationError = require('../../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));

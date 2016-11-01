@@ -20,8 +20,8 @@ module.exports = class TransferInDocManager {
         var StorageManager = require('./storage-manager');
         this.storageManager = new StorageManager(db, user);
 
-        var ArticleVariantManager = require('../core/article/article-variant-manager');
-        this.articleVariantManager = new ArticleVariantManager(db, user);
+        var ItemManager = require('../master/item-manager');
+        this.itemManager = new ItemManager(db, user);
 
         var InventoryManager = require('./inventory-manager');
         this.inventoryManager = new InventoryManager(db, user);
@@ -72,7 +72,7 @@ module.exports = class TransferInDocManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
@@ -88,13 +88,13 @@ module.exports = class TransferInDocManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(transferInDoc => {
                     resolve(transferInDoc);
                 })
@@ -117,7 +117,7 @@ module.exports = class TransferInDocManager {
         })
     }
     
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
             this.transferInDocCollection
                 .singleOrDefault(query)
@@ -137,7 +137,7 @@ module.exports = class TransferInDocManager {
                     var tasks = [this.transferInDocCollection.insert(validTransferInDoc)];
 
                     for (var item of validTransferInDoc.items) {
-                        tasks.push(this.inventoryManager.in(validTransferInDoc.destinationId, validTransferInDoc.code, item.articleVariantId, item.quantity, item.remark));
+                        tasks.push(this.inventoryManager.in(validTransferInDoc.destinationId, validTransferInDoc.code, item.itemId, item.quantity, item.remark));
                     }
 
                     Promise.all(tasks)
@@ -209,15 +209,16 @@ module.exports = class TransferInDocManager {
             });
             // 1. end: Declare promises.
 
-            var getSource = this.storageManager.getByIdOrDefault(transferInDoc.sourceId);
-            var getDestination = this.storageManager.getByIdOrDefault(transferInDoc.destinationId);
+            var getSource = this.storageManager.getSingleByIdOrDefault(transferInDoc.sourceId);
+            var getDestination = this.storageManager.getSingleByIdOrDefault(transferInDoc.destinationId);
             var getItems = [];
 
             if (valid.items && valid.items.length > 0) {
                 for (var item of valid.items) {
-                    getItems.push(this.articleVariantManager.getByIdOrDefault(item.articleVariantId));
+                    getItems.push(this.itemManager.getSingleByIdOrDefault(item.itemId));
                 }
             }
+            
             else {
                 errors["items"] = "items is required";
             }
@@ -253,38 +254,38 @@ module.exports = class TransferInDocManager {
                         valid.destinationId = destination._id;
                         valid.destination = destination;
                     } 
-                    var articleVariants = results.slice(3, results.length)
+                    var items = results.slice(3, results.length)
                     // 2a. begin: Validate error on item level.
-                    if (articleVariants.length > 0) {
+                    if (items.length > 0) {
                         var itemErrors = [];
-                        for (var variant of articleVariants) {
-                            var index = articleVariants.indexOf(variant);
+                        for (var variant of items) {
+                            var index = items.indexOf(variant);
                             var item = valid.items[index];
                             var itemError = {};
 
-                            if (!item.articleVariantId || item.articleVariantId == '') {
-                                itemError["articleVariantId"] = "articleVariantId is required";
+                            if (!item.itemId || item.itemId == '') {
+                                itemError["itemId"] = "itemId is required";
                             }
                             else {
                                 for (var i = valid.items.indexOf(item) + 1; i < valid.items.length; i++) {
                                     var otherItem = valid.items[i];
-                                    if (item.articleVariantId == otherItem.articleVariantId) {
-                                        itemError["articleVariantId"] = "articleVariantId already exists on another detail";
+                                    if (item.itemId == otherItem.itemId) {
+                                        itemError["itemId"] = "itemId already exists on another detail";
                                     }
                                 }
                             }
                             if (!variant) {
-                                itemError["articleVariantId"] = "articleVariantId not found";
+                                itemError["itemId"] = "itemId not found";
                             }
                             else {
-                                item.articleVariantId = variant._id;
-                                item.articleVariant = variant;
+                                item.itemId = variant._id;
+                                item.item = variant;
                             }
 
                             if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
                                 itemError["quantity"] = "quantity is required";
                             }
-                            else if (parseInt(item.quantity) <= 0) {
+                            else if (parseInt(item.quantity,10) <= 0) {
                                 itemError["quantity"] = "quantity must be greater than 0";
                             }
                             itemErrors.push(itemError);
@@ -308,7 +309,7 @@ module.exports = class TransferInDocManager {
                     }
                     valid = new TransferInDoc(valid);
                     valid.stamp(this.user.username, 'manager');
-                    resolve(valid)
+                    resolve(valid);
                 })
                 .catch(e => {
                     reject(e);

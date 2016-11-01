@@ -1,10 +1,10 @@
 var should = require('should');
 var helper = require('../helper');
-var validate = require('bateeq-models').validator.core.article;
+var validate = require('bateeq-models').validator.master.article;
 var manager;
 
 function getData() {
-    var ArticleCategory = require('bateeq-models').core.article.ArticleCategory;
+    var ArticleCategory = require('bateeq-models').master.article.ArticleCategory;
     var articleCategory = new ArticleCategory();
 
     var now = new Date();
@@ -21,7 +21,7 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var ArticleCategoryManager = require('../../src/managers/core/article/article-category-manager');
+            var ArticleCategoryManager = require('../../src/managers/master/article/article-category-manager');
             manager = new ArticleCategoryManager(db, {
                 username: 'unit-test'
             });

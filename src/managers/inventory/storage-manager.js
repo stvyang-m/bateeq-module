@@ -68,7 +68,7 @@ module.exports = class StorageManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -86,7 +86,7 @@ module.exports = class StorageManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {  
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -94,7 +94,7 @@ module.exports = class StorageManager {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(storage => {
                     resolve(storage);
                 })
@@ -133,7 +133,7 @@ module.exports = class StorageManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
             this.storageCollection
                 .singleOrDefault(query)

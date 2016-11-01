@@ -2,21 +2,20 @@
 
 // external deps 
 var ObjectId = require('mongodb').ObjectId;
-var sha1 = require("sha1");
 
 // internal deps
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var Account = BateeqModels.core.Account;
+var Module = BateeqModels.master.Module;
 
 
-module.exports = class AccountManager {
+module.exports = class ModuleManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.accountCollection = this.db.use(map.core.Account);
+        this.moduleCollection = this.db.use(map.master.Module);
     }
 
     read(paging) {
@@ -37,26 +36,31 @@ module.exports = class AccountManager {
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterUsername = {
-                    'username': {
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterName = {
+                    'name': {
                         '$regex': regex
                     }
                 };
                 var $or = {
-                    '$or': [filterUsername]
+                    '$or': [filterCode, filterName]
                 };
 
                 query['$and'].push($or);
             }
 
 
-            this.accountCollection
+            this.moduleCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(accounts => {
-                    resolve(accounts);
+                .then(modules => {
+                    resolve(modules);
                 })
                 .catch(e => {
                     reject(e);
@@ -64,7 +68,7 @@ module.exports = class AccountManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -73,8 +77,8 @@ module.exports = class AccountManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(account => {
-                    resolve(account);
+                .then(module => {
+                    resolve(module);
                 })
                 .catch(e => {
                     reject(e);
@@ -82,7 +86,25 @@ module.exports = class AccountManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getByCode(code) {
+        return new Promise((resolve, reject) => {
+            if (code === '')
+                resolve(null);
+            var query = {
+                code: code,
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(module => {
+                    resolve(module);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -90,46 +112,9 @@ module.exports = class AccountManager {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
-                .then(account => {
-                    resolve(account);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getByUsername(username) {
-        return new Promise((resolve, reject) => {
-            if (username === '')
-                resolve(null);
-            var query = {
-                username: new ObjectId(username),
-                _deleted: false
-            };
-            this.getSingleByQuery(query)
-                .then(account => {
-                    resolve(account);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-    
-    getByUsernameAndPassword(username, password) {
-        return new Promise((resolve, reject) => {
-            if (username === '')
-                resolve(null);
-            var query = {
-                username: username,
-                password: sha1(password),
-                _deleted: false
-            };
-            this.getSingleByQuery(query)
-                .then(account => {
-                    resolve(account);
+            this.getSingleByQueryOrDefault(query)
+                .then(module => {
+                    resolve(module);
                 })
                 .catch(e => {
                     reject(e);
@@ -139,10 +124,10 @@ module.exports = class AccountManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.accountCollection
+            this.moduleCollection
                 .single(query)
-                .then(account => {
-                    resolve(account);
+                .then(module => {
+                    resolve(module);
                 })
                 .catch(e => {
                     reject(e);
@@ -150,12 +135,12 @@ module.exports = class AccountManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.accountCollection
+            this.moduleCollection
                 .singleOrDefault(query)
-                .then(account => {
-                    resolve(account);
+                .then(module => {
+                    resolve(module);
                 })
                 .catch(e => {
                     reject(e);
@@ -163,12 +148,12 @@ module.exports = class AccountManager {
         })
     }
 
-    create(account) {
+    create(module) {
         return new Promise((resolve, reject) => {
-            this._validate(account)
-                .then(validAccount => {
-                    validAccount.password = sha1(validAccount.password);
-                    this.accountCollection.insert(validAccount)
+            this._validate(module)
+                .then(validModule => {
+
+                    this.moduleCollection.insert(validModule)
                         .then(id => {
                             resolve(id);
                         })
@@ -182,11 +167,11 @@ module.exports = class AccountManager {
         });
     }
 
-    update(account) {
+    update(module) {
         return new Promise((resolve, reject) => {
-            this._validate(account)
-                .then(validAccount => {
-                    this.accountCollection.update(validAccount)
+            this._validate(module)
+                .then(validModule => {
+                    this.moduleCollection.update(validModule)
                         .then(id => {
                             resolve(id);
                         })
@@ -200,12 +185,12 @@ module.exports = class AccountManager {
         });
     }
 
-    delete(account) {
+    delete(module) {
         return new Promise((resolve, reject) => {
-            this._validate(account)
-                .then(validAccount => {
-                    validAccount._deleted = true;
-                    this.accountCollection.update(validAccount)
+            this._validate(module)
+                .then(validModule => {
+                    validModule._deleted = true;
+                    this.moduleCollection.update(validModule)
                         .then(id => {
                             resolve(id);
                         })
@@ -218,43 +203,43 @@ module.exports = class AccountManager {
                 })
         });
     }
-
-    _validate(account) {
+ 
+    _validate(module) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = account;
+            var valid = new Module(module);
             // 1. begin: Declare promises.
-            var getAccount = this.accountCollection.singleOrDefault({
+            var getModule = this.moduleCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                    username: valid.username
-                }]
+                        code: valid.code
+                    }]
             });
             // 1. end: Declare promises.
 
             // 2. begin: Validation.
-            Promise.all([getAccount])
+            Promise.all([getModule])
                 .then(results => {
-                    var _account = results[0];
+                    var _module = results[0];
 
-                    if (!valid.username || valid.username == '')
-                        errors["username"] = "username is required";
-                    else if (_account) {
-                        errors["username"] = "username already exists";
+                    if (!valid.code || valid.code == '')
+                        errors["code"] = "code is required";
+                    else if (_module) {
+                        errors["code"] = "code already exists";
                     }
 
-                    if (!valid._id && (!valid.password || valid.name == ''))
-                        errors["password"] = "password is required";
+                    if (!valid.name || valid.name == '')
+                        errors["name"] = "name is required"; 
 
                     // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
                         var ValidationError = require('../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
-                    valid = new Account(account);
+
                     valid.stamp(this.user.username, 'manager');
                     resolve(valid);
                 })

@@ -8,29 +8,29 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.core.article.ArticleApproval;
-var ArticleBrand = BateeqModels.core.article.ArticleBrand;
-var ArticleCategory = BateeqModels.core.article.ArticleCategory;
-var ArticleColor = BateeqModels.core.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.core.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.core.article.ArticleCostCalculation;
-var ArticleCounter = BateeqModels.core.article.ArticleCounter;
-var ArticleMaterial = BateeqModels.core.article.ArticleMaterial;
-var ArticleMotif = BateeqModels.core.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.core.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.core.article.ArticleSeason;
-var ArticleSize = BateeqModels.core.article.ArticleSize;
-var ArticleSubCounter = BateeqModels.core.article.ArticleSubCounter;
-var ArticleTheme = BateeqModels.core.article.ArticleTheme;
-var ArticleType = BateeqModels.core.article.ArticleType;
-var ArticleVariant = BateeqModels.core.article.ArticleVariant;
-var Article = BateeqModels.core.article.Article;
+var ArticleApproval = BateeqModels.master.article.ArticleApproval;
+var ArticleBrand = BateeqModels.master.article.ArticleBrand;
+var ArticleCategory = BateeqModels.master.article.ArticleCategory;
+var ArticleColor = BateeqModels.master.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.master.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.master.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.master.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.master.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.master.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.master.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.master.article.ArticleSeason;
+var ArticleSize = BateeqModels.master.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.master.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.master.article.ArticleTheme;
+var ArticleType = BateeqModels.master.article.ArticleType;
+var ArticleVariant = BateeqModels.master.article.ArticleVariant;
+var Article = BateeqModels.master.article.Article;
 
-module.exports = class ArticleSubCounterManager {
+module.exports = class ArticleCategoryManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleSubCounterCollection = this.db.use(map.core.article.ArticleSubCounter);
+        this.articleCategoryCollection = this.db.use(map.master.article.ArticleCategory);
     }
 
     read(paging) {
@@ -69,13 +69,13 @@ module.exports = class ArticleSubCounterManager {
             }
 
 
-            this.articleSubCounterCollection
+            this.articleCategoryCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleSubCounters => {
-                    resolve(articleSubCounters);
+                .then(articleCategories => {
+                    resolve(articleCategories);
                 })
                 .catch(e => {
                     reject(e);
@@ -83,7 +83,7 @@ module.exports = class ArticleSubCounterManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -92,8 +92,8 @@ module.exports = class ArticleSubCounterManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(articleSubCategory => {
-                    resolve(articleSubCategory);
+                .then(articleCategory => {
+                    resolve(articleCategory);
                 })
                 .catch(e => {
                     reject(e);
@@ -101,7 +101,7 @@ module.exports = class ArticleSubCounterManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -109,9 +109,9 @@ module.exports = class ArticleSubCounterManager {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
-                .then(articleSubCategory => {
-                    resolve(articleSubCategory);
+            this.getSingleByQueryOrDefault(query)
+                .then(articleCategory => {
+                    resolve(articleCategory);
                 })
                 .catch(e => {
                     reject(e);
@@ -121,10 +121,10 @@ module.exports = class ArticleSubCounterManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleSubCounterCollection
+            this.articleCategoryCollection
                 .single(query)
-                .then(articleSubCategory => {
-                    resolve(articleSubCategory);
+                .then(articleCategory => {
+                    resolve(articleCategory);
                 })
                 .catch(e => {
                     reject(e);
@@ -132,12 +132,12 @@ module.exports = class ArticleSubCounterManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.articleSubCounterCollection
+            this.articleCategoryCollection
                 .singleOrDefault(query)
-                .then(articleSubCategory => {
-                    resolve(articleSubCategory);
+                .then(articleCategory => {
+                    resolve(articleCategory);
                 })
                 .catch(e => {
                     reject(e);
@@ -145,12 +145,12 @@ module.exports = class ArticleSubCounterManager {
         })
     }
 
-    create(articleSubCategory) {
+    create(articleCategory) {
         return new Promise((resolve, reject) => {
-            this._validate(articleSubCategory)
-                .then(validArticleSubCounter => {
+            this._validate(articleCategory)
+                .then(validArticleCategory => {
 
-                    this.articleSubCounterCollection.insert(validArticleSubCounter)
+                    this.articleCategoryCollection.insert(validArticleCategory)
                         .then(id => {
                             resolve(id);
                         })
@@ -164,11 +164,11 @@ module.exports = class ArticleSubCounterManager {
         });
     }
 
-    update(articleSubCategory) {
+    update(articleCategory) {
         return new Promise((resolve, reject) => {
-            this._validate(articleSubCategory)
-                .then(validArticleSubCounter => {
-                    this.articleSubCounterCollection.update(validArticleSubCounter)
+            this._validate(articleCategory)
+                .then(validArticleCategory => {
+                    this.articleCategoryCollection.update(validArticleCategory)
                         .then(id => {
                             resolve(id);
                         })
@@ -182,12 +182,12 @@ module.exports = class ArticleSubCounterManager {
         });
     }
 
-    delete(articleSubCategory) {
+    delete(articleCategory) {
         return new Promise((resolve, reject) => {
-            this._validate(articleSubCategory)
-                .then(validArticleSubCounter => {
-                    validArticleSubCounter._deleted = true;
-                    this.articleSubCounterCollection.update(validArticleSubCounter)
+            this._validate(articleCategory)
+                .then(validArticleCategory => {
+                    validArticleCategory._deleted = true;
+                    this.articleCategoryCollection.update(validArticleCategory)
                         .then(id => {
                             resolve(id);
                         })
@@ -202,12 +202,12 @@ module.exports = class ArticleSubCounterManager {
     }
 
 
-    _validate(articleSubCategory) {
+    _validate(articleCategory) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new ArticleSubCounter(articleSubCategory);
+            var valid = new ArticleCategory(articleCategory);
             //1.begin: Declare promises.
-            var getArticleMotif = this.articleSubCounterCollection.singleOrDefault({
+            var getArticleMotif = this.articleCategoryCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)

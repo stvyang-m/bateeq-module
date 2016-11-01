@@ -1,10 +1,10 @@
 var should = require('should');
 var helper = require('../helper');
-var validate = require('bateeq-models').validator.core.article;
+var validate = require('bateeq-models').validator.master.article;
 var manager;
 
 function getData() {
-    var ArticleSeason = require('bateeq-models').core.article.ArticleSeason;
+    var ArticleSeason = require('bateeq-models').master.article.ArticleSeason;
     var articleSeason = new ArticleSeason();
 
     var now = new Date();
@@ -21,7 +21,7 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var ArticleSeasonManager = require('../../src/managers/core/article/article-season-manager');
+            var ArticleSeasonManager = require('../../src/managers/master/article/article-season-manager');
             manager = new ArticleSeasonManager(db, {
                 username: 'unit-test'
             });

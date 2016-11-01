@@ -8,29 +8,29 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.core.article.ArticleApproval;
-var ArticleBrand = BateeqModels.core.article.ArticleBrand;
-var ArticleCategory = BateeqModels.core.article.ArticleCategory;
-var ArticleColor = BateeqModels.core.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.core.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.core.article.ArticleCostCalculation;
-var ArticleCounter = BateeqModels.core.article.ArticleCounter;
-var ArticleMaterial = BateeqModels.core.article.ArticleMaterial;
-var ArticleMotif = BateeqModels.core.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.core.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.core.article.ArticleSeason;
-var ArticleSize = BateeqModels.core.article.ArticleSize;
-var ArticleSubCounter = BateeqModels.core.article.ArticleSubCounter;
-var ArticleTheme = BateeqModels.core.article.ArticleTheme;
-var ArticleType = BateeqModels.core.article.ArticleType;
-var ArticleVariant = BateeqModels.core.article.ArticleVariant;
-var Article = BateeqModels.core.article.Article;
+var ArticleApproval = BateeqModels.master.article.ArticleApproval;
+var ArticleBrand = BateeqModels.master.article.ArticleBrand;
+var ArticleCategory = BateeqModels.master.article.ArticleCategory;
+var ArticleColor = BateeqModels.master.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.master.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.master.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.master.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.master.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.master.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.master.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.master.article.ArticleSeason;
+var ArticleSize = BateeqModels.master.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.master.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.master.article.ArticleTheme;
+var ArticleType = BateeqModels.master.article.ArticleType;
+var ArticleVariant = BateeqModels.master.article.ArticleVariant;
+var Article = BateeqModels.master.article.Article;
 
-module.exports = class ArticleCounterManager {
+module.exports = class ArticleSubCounterManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleCounterCollection = this.db.use(map.core.article.ArticleCounter);
+        this.articleSubCounterCollection = this.db.use(map.master.article.ArticleSubCounter);
     }
 
     read(paging) {
@@ -69,13 +69,13 @@ module.exports = class ArticleCounterManager {
             }
 
 
-            this.articleCounterCollection
+            this.articleSubCounterCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleCounters => {
-                    resolve(articleCounters);
+                .then(articleSubCounters => {
+                    resolve(articleSubCounters);
                 })
                 .catch(e => {
                     reject(e);
@@ -83,7 +83,7 @@ module.exports = class ArticleCounterManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -92,15 +92,16 @@ module.exports = class ArticleCounterManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(articleCounter => {
-                    resolve(articleCounter);
+                .then(articleSubCategory => {
+                    resolve(articleSubCategory);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
     }
-    getByIdOrDefault(id) {
+
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -108,9 +109,9 @@ module.exports = class ArticleCounterManager {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
-                .then(articleCounter => {
-                    resolve(articleCounter);
+            this.getSingleByQueryOrDefault(query)
+                .then(articleSubCategory => {
+                    resolve(articleSubCategory);
                 })
                 .catch(e => {
                     reject(e);
@@ -120,10 +121,10 @@ module.exports = class ArticleCounterManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleCounterCollection
+            this.articleSubCounterCollection
                 .single(query)
-                .then(articleCounter => {
-                    resolve(articleCounter);
+                .then(articleSubCategory => {
+                    resolve(articleSubCategory);
                 })
                 .catch(e => {
                     reject(e);
@@ -131,12 +132,12 @@ module.exports = class ArticleCounterManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.articleCounterCollection
+            this.articleSubCounterCollection
                 .singleOrDefault(query)
-                .then(articleCounter => {
-                    resolve(articleCounter);
+                .then(articleSubCategory => {
+                    resolve(articleSubCategory);
                 })
                 .catch(e => {
                     reject(e);
@@ -144,12 +145,12 @@ module.exports = class ArticleCounterManager {
         })
     }
 
-    create(articleCounter) {
+    create(articleSubCategory) {
         return new Promise((resolve, reject) => {
-            this._validate(articleCounter)
-                .then(validArticleCounter => {
+            this._validate(articleSubCategory)
+                .then(validArticleSubCounter => {
 
-                    this.articleCounterCollection.insert(validArticleCounter)
+                    this.articleSubCounterCollection.insert(validArticleSubCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -163,11 +164,11 @@ module.exports = class ArticleCounterManager {
         });
     }
 
-    update(articleCounter) {
+    update(articleSubCategory) {
         return new Promise((resolve, reject) => {
-            this._validate(articleCounter)
-                .then(validArticleCounter => {
-                    this.articleCounterCollection.update(validArticleCounter)
+            this._validate(articleSubCategory)
+                .then(validArticleSubCounter => {
+                    this.articleSubCounterCollection.update(validArticleSubCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -181,12 +182,12 @@ module.exports = class ArticleCounterManager {
         });
     }
 
-    delete(articleCounter) {
+    delete(articleSubCategory) {
         return new Promise((resolve, reject) => {
-            this._validate(articleCounter)
-                .then(validArticleCounter => {
-                    validArticleCounter._deleted = true;
-                    this.articleCounterCollection.update(validArticleCounter)
+            this._validate(articleSubCategory)
+                .then(validArticleSubCounter => {
+                    validArticleSubCounter._deleted = true;
+                    this.articleSubCounterCollection.update(validArticleSubCounter)
                         .then(id => {
                             resolve(id);
                         })
@@ -201,12 +202,12 @@ module.exports = class ArticleCounterManager {
     }
 
 
-    _validate(articleCounter) {
+    _validate(articleSubCategory) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new ArticleCounter(articleCounter);
-            // 1. begin: Declare promises.
-            var getArticleCounter = this.articleCounterCollection.singleOrDefault({
+            var valid = new ArticleSubCounter(articleSubCategory);
+            //1.begin: Declare promises.
+            var getArticleMotif = this.articleSubCounterCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
@@ -215,56 +216,23 @@ module.exports = class ArticleCounterManager {
                     code: valid.code
                 }]
             });
-            // 1. end: Declare promises.
+            //1. end:Declare promises.
 
-            // 2. begin: Validation.
-            Promise.all([getArticleCounter])
+            //2.begin: Validation 
+            Promise.all([getArticleMotif])
                 .then(results => {
-                    var _articleCounter = results[0];
+                    var _articleMotif = results[0];
 
                     if (!valid.code || valid.code == '')
                         errors["code"] = "code is required";
-                    else if (_articleCounter) {
+                    else if (_articleMotif) {
                         errors["code"] = "code already exists";
                     }
 
                     if (!valid.name || valid.name == '')
                         errors["name"] = "name is required";
 
-                    // 2a. begin: Validate error on item level.
-                    var itemErrors = [];
-                    for (var item of valid.subCounters) {
-                        var itemError = {};
-
-                        if (!item.code || item.code == '') {
-                            itemError["code"] = "code is required";
-                        }
-                        else {
-                            for (var i = valid.subCounters.indexOf(item) + 1; i < valid.subCounters.length; i++) {
-                                var otherItem = valid.subCounters[i];
-                                if (item.code == otherItem.code) {
-                                    itemError["code"] = "code already exists on another sub-counter";
-                                }
-                            }
-                        }
-
-                        if (!item.name || item.name == '') {
-                            itemError["name"] = "name is required";
-                        }
-                        itemErrors.push(itemError);
-                    }
-                    // 2a. end: Validate error on item level.
-                    // 2b. add item level errors to parent error, if any.
-                    for (var itemError of itemErrors) {
-                        for (var prop in itemError) {
-                            errors.subCounters = itemErrors;
-                            break;
-                        }
-                        if (errors.subCounters)
-                            break;
-                    }
-
-                    // 2c. begin: check if data has any error, reject if it has.
+                    // 2a. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
                         var ValidationError = require('../../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
