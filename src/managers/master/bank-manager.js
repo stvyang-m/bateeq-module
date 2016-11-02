@@ -68,7 +68,7 @@ module.exports = class BankManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -86,7 +86,7 @@ module.exports = class BankManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -94,7 +94,7 @@ module.exports = class BankManager {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(bank => {
                     resolve(bank);
                 })
@@ -133,7 +133,7 @@ module.exports = class BankManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
             this.bankCollection
                 .singleOrDefault(query)

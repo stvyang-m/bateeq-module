@@ -68,7 +68,7 @@ module.exports = class SupplierManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -86,7 +86,7 @@ module.exports = class SupplierManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -94,7 +94,7 @@ module.exports = class SupplierManager {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(supplier => {
                     resolve(supplier);
                 })
@@ -117,7 +117,7 @@ module.exports = class SupplierManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
             this.supplierCollection
                 .singleOrDefault(query)

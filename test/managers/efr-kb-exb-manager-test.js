@@ -11,7 +11,7 @@ function getData() {
             .then(data => {
                 var source = testData.storages["UT-FNG"];
                 var destination = testData.storages["UT-ST1"];
-                var variant = testData.variants["UT-AV1"];
+                var variant = testData.items["UT-AV1"];
                 var spk = data;
 
                 var expeditionDoc = {};

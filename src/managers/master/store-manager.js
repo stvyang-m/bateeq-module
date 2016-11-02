@@ -68,7 +68,7 @@ module.exports = class StoreManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -86,7 +86,7 @@ module.exports = class StoreManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -94,7 +94,7 @@ module.exports = class StoreManager {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(store => {
                     resolve(store);
                 })
@@ -133,7 +133,7 @@ module.exports = class StoreManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
             this.storeCollection
                 .singleOrDefault(query)

@@ -8,29 +8,30 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.core.article.ArticleApproval;
-var ArticleBrand = BateeqModels.core.article.ArticleBrand;
-var ArticleCategory = BateeqModels.core.article.ArticleCategory;
-var ArticleColor = BateeqModels.core.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.core.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.core.article.ArticleCostCalculation;
-var ArticleCounter = BateeqModels.core.article.ArticleCounter;
-var ArticleMaterial = BateeqModels.core.article.ArticleMaterial;
-var ArticleMotif = BateeqModels.core.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.core.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.core.article.ArticleSeason;
-var ArticleSize = BateeqModels.core.article.ArticleSize;
-var ArticleSubCounter = BateeqModels.core.article.ArticleSubCounter;
-var ArticleTheme = BateeqModels.core.article.ArticleTheme;
-var ArticleType = BateeqModels.core.article.ArticleType;
-var ArticleVariant = BateeqModels.core.article.ArticleVariant;
-var Article = BateeqModels.core.article.Article;
+var ArticleApproval = BateeqModels.master.article.ArticleApproval;
+var ArticleBrand = BateeqModels.master.article.ArticleBrand;
+var ArticleCategory = BateeqModels.master.article.ArticleCategory;
+var ArticleColor = BateeqModels.master.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.master.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.master.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.master.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.master.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.master.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.master.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.master.article.ArticleSeason;
+var ArticleSize = BateeqModels.master.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.master.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.master.article.ArticleTheme;
+var ArticleType = BateeqModels.master.article.ArticleType;
+var ArticleVariant = BateeqModels.master.article.ArticleVariant;
+var Article = BateeqModels.master.article.Article;
 
-module.exports = class ArticleMotifManager {
+module.exports = class ArticleManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleMotifCollection = this.db.use(map.core.article.ArticleMotif);
+        this.articleCollection = this.db.use(map.master.article.Article);
+        this.articleApprovalCollection = this.db.use(map.master.article.ArticleApproval);
     }
 
     read(paging) {
@@ -69,13 +70,13 @@ module.exports = class ArticleMotifManager {
             }
 
 
-            this.articleMotifCollection
+            this.articleCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleMotifs => {
-                    resolve(articleMotifs);
+                .then(articles => {
+                    resolve(articles);
                 })
                 .catch(e => {
                     reject(e);
@@ -83,17 +84,17 @@ module.exports = class ArticleMotifManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
+        if (id === '')
+            resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(articleMotif => {
-                    resolve(articleMotif);
+                .then(article => {
+                    resolve(article);
                 })
                 .catch(e => {
                     reject(e);
@@ -101,17 +102,17 @@ module.exports = class ArticleMotifManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
+        if (id === '')
+            resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleByQuery(query)
-                .then(articleMotif => {
-                    resolve(articleMotif);
+            this.getSingleByQueryOrDefault(query)
+                .then(article => {
+                    resolve(article);
                 })
                 .catch(e => {
                     reject(e);
@@ -121,10 +122,10 @@ module.exports = class ArticleMotifManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleMotifCollection
+            this.articleCollection
                 .single(query)
-                .then(articleMotif => {
-                    resolve(articleMotif);
+                .then(article => {
+                    resolve(article);
                 })
                 .catch(e => {
                     reject(e);
@@ -132,12 +133,12 @@ module.exports = class ArticleMotifManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.articleMotifCollection
+            this.articleCollection
                 .singleOrDefault(query)
-                .then(articleMotif => {
-                    resolve(articleMotif);
+                .then(article => {
+                    resolve(article);
                 })
                 .catch(e => {
                     reject(e);
@@ -145,12 +146,12 @@ module.exports = class ArticleMotifManager {
         })
     }
 
-    create(articleMotif) {
+    create(article) {
         return new Promise((resolve, reject) => {
-            this._validate(articleMotif)
-                .then(validArticleMotif => {
+            this._validate(article)
+                .then(validArticle => {
 
-                    this.articleMotifCollection.insert(validArticleMotif)
+                    this.articleCollection.insert(validArticle)
                         .then(id => {
                             resolve(id);
                         })
@@ -164,11 +165,11 @@ module.exports = class ArticleMotifManager {
         });
     }
 
-    update(articleMotif) {
+    update(article) {
         return new Promise((resolve, reject) => {
-            this._validate(articleMotif)
-                .then(validArticleMotif => {
-                    this.articleMotifCollection.update(validArticleMotif)
+            this._validate(article)
+                .then(validArticle => {
+                    this.articleCollection.update(validArticle)
                         .then(id => {
                             resolve(id);
                         })
@@ -182,12 +183,12 @@ module.exports = class ArticleMotifManager {
         });
     }
 
-    delete(articleMotif) {
+    delete(article) {
         return new Promise((resolve, reject) => {
-            this._validate(articleMotif)
-                .then(validArticleMotif => {
-                    validArticleMotif._deleted = true;
-                    this.articleMotifCollection.update(validArticleMotif)
+            this._validate(article)
+                .then(validArticle => {
+                    validArticle._deleted = true;
+                    this.articleCollection.update(validArticle)
                         .then(id => {
                             resolve(id);
                         })
@@ -202,20 +203,19 @@ module.exports = class ArticleMotifManager {
     }
 
 
-    _validate(articleMotif) {
+    _validate(article) {
         var errors = {};
-
         return new Promise((resolve, reject) => {
-            var valid = new ArticleMotif(articleMotif);
+            var valid = new Article(article);
             //1.begin: Declare promises.
-            var getArticleMotif = this.articleMotifCollection.singleOrDefault({
+            var getArticleMotif = this.articleCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                    code: valid.code
-                }]
+                        code: valid.code
+                    }]
             });
             //1. end:Declare promises.
 

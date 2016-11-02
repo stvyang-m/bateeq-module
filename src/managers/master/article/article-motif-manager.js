@@ -8,29 +8,29 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var ArticleApproval = BateeqModels.core.article.ArticleApproval;
-var ArticleBrand = BateeqModels.core.article.ArticleBrand;
-var ArticleCategory = BateeqModels.core.article.ArticleCategory;
-var ArticleColor = BateeqModels.core.article.ArticleColor;
-var ArticleCostCalculationDetail = BateeqModels.core.article.ArticleCostCalculationDetail;
-var ArticleCostCalculation = BateeqModels.core.article.ArticleCostCalculation;
-var ArticleCounter = BateeqModels.core.article.ArticleCounter;
-var ArticleMaterial = BateeqModels.core.article.ArticleMaterial;
-var ArticleMotif = BateeqModels.core.article.ArticleMotif;
-var ArticleOrigin = BateeqModels.core.article.ArticleOrigin;
-var ArticleSeason = BateeqModels.core.article.ArticleSeason;
-var ArticleSize = BateeqModels.core.article.ArticleSize;
-var ArticleSubCounter = BateeqModels.core.article.ArticleSubCounter;
-var ArticleTheme = BateeqModels.core.article.ArticleTheme;
-var ArticleType = BateeqModels.core.article.ArticleType;
-var ArticleVariant = BateeqModels.core.article.ArticleVariant;
-var Article = BateeqModels.core.article.Article;
+var ArticleApproval = BateeqModels.master.article.ArticleApproval;
+var ArticleBrand = BateeqModels.master.article.ArticleBrand;
+var ArticleCategory = BateeqModels.master.article.ArticleCategory;
+var ArticleColor = BateeqModels.master.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.master.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.master.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.master.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.master.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.master.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.master.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.master.article.ArticleSeason;
+var ArticleSize = BateeqModels.master.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.master.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.master.article.ArticleTheme;
+var ArticleType = BateeqModels.master.article.ArticleType;
+var ArticleVariant = BateeqModels.master.article.ArticleVariant;
+var Article = BateeqModels.master.article.Article;
 
-module.exports = class ArticleThemeManager {
+module.exports = class ArticleMotifManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.articleThemeCollection = this.db.use(map.core.article.ArticleTheme);
+        this.articleMotifCollection = this.db.use(map.master.article.ArticleMotif);
     }
 
     read(paging) {
@@ -69,13 +69,13 @@ module.exports = class ArticleThemeManager {
             }
 
 
-            this.articleThemeCollection
+            this.articleMotifCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(articleThemes => {
-                    resolve(articleThemes);
+                .then(articleMotifs => {
+                    resolve(articleMotifs);
                 })
                 .catch(e => {
                     reject(e);
@@ -83,15 +83,17 @@ module.exports = class ArticleThemeManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(articleStyle => {
-                    resolve(articleStyle);
+                .then(articleMotif => {
+                    resolve(articleMotif);
                 })
                 .catch(e => {
                     reject(e);
@@ -99,41 +101,43 @@ module.exports = class ArticleThemeManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
-                .then(articleStyle => {
-                    resolve(articleStyle);
+            this.getSingleByQuery(query)
+                .then(articleMotif => {
+                    resolve(articleMotif);
                 })
                 .catch(e => {
                     reject(e);
                 });
         });
     }
-    
+
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.articleThemeCollection
+            this.articleMotifCollection
                 .single(query)
-                .then(articleStyle => {
-                    resolve(articleStyle);
+                .then(articleMotif => {
+                    resolve(articleMotif);
                 })
                 .catch(e => {
                     reject(e);
                 });
         })
     }
-    
-    getSingleOrDefaultByQuery(query) {
+
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.articleThemeCollection
+            this.articleMotifCollection
                 .singleOrDefault(query)
-                .then(articleStyle => {
-                    resolve(articleStyle);
+                .then(articleMotif => {
+                    resolve(articleMotif);
                 })
                 .catch(e => {
                     reject(e);
@@ -141,12 +145,12 @@ module.exports = class ArticleThemeManager {
         })
     }
 
-    create(articleStyle) {
+    create(articleMotif) {
         return new Promise((resolve, reject) => {
-            this._validate(articleStyle)
-                .then(validArticleTheme => {
+            this._validate(articleMotif)
+                .then(validArticleMotif => {
 
-                    this.articleThemeCollection.insert(validArticleTheme)
+                    this.articleMotifCollection.insert(validArticleMotif)
                         .then(id => {
                             resolve(id);
                         })
@@ -160,11 +164,11 @@ module.exports = class ArticleThemeManager {
         });
     }
 
-    update(articleStyle) {
+    update(articleMotif) {
         return new Promise((resolve, reject) => {
-            this._validate(articleStyle)
-                .then(validArticleTheme => {
-                    this.articleThemeCollection.update(validArticleTheme)
+            this._validate(articleMotif)
+                .then(validArticleMotif => {
+                    this.articleMotifCollection.update(validArticleMotif)
                         .then(id => {
                             resolve(id);
                         })
@@ -178,12 +182,12 @@ module.exports = class ArticleThemeManager {
         });
     }
 
-    delete(articleStyle) {
+    delete(articleMotif) {
         return new Promise((resolve, reject) => {
-            this._validate(articleStyle)
-                .then(validArticleTheme => {
-                    validArticleTheme._deleted = true;
-                    this.articleThemeCollection.update(validArticleTheme)
+            this._validate(articleMotif)
+                .then(validArticleMotif => {
+                    validArticleMotif._deleted = true;
+                    this.articleMotifCollection.update(validArticleMotif)
                         .then(id => {
                             resolve(id);
                         })
@@ -196,38 +200,40 @@ module.exports = class ArticleThemeManager {
                 })
         });
     }
- 
-    _validate(articleStyle) {  
+
+
+    _validate(articleMotif) {
         var errors = {};
+
         return new Promise((resolve, reject) => {
-            var valid = new ArticleTheme(articleStyle);
-            // 1. begin: Declare promises.
-            var getArticleTheme = this.articleThemeCollection.singleOrDefault({
+            var valid = new ArticleMotif(articleMotif);
+            //1.begin: Declare promises.
+            var getArticleMotif = this.articleMotifCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: valid.code
+                }]
             });
-            // 1. end: Declare promises.
+            //1. end:Declare promises.
 
-            // 2. begin: Validation.
-            Promise.all([getArticleTheme])
+            //2.begin: Validation 
+            Promise.all([getArticleMotif])
                 .then(results => {
-                    var _articleTheme = results[0];
+                    var _articleMotif = results[0];
 
                     if (!valid.code || valid.code == '')
                         errors["code"] = "code is required";
-                    else if (_articleTheme) {
+                    else if (_articleMotif) {
                         errors["code"] = "code already exists";
                     }
 
                     if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required"; 
+                        errors["name"] = "name is required";
 
-                    // 2c. begin: check if data has any error, reject if it has.
+                    // 2a. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
                         var ValidationError = require('../../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));

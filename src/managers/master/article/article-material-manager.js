@@ -8,14 +8,29 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var Module = BateeqModels.core.Module;
+var ArticleApproval = BateeqModels.master.article.ArticleApproval;
+var ArticleBrand = BateeqModels.master.article.ArticleBrand;
+var ArticleCategory = BateeqModels.master.article.ArticleCategory;
+var ArticleColor = BateeqModels.master.article.ArticleColor;
+var ArticleCostCalculationDetail = BateeqModels.master.article.ArticleCostCalculationDetail;
+var ArticleCostCalculation = BateeqModels.master.article.ArticleCostCalculation;
+var ArticleCounter = BateeqModels.master.article.ArticleCounter;
+var ArticleMaterial = BateeqModels.master.article.ArticleMaterial;
+var ArticleMotif = BateeqModels.master.article.ArticleMotif;
+var ArticleOrigin = BateeqModels.master.article.ArticleOrigin;
+var ArticleSeason = BateeqModels.master.article.ArticleSeason;
+var ArticleSize = BateeqModels.master.article.ArticleSize;
+var ArticleSubCounter = BateeqModels.master.article.ArticleSubCounter;
+var ArticleTheme = BateeqModels.master.article.ArticleTheme;
+var ArticleType = BateeqModels.master.article.ArticleType;
+var ArticleVariant = BateeqModels.master.article.ArticleVariant;
+var Article = BateeqModels.master.article.Article;
 
-
-module.exports = class ModuleManager {
+module.exports = class ArticleMaterialManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.moduleCollection = this.db.use(map.core.Module);
+        this.articleMaterialCollection = this.db.use(map.master.article.ArticleMaterial);
     }
 
     read(paging) {
@@ -54,13 +69,13 @@ module.exports = class ModuleManager {
             }
 
 
-            this.moduleCollection
+            this.articleMaterialCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(modules => {
-                    resolve(modules);
+                .then(articleMaterials => {
+                    resolve(articleMaterials);
                 })
                 .catch(e => {
                     reject(e);
@@ -68,17 +83,17 @@ module.exports = class ModuleManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
+        if (id === '')
+            resolve(null);
         return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(module => {
-                    resolve(module);
+                .then(articleMaterial => {
+                    resolve(articleMaterial);
                 })
                 .catch(e => {
                     reject(e);
@@ -86,35 +101,17 @@ module.exports = class ModuleManager {
         });
     }
 
-    getByCode(code) {
+    getSingleByIdOrDefault(id) {
+        if (id === '')
+            resolve(null);
         return new Promise((resolve, reject) => {
-            if (code === '')
-                resolve(null);
-            var query = {
-                code: code,
-                _deleted: false
-            };
-            this.getSingleByQuery(query)
-                .then(module => {
-                    resolve(module);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
-                .then(module => {
-                    resolve(module);
+            this.getSingleByQueryOrDefault(query)
+                .then(articleMaterial => {
+                    resolve(articleMaterial);
                 })
                 .catch(e => {
                     reject(e);
@@ -124,23 +121,22 @@ module.exports = class ModuleManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.moduleCollection
+            this.articleMaterialCollection
                 .single(query)
-                .then(module => {
-                    resolve(module);
+                .then(articleMaterial => {
+                    resolve(articleMaterial);
                 })
                 .catch(e => {
                     reject(e);
                 });
         })
     }
-
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.moduleCollection
+            this.articleMaterialCollection
                 .singleOrDefault(query)
-                .then(module => {
-                    resolve(module);
+                .then(articleMaterial => {
+                    resolve(articleMaterial);
                 })
                 .catch(e => {
                     reject(e);
@@ -148,12 +144,12 @@ module.exports = class ModuleManager {
         })
     }
 
-    create(module) {
+    create(articleMaterial) {
         return new Promise((resolve, reject) => {
-            this._validate(module)
-                .then(validModule => {
+            this._validate(articleMaterial)
+                .then(validArticleMaterial => {
 
-                    this.moduleCollection.insert(validModule)
+                    this.articleMaterialCollection.insert(validArticleMaterial)
                         .then(id => {
                             resolve(id);
                         })
@@ -167,11 +163,11 @@ module.exports = class ModuleManager {
         });
     }
 
-    update(module) {
+    update(articleMaterial) {
         return new Promise((resolve, reject) => {
-            this._validate(module)
-                .then(validModule => {
-                    this.moduleCollection.update(validModule)
+            this._validate(articleMaterial)
+                .then(validArticleMaterial => {
+                    this.articleMaterialCollection.update(validArticleMaterial)
                         .then(id => {
                             resolve(id);
                         })
@@ -185,12 +181,12 @@ module.exports = class ModuleManager {
         });
     }
 
-    delete(module) {
+    delete(articleMaterial) {
         return new Promise((resolve, reject) => {
-            this._validate(module)
-                .then(validModule => {
-                    validModule._deleted = true;
-                    this.moduleCollection.update(validModule)
+            this._validate(articleMaterial)
+                .then(validArticleMaterial => {
+                    validArticleMaterial._deleted = true;
+                    this.articleMaterialCollection.update(validArticleMaterial)
                         .then(id => {
                             resolve(id);
                         })
@@ -203,13 +199,14 @@ module.exports = class ModuleManager {
                 })
         });
     }
- 
-    _validate(module) {
+
+
+    _validate(articleMaterial) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new Module(module);
-            // 1. begin: Declare promises.
-            var getModule = this.moduleCollection.singleOrDefault({
+            var valid = new ArticleMaterial(articleMaterial);
+            //1.begin: Declare promises.
+            var getArticleMotif = this.articleMaterialCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
@@ -218,25 +215,25 @@ module.exports = class ModuleManager {
                         code: valid.code
                     }]
             });
-            // 1. end: Declare promises.
+            //1. end:Declare promises.
 
-            // 2. begin: Validation.
-            Promise.all([getModule])
+            //2.begin: Validation 
+            Promise.all([getArticleMotif])
                 .then(results => {
-                    var _module = results[0];
+                    var _articleMotif = results[0];
 
                     if (!valid.code || valid.code == '')
                         errors["code"] = "code is required";
-                    else if (_module) {
+                    else if (_articleMotif) {
                         errors["code"] = "code already exists";
                     }
 
                     if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required"; 
+                        errors["name"] = "name is required";
 
-                    // 2c. begin: check if data has any error, reject if it has.
+                    // 2a. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
+                        var ValidationError = require('../../../validation-error');
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 

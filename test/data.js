@@ -48,7 +48,7 @@ function getSertStorages(db) {
         for (var storage of storages) {
             var promise = new Promise((resolve, reject) => {
                 var _storage = storage;
-                manager.getSingleOrDefaultByQuery({
+                manager.getSingleByQueryOrDefault({
                         code: _storage.code
                     })
                     .then(data => {
@@ -57,7 +57,7 @@ function getSertStorages(db) {
                         else {
                             manager.create(_storage)
                                 .then(id => {
-                                    manager.getById(id).then(createdData => {
+                                    manager.getSingleById(id).then(createdData => {
                                         resolve(createdData);
                                     });
                                 })
@@ -83,21 +83,24 @@ function getSertStorages(db) {
     });
 }
 
-function getSertVariants(db) {
+function getSertItems(db) {
 
     var variants = [{
         code: "UT-AV1",
         name: "Silhouette S[UT]",
         description: "Unit test data: article silhoutte [S]",
-        size: "S"
+        uom: "PCS",
+        components:[]
+        
     }, {
         code: "UT-AV2",
         name: "Dress Tumaruntum S[UT]",
         description: "Unit test data: article dress tumaruntum [S]",
-        size: "S"
+        uom: "PCS",
+        components:[]
     }];
 
-    var VariantManager = require("../src/managers/core/article/article-variant-manager");
+    var VariantManager = require("../src/managers/master/item-manager");
     return new Promise((resolve, reject) => {
         var manager = new VariantManager(db, {
             username: "unit-test"
@@ -107,7 +110,7 @@ function getSertVariants(db) {
         for (var variant of variants) {
             var promise = new Promise((resolve, reject) => {
                 var _variant = variant;
-                manager.getSingleOrDefaultByQuery({
+                manager.getSingleByQueryOrDefault({
                         code: _variant.code
                     })
                     .then(data => {
@@ -116,7 +119,7 @@ function getSertVariants(db) {
                         else {
                             manager.create(_variant)
                                 .then(id => {
-                                    manager.getById(id).then(createdData => {
+                                    manager.getSingleById(id).then(createdData => {
                                         resolve(createdData);
                                     });
                                 })
@@ -353,7 +356,7 @@ function getSertModules(db, storages) {
         }
     }];
 
-    var ModuleManager = require("../src/managers/core/module-manager");
+    var ModuleManager = require("../src/managers/master/module-manager");
     return new Promise((resolve, reject) => {
         var manager = new ModuleManager(db, {
             username: "unit-test"
@@ -363,7 +366,7 @@ function getSertModules(db, storages) {
         for (var module of modules) {
             var promise = new Promise((resolve, reject) => {
                 var _module = module;
-                manager.getSingleOrDefaultByQuery({
+                manager.getSingleByQueryOrDefault({
                         code: _module.code
                     })
                     .then(data => {
@@ -372,7 +375,7 @@ function getSertModules(db, storages) {
                         else {
                             manager.create(_module)
                                 .then(id => {
-                                    manager.getById(id).then(createdData => {
+                                    manager.getSingleById(id).then(createdData => {
                                         resolve(createdData);
                                     });
                                 })
@@ -415,7 +418,7 @@ function getSertSuppliers(db) {
         for (var supplier of suppliers) {
             var promise = new Promise((resolve, reject) => {
                 var _supplier = supplier;
-                manager.getSingleOrDefaultByQuery({
+                manager.getSingleByQueryOrDefault({
                         code: _supplier.code
                     })
                     .then(data => {
@@ -424,7 +427,7 @@ function getSertSuppliers(db) {
                         else {
                             manager.create(_supplier)
                                 .then(id => {
-                                    manager.getById(id).then(createdData => {
+                                    manager.getSingleById(id).then(createdData => {
                                         resolve(createdData);
                                     });
                                 })
@@ -529,7 +532,7 @@ function getSertStores(db, storages) {
         for (var store of stores) {
             var promise = new Promise((resolve, reject) => {
                 var _store = store;
-                manager.getSingleOrDefaultByQuery({
+                manager.getSingleByQueryOrDefault({
                         code: _store.code
                     })
                     .then(data => {
@@ -538,7 +541,7 @@ function getSertStores(db, storages) {
                         else {
                             manager.create(_store)
                                 .then(id => {
-                                    manager.getById(id).then(createdData => {
+                                    manager.getSingleById(id).then(createdData => {
                                         resolve(createdData);
                                     });
                                 })
@@ -591,7 +594,7 @@ function getSertBanks(db) {
         for (var bank of banks) {
             var promise = new Promise((resolve, reject) => {
                 var _bank = bank;
-                manager.getSingleOrDefaultByQuery({
+                manager.getSingleByQueryOrDefault({
                         code: _bank.code
                     })
                     .then(data => {
@@ -600,7 +603,7 @@ function getSertBanks(db) {
                         else {
                             manager.create(_bank)
                                 .then(id => {
-                                    manager.getById(id).then(createdData => {
+                                    manager.getSingleById(id).then(createdData => {
                                         resolve(createdData);
                                     });
                                 })
@@ -653,7 +656,7 @@ function getSertCardTypes(db) {
         for (var cardType of cardTypes) {
             var promise = new Promise((resolve, reject) => {
                 var _cardType = cardType;
-                manager.getSingleOrDefaultByQuery({
+                manager.getSingleByQueryOrDefault({
                         code: _cardType.code
                     })
                     .then(data => {
@@ -662,7 +665,7 @@ function getSertCardTypes(db) {
                         else {
                             manager.create(_cardType)
                                 .then(id => {
-                                    manager.getById(id).then(createdData => {
+                                    manager.getSingleById(id).then(createdData => {
                                         resolve(createdData);
                                     });
                                 })
@@ -723,7 +726,7 @@ function getSertRewardTypes(db) {
         for (var rewardType of rewardTypes) {
             var promise = new Promise((resolve, reject) => {
                 var _rewardType = rewardType;
-                manager.getSingleOrDefaultByQuery({
+                manager.getSingleByQueryOrDefault({
                         code: _rewardType.code
                     })
                     .then(data => {
@@ -732,7 +735,7 @@ function getSertRewardTypes(db) {
                         else {
                             manager.create(_rewardType)
                                 .then(id => {
-                                    manager.getById(id).then(createdData => {
+                                    manager.getSingleById(id).then(createdData => {
                                         resolve(createdData);
                                     });
                                 })
@@ -760,10 +763,10 @@ function getSertRewardTypes(db) {
 
 module.exports = function(db) {
     return new Promise((resolve, reject) => {
-        Promise.all([getSertStorages(db), getSertVariants(db), getSertSuppliers(db), getSertBanks(db), getSertCardTypes(db), getSertRewardTypes(db)])
+        Promise.all([getSertStorages(db), getSertItems(db), getSertSuppliers(db), getSertBanks(db), getSertCardTypes(db), getSertRewardTypes(db)])
             .then(results => {
                 var storages = {};
-                var variants = {};
+                var items = {};
                 var suppliers = {}; 
                 var banks = {};
                 var cardTypes = {};
@@ -773,7 +776,7 @@ module.exports = function(db) {
                     storages[storage.code] = storage;
 
                 for (var variant of results[1])
-                    variants[variant.code] = variant;
+                    items[variant.code] = variant;
                 
                 for (var supplier of results[2])
                     suppliers[supplier.code] = supplier; 
@@ -800,7 +803,7 @@ module.exports = function(db) {
 
                         resolve({
                             storages: storages,
-                            variants: variants,
+                            items: items,
                             suppliers : suppliers,
                             stores : stores,
                             banks : banks,

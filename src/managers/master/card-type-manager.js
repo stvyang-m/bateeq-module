@@ -68,7 +68,7 @@ module.exports = class CardTypeManager {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -86,7 +86,7 @@ module.exports = class CardTypeManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -94,7 +94,7 @@ module.exports = class CardTypeManager {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(cardType => {
                     resolve(cardType);
                 })
@@ -133,7 +133,7 @@ module.exports = class CardTypeManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
             this.cardTypeCollection
                 .singleOrDefault(query)
