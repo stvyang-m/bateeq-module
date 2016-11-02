@@ -89,7 +89,7 @@ module.exports = {
         map: merchandiserMap
     },
     master: {
-        ModuleManager: require('./src/managers/core/module-manager')
+        ModuleManager: require('./src/managers/core/module-manager'),
         BankManager: require('./src/managers/master/bank-manager'),
         CardTypeManager: require('./src/managers/master/card-type-manager'),
         StoreManager: require('./src/managers/master/store-manager')
