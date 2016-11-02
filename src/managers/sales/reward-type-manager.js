@@ -5,201 +5,64 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
+var BaseManager = require('../base-manager');
 var BateeqModels = require('bateeq-models');
-var map = BateeqModels.map;
-
 var RewardType = BateeqModels.sales.RewardType;
+var map = BateeqModels.map;
 //var generateCode = require('../../utils/code-generator');
  
-module.exports = class RewardTypeManager {
+module.exports = class RewardTypeManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
-        this.rewardTypeCollection = this.db.use(map.sales.RewardType);
+        super(db, user);
+        this.collection = this.db.use(map.sales.RewardType);
     }
 
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
-
-        return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
-            };
-            var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var filterName = {
-                    'name': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode, filterName]
-                };
-
-                query['$and'].push($or);
+    _createIndexes() {
+        var dateIndex = {
+            name: `ix_${map.sales.RewardType}__updatedDate`,
+            key: {
+                _updatedDate: -1
             }
+        }
 
+        var codeIndex = {
+            name: `ix_${map.sales.RewardType}_code`,
+            key: {
+                code: 1
+            },
+            unique: true
+        }
 
-            this.rewardTypeCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(rewardTypes => {
-                    resolve(rewardTypes);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
+        return this.collection.createIndexes([dateIndex, codeIndex]);
     }
+     
+    _getQuery(paging) { 
+        var deleted = {
+            _deleted: false
+        };
+        var query = _paging.keyword ? {
+            '$and': [deleted]
+        } : deleted;
 
-    getSingleById(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+        if (_paging.keyword) {
+            var regex = new RegExp(_paging.keyword, "i");
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
             };
-            this.getSingleByQuery(query)
-                .then(rewardType => {
-                    resolve(rewardType);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            var filterName = {
+                'name': {
+                    '$regex': regex
+                }
             };
-            this.getSingleByQueryOrDefault(query)
-                .then(rewardType => {
-                    resolve(rewardType);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-     getByCode(code) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                code: code,
-                _deleted: false
+            var $or = {
+                '$or': [filterCode, filterName]
             };
-            this.getSingleByQuery(query)
-                .then(rewardType => {
-                    resolve(rewardType);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
 
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.rewardTypeCollection
-                .single(query)
-                .then(rewardType => {
-                    resolve(rewardType);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    getSingleByQueryOrDefault(query) {
-        return new Promise((resolve, reject) => {
-            this.rewardTypeCollection
-                .singleOrDefault(query)
-                .then(rewardType => {
-                    resolve(rewardType);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    create(rewardType) {
-        return new Promise((resolve, reject) => {
-            //rewardType.code = generateCode("rewardType");
-            this._validate(rewardType)
-                .then(validRewardType => {
-                    this.rewardTypeCollection.insert(validRewardType)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    update(rewardType) {
-        return new Promise((resolve, reject) => {
-            this._validate(rewardType)
-                .then(validRewardType => {
-                    this.rewardTypeCollection.update(validRewardType)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    delete(rewardType) {
-        return new Promise((resolve, reject) => {
-            this._validate(rewardType)
-                .then(validRewardType => {
-                    validRewardType._deleted = true;
-                    this.rewardTypeCollection.update(validRewardType)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
+            query['$and'].push($or);
+        }
+        return query; 
     }
  
     _validate(rewardType) {
@@ -207,7 +70,7 @@ module.exports = class RewardTypeManager {
         return new Promise((resolve, reject) => {
             var valid = new RewardType(rewardType);
             // 1. begin: Declare promises.
-            var getRewardType = this.rewardTypeCollection.singleOrDefault({
+            var getRewardType = this.collection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)

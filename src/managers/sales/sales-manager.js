@@ -5,21 +5,19 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
+var BaseManager = require('../base-manager');
 var BateeqModels = require('bateeq-models');
-var map = BateeqModels.map;
-
 var Sales = BateeqModels.sales.Sales; 
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
+var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
 
-
-module.exports = class SalesManager {
+module.exports = class SalesManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
-        this.salesCollection = this.db.use(map.sales.SalesDoc);
+        super(db, user);
+        this.collection = this.db.use(map.sales.SalesDoc);
         
-        var ItemManager = require('../master/item-manager');
+        var ItemManager = require('../master/finished-goods-manager');
         this.itemManager = new ItemManager(db, user);
         
         var StoreManager = require('../master/store-manager');
@@ -37,150 +35,48 @@ module.exports = class SalesManager {
         var InventoryManager = require('../inventory/inventory-manager');
         this.inventoryManager = new InventoryManager(db, user);
     }
-
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
-
-        return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
-            };
-            var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                }; 
-                var $or = {
-                    '$or': [filterCode]
-                };
-
-                query['$and'].push($or);
+    
+    _createIndexes() {
+        var dateIndex = {
+            name: `ix_${map.sales.RewardType}__updatedDate`,
+            key: {
+                _updatedDate: -1
             }
+        }
 
+        var codeIndex = {
+            name: `ix_${map.sales.RewardType}_code`,
+            key: {
+                code: 1
+            },
+            unique: true
+        }
 
-            this.salesCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(sales => {
-                    resolve(sales);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleById(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQuery(query)
-                .then(sales => {
-                    resolve(sales);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQueryOrDefault(query)
-                .then(sales => {
-                    resolve(sales);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getByCode(code) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                code: code,
-                _deleted: false
-            };
-            this.getSingleByQuery(query)
-                .then(sales => {
-                    resolve(sales);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
+        return this.collection.createIndexes([dateIndex, codeIndex]);
     }
     
-    getByStoreDatefromDateTo(storeId, dateFrom, dateTo) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                storeId: new ObjectId(storeId),
-                date: { 
-                        $gte : new Date(dateFrom),
-                        $lte : new Date(dateTo)
-                      },
-                _deleted: false
+    _getQuery(paging) { 
+        var deleted = {
+            _deleted: false
+        };
+        var query = _paging.keyword ? {
+            '$and': [deleted]
+        } : deleted;
+
+        if (_paging.keyword) {
+            var regex = new RegExp(_paging.keyword, "i");
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
+            }; 
+            var $or = {
+                '$or': [filterCode]
             };
-            
-            this.salesCollection.where(query)
-                .execute()
-                .then(sales => {
-                    resolve(sales);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        }); 
-    }
 
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.salesCollection
-                .single(query)
-                .then(sales => {
-                    resolve(sales);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    getSingleByQueryOrDefault(query) {
-        return new Promise((resolve, reject) => {
-            this.salesCollection
-                .singleOrDefault(query)
-                .then(sales => {
-                    resolve(sales);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
+            query['$and'].push($or);
+        }
+        return query; 
     }
 
     create(sales) {
@@ -196,7 +92,7 @@ module.exports = class SalesManager {
                     validTransferOutDoc.items = [];
                     for (var item of validSales.items) {
                         var newitem = {};
-                        newitem.articleVariantId = item.articleVariantId;
+                        newitem.itemId = item.itemId;
                         newitem.quantity = item.quantity;
                         validTransferOutDoc.items.push(newitem);
                     } 
@@ -204,48 +100,11 @@ module.exports = class SalesManager {
                     
                     var createData = [];
                     createData.push(this.transferOutDocManager.create(validTransferOutDoc));
-                    createData.push(this.salesCollection.insert(validSales));
+                    createData.push(this.collection.insert(validSales));
                     
                     Promise.all(createData)
                         .then(results => {
                             resolve(results[1]);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    update(sales) {
-        return new Promise((resolve, reject) => {
-            this._validate(sales)
-                .then(validSales => {
-                    this.salesCollection.update(validSales)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    delete(sales) {
-        return new Promise((resolve, reject) => {
-            this._validate(sales)
-                .then(validSales => {
-                    validSales._deleted = true;
-                    this.salesCollection.update(validSales)
-                        .then(id => {
-                            resolve(id);
                         })
                         .catch(e => {
                             reject(e);
@@ -281,7 +140,7 @@ module.exports = class SalesManager {
                                 
 
             //Get sales data
-            var getSales = this.salesCollection.singleOrDefault({
+            var getSales = this.collection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
@@ -297,7 +156,7 @@ module.exports = class SalesManager {
             var getItems = [];
             if (valid.items && valid.items.length > 0) {
                 for (var item of valid.items) {  
-                    getItems.push(this.itemManager.getSingleByIdOrDefault(item.articleVariantId));
+                    getItems.push(this.itemManager.getSingleByIdOrDefault(item.itemId));
                 }
             }
             else {
@@ -335,23 +194,23 @@ module.exports = class SalesManager {
                             var item = valid.items[index];
                             var itemError = {};
 
-                            if (!item.articleVariantId || item.articleVariantId == '') {
-                                itemError["articleVariantId"] = "articleVariantId is required";
+                            if (!item.itemId || item.itemId == '') {
+                                itemError["itemId"] = "itemId is required";
                             }
                             else {
                                 for (var i = valid.items.indexOf(item) + 1; i < valid.items.length; i++) {
                                     var otherItem = valid.items[i];
-                                    if (item.articleVariantId == otherItem.articleVariantId) {
-                                        itemError["articleVariantId"] = "articleVariantId already exists on another detail";
+                                    if (item.itemId == otherItem.itemId) {
+                                        itemError["itemId"] = "itemId already exists on another detail";
                                     }
                                 }
                             }
                             if (!variant) {
-                                itemError["articleVariantId"] = "articleVariantId not found";
+                                itemError["itemId"] = "itemId not found";
                             }
                             else {
-                                item.articleVariantId = variant._id;
-                                item.articleVariant = variant;
+                                item.itemId = variant._id;
+                                item.item = variant;
                                 if(variant.size)
                                     if(variant.size.name)
                                         item.size = variant.size.name;
@@ -538,6 +397,9 @@ module.exports = class SalesManager {
                                     if (item.quantity > stock.quantity) {
                                         itemError["quantity"] = "Quantity is bigger than Stock";
                                     } 
+                                }
+                                else {
+                                    itemError["quantity"] = "Quantity is bigger than Stock";
                                 }
                                 itemErrors.push(itemError);
                             }

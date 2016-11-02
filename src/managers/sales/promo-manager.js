@@ -5,233 +5,64 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
+var BaseManager = require('../base-manager');
 var BateeqModels = require('bateeq-models');
-var map = BateeqModels.map;
-
 var Promo = BateeqModels.sales.Promo;
+var map = BateeqModels.map;
 //var generateCode = require('../../utils/code-generator');
  
-module.exports = class PromoManager {
+module.exports = class PromoManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
-        this.promoCollection = this.db.use(map.sales.PromoDoc);
+        super(db, user);
+        this.collection = this.db.use(map.sales.PromoDoc);
     }
 
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
-
-        return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
-            };
-            var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var filterName = {
-                    'name': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode, filterName]
-                };
-
-                query['$and'].push($or);
+    _createIndexes() {
+        var dateIndex = {
+            name: `ix_${map.sales.RewardType}__updatedDate`,
+            key: {
+                _updatedDate: -1
             }
+        }
 
+        var codeIndex = {
+            name: `ix_${map.sales.RewardType}_code`,
+            key: {
+                code: 1
+            },
+            unique: true
+        }
 
-            this.promoCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(promoes => {
-                    resolve(promoes);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleById(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQuery(query)
-                .then(promo => {
-                    resolve(promo);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQueryOrDefault(query)
-                .then(promoes => {
-                    resolve(promoes);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getByCode(code) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                code: code,
-                _deleted: false
-            };
-            this.getSingleByQuery(query)
-                .then(promo => {
-                    resolve(promo);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
+        return this.collection.createIndexes([dateIndex, codeIndex]);
     }
     
-    getByStoreVariantDatetime(storeId, variantId, datetime) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                stores: {'$elemMatch': { _id: new ObjectId(storeId)}},
-                promoProducts: {'$elemMatch': { articleVariantId: new ObjectId(variantId)}},
-                validDateFrom: {'$lte': new Date(datetime)},
-                validDateTo: {'$gte': new Date(datetime)},
-                _deleted: false
+    _getQuery(paging) { 
+        var deleted = {
+            _deleted: false
+        };
+        var query = _paging.keyword ? {
+            '$and': [deleted]
+        } : deleted;
+
+        if (_paging.keyword) {
+            var regex = new RegExp(_paging.keyword, "i");
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
             };
-            this.getFirstOrDefaultByQuery(query)
-                .then(promo => {
-                    resolve(promo);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
+            var filterName = {
+                'name': {
+                    '$regex': regex
+                }
+            };
+            var $or = {
+                '$or': [filterCode, filterName]
+            };
 
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.promoCollection
-                .single(query)
-                .then(promo => {
-                    resolve(promo);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    getSingleByQueryOrDefault(query) {
-        return new Promise((resolve, reject) => {
-            this.promoCollection
-                .singleOrDefault(query)
-                .then(promo => {
-                    resolve(promo);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-    
-    getFirstOrDefaultByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.promoCollection
-                .firstOrDefault(query)
-                .then(promo => {
-                    resolve(promo);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    create(promo) {
-        return new Promise((resolve, reject) => {
-            //promo.code = generateCode("promo");
-            this._validate(promo)
-                .then(validPromo => {
-                    this.promoCollection.insert(validPromo)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    update(promo) {
-        return new Promise((resolve, reject) => {
-            this._validate(promo)
-                .then(validPromo => {
-                    this.promoCollection.update(validPromo)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    delete(promo) {
-        return new Promise((resolve, reject) => {
-            this._validate(promo)
-                .then(validPromo => {
-                    validPromo._deleted = true;
-                    this.promoCollection.update(validPromo)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
+            query['$and'].push($or);
+        }
+        return query; 
     }
  
     _validate(promo) {
@@ -239,7 +70,7 @@ module.exports = class PromoManager {
         return new Promise((resolve, reject) => {
             var valid = new Promo(promo);
             // 1. begin: Declare promises.
-            var getPromo = this.promoCollection.singleOrDefault({
+            var getPromo = this.collection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)

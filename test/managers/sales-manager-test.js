@@ -4,10 +4,10 @@ var manager;
 var testData;
 
 function getData() {
-    var store = testData.stores["ST-FNG"]; 
+    var store = testData.stores["ST-BJB"]; 
     var bank = testData.banks["BA-BCA"];                    //BCA, MANDIRI, BRI, dkk
     var cardType = testData.cardTypes["CT-VISA"];           //CARD, MASTERCARD, VISA
-    var variant = testData.items["UT-AV1"];
+    var variant = testData.finishedGoods["UT-FG2"];
  
     var Sales = require('bateeq-models').sales.Sales;
     var SalesItem = require('bateeq-models').sales.SalesItem;

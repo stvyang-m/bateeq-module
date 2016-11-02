@@ -5,209 +5,72 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
+var BaseManager = require('../base-manager');
 var BateeqModels = require('bateeq-models');
-var map = BateeqModels.map;
-
 var CardType = BateeqModels.master.CardType;
+var map = BateeqModels.map; 
 //var generateCode = require('../../utils/code-generator');
  
-module.exports = class CardTypeManager {
+module.exports = class CardTypeManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
-        this.cardTypeCollection = this.db.use(map.master.CardType);
+        super(db, user);
+        this.collection = this.db.use(map.master.CardType);
     }
-
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
-
-        return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
-            };
-            var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var filterName = {
-                    'name': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode, filterName]
-                };
-
-                query['$and'].push($or);
+    
+    _createIndexes() {
+        var dateIndex = {
+            name: `ix_${map.master.CardType}__updatedDate`,
+            key: {
+                _updatedDate: -1
             }
+        }
 
+        var codeIndex = {
+            name: `ix_${map.master.CardType}_code`,
+            key: {
+                code: 1
+            },
+            unique: true
+        }
 
-            this.cardTypeCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(cardTypes => {
-                    resolve(cardTypes);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
+        return this.collection.createIndexes([dateIndex, codeIndex]);
     }
+    
+    _getQuery(paging) { 
+        var deleted = {
+            _deleted: false
+        };
+        var query = _paging.keyword ? {
+            '$and': [deleted]
+        } : deleted;
 
-    getSingleById(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+        if (_paging.keyword) {
+            var regex = new RegExp(_paging.keyword, "i");
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
             };
-            this.getSingleByQuery(query)
-                .then(cardType => {
-                    resolve(cardType);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            var filterName = {
+                'name': {
+                    '$regex': regex
+                }
             };
-            this.getSingleByQueryOrDefault(query)
-                .then(cardType => {
-                    resolve(cardType);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-     getByCode(code) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                code: code,
-                _deleted: false
+            var $or = {
+                '$or': [filterCode, filterName]
             };
-            this.getSingleByQuery(query)
-                .then(cardType => {
-                    resolve(cardType);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
 
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.cardTypeCollection
-                .single(query)
-                .then(cardType => {
-                    resolve(cardType);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
+            query['$and'].push($or);
+        }
+        return query; 
     }
-
-    getSingleByQueryOrDefault(query) {
-        return new Promise((resolve, reject) => {
-            this.cardTypeCollection
-                .singleOrDefault(query)
-                .then(cardType => {
-                    resolve(cardType);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    create(cardType) {
-        return new Promise((resolve, reject) => {
-            //cardType.code = generateCode("cardType");
-            this._validate(cardType)
-                .then(validCardType => {
-                    this.cardTypeCollection.insert(validCardType)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    update(cardType) {
-        return new Promise((resolve, reject) => {
-            this._validate(cardType)
-                .then(validCardType => {
-                    this.cardTypeCollection.update(validCardType)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    delete(cardType) {
-        return new Promise((resolve, reject) => {
-            this._validate(cardType)
-                .then(validCardType => {
-                    validCardType._deleted = true;
-                    this.cardTypeCollection.update(validCardType)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
- 
+    
     _validate(cardType) {
         var errors = {};
         return new Promise((resolve, reject) => {
             var valid = new CardType(cardType);
             // 1. begin: Declare promises.
-            var getCardType = this.cardTypeCollection.singleOrDefault({
+            var getCardType = this.collection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)

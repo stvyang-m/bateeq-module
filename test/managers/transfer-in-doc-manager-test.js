@@ -8,7 +8,7 @@ function getData() {
     var source = testData.storages["UT-FNG"];
     var destination = testData.storages["UT-BJB"];
     var variant = testData.items["UT-AV1"];
-
+    var variant2 = testData.finishedGoods["UT-FG2"];
 
     var TransferInDoc = require('bateeq-models').inventory.TransferInDoc;
     var TransferInItem = require('bateeq-models').inventory.TransferInItem;
@@ -31,6 +31,13 @@ function getData() {
     transferInDoc.items.push(new TransferInItem({
         itemId: variant._id,
         item:variant,
+        quantity: 5,
+        remark: 'transferInDoc.test'
+    }));
+    
+    transferInDoc.items.push(new TransferInItem({
+        itemId: variant2._id,
+        item: variant2,
         quantity: 5,
         remark: 'transferInDoc.test'
     }));
@@ -117,7 +124,7 @@ it(`#04. should success when get updated data with id`, function(done) {
             validate.transferInDoc(data);
             data.remark.should.equal(createdData.remark);
             data.reference.should.equal(createdData.reference);
-            data.items.length.should.equal(1);
+            data.items.length.should.equal(2);
             done();
         })
         .catch(e => {
