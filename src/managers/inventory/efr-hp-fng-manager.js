@@ -359,7 +359,7 @@ module.exports = class FinishedGoodsManager {
                                             var getItemComponent = Promise.resolve(null);
                                             var finishingError = {};
                                             if (!finishing.itemId || finishing.itemId == "") {
-                                                finishingError["itemId"] = "Component Item;Id is required";
+                                                finishingError["itemId"] = "Component ItemId is required";
                                             }
                                             else {
                                                 for (var i = item.item.finishings.indexOf(finishing) + 1; i < item.item.finishings.length; i++) {

@@ -63,24 +63,7 @@ module.exports = {
         SupplierManager: inventoryMap.get("supplier"),
         TransferInDocExtManager: inventoryMap.get("transfer-in-doc-ext"),
         map: inventoryMap
-    },
-    core: {
-        article: {
-            ArticleBrandManager: require('./src/managers/master/article/article-brand-manager'),
-            ArticleCategoryManager: require('./src/managers/master/article/article-category-manager'),
-            ArticleCounterManager: require('./src/managers/master/article/article-counter-manager'),
-            ArticleMaterialManager: require('./src/managers/master/article/article-material-manager'),
-            ArticleManager: require('./src/managers/master/article/article-manager'),
-            ArticleMotifManager: require('./src/managers/master/article/article-motif-manager'),
-            ArticleOriginManager: require('./src/managers/master/article/article-origin-manager'),
-            ArticleSeasonManager: require('./src/managers/master/article/article-season-manager'),
-            ArticleSubCounterManager: require('./src/managers/master/article/article-sub-counter-manager'),
-            ArticleThemeManager: require('./src/managers/master/article/article-theme-manager'),
-            ArticleTypeManager: require('./src/managers/master/article/article-type-manager'),
-            ArticleVariantManager: require('./src/managers/master/article/article-variant-manager')
-        },
-        AccountManager: require('./src/managers/core/account-manager'),
-    },
+    }, 
     merchandiser: {
         SPKManager: require('./src/managers/merchandiser/efr-pk-manager'),
         SPKBarangJadiManager: require('./src/managers/merchandiser/efr-pk-pbj-manager'),
@@ -89,7 +72,7 @@ module.exports = {
         map: merchandiserMap
     },
     master: {
-        ModuleManager: require('./src/managers/core/module-manager')
+        ModuleManager: require('./src/managers/master/module-manager'),
         BankManager: require('./src/managers/master/bank-manager'),
         CardTypeManager: require('./src/managers/master/card-type-manager'),
         StoreManager: require('./src/managers/master/store-manager')
