@@ -38,14 +38,14 @@ module.exports = class SalesManager extends BaseManager {
     
     _createIndexes() {
         var dateIndex = {
-            name: `ix_${map.sales.RewardType}__updatedDate`,
+            name: `ix_${map.sales.SalesDoc}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         }
 
         var codeIndex = {
-            name: `ix_${map.sales.RewardType}_code`,
+            name: `ix_${map.sales.SalesDoc}_code`,
             key: {
                 code: 1
             },
@@ -59,12 +59,13 @@ module.exports = class SalesManager extends BaseManager {
         var deleted = {
             _deleted: false
         };
-        var query = _paging.keyword ? {
-            '$and': [deleted]
-        } : deleted;
+        
+        var query = paging.filter ? {
+            '$and': [paging.filter, deleted]
+        } : deleted; 
 
-        if (_paging.keyword) {
-            var regex = new RegExp(_paging.keyword, "i");
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
             var filterCode = {
                 'code': {
                     '$regex': regex
@@ -280,9 +281,8 @@ module.exports = class SalesManager extends BaseManager {
                             valid.totalProduct = parseInt(valid.totalProduct) + parseInt(item.quantity);
                             itemErrors.push(itemError);
                         }
-                        var totalDiscount = parseInt(valid.subTotal) * parseInt(valid.discount) / 100;
-                        var totalVoucher = 0;
-                        valid.grandTotal = parseInt(valid.subTotal) - parseInt(totalDiscount) - parseInt(totalVoucher);
+                        var totalDiscount = parseInt(valid.subTotal) * parseInt(valid.discount) / 100; 
+                        valid.grandTotal = parseInt(valid.subTotal) - parseInt(totalDiscount);
                         
                         for (var itemError of itemErrors) {
                             for (var prop in itemError) {
@@ -333,14 +333,14 @@ module.exports = class SalesManager extends BaseManager {
                             if (!valid.salesDetail.cardNumber || valid.salesDetail.cardNumber == '')
                                 salesDetailError["cardNumber"] = "cardNumber is required";
                                 
-                            if (!valid.salesDetail.cardName || valid.salesDetail.cardName == '')
-                                salesDetailError["cardName"] = "cardName is required"; 
+                            // if (!valid.salesDetail.cardName || valid.salesDetail.cardName == '')
+                            //     salesDetailError["cardName"] = "cardName is required"; 
                                 
                             if (valid.salesDetail.cardAmount == undefined || (valid.salesDetail.cardAmount && valid.salesDetail.cardAmount == '')) {
                                 salesDetailError["cardAmount"] = "cardAmount is required";
                                 valid.salesDetail.cardAmount = 0;
                             } 
-                            else if(parseInt(valid.salesDetail.cardAmount) <= 0) {
+                            else if(parseInt(valid.salesDetail.cardAmount) < 0) {
                                 salesDetailError["cardAmount"] = "cardAmount must be greater than 0";
                             }  
                         }  
@@ -350,22 +350,35 @@ module.exports = class SalesManager extends BaseManager {
                                 salesDetailError["cashAmount"] = "cashAmount is required";
                                 valid.salesDetail.cashAmount = 0;
                             } 
-                            else if(parseInt(valid.salesDetail.cashAmount) <= 0) {
+                            else if(parseInt(valid.salesDetail.cashAmount) < 0) {
                                 salesDetailError["cashAmount"] = "cashAmount must be greater than 0";
                             } 
                         } 
-                        
+                         
+                        if(valid.salesDetail.voucher) {
+                            var voucherError = {};
+                            if(parseInt(valid.salesDetail.voucher.value) > parseInt(valid.grandTotal)) {
+                                voucherError["value"] = "voucher must be less than total";
+                            }
+                             
+                            for (var prop in voucherError) {
+                                salesDetailError["voucher"] = voucherError;
+                                break;
+                            } 
+                        }
+                         
+                        var totalPayment = 0;
                         if(valid.salesDetail.paymentType.toLowerCase() == "partial")
-                            if((parseInt(valid.salesDetail.cashAmount) + parseInt(valid.salesDetail.cardAmount)) < parseInt(valid.grandTotal))
-                                errors["grandTotal"] = "grandTotal is bigger than payment";  
+                            totalPayment = parseInt(valid.salesDetail.cashAmount) + parseInt(valid.salesDetail.cardAmount) + parseInt(valid.salesDetail.voucher.value);
                                 
                         if(valid.salesDetail.paymentType.toLowerCase() == "card")
-                            if(parseInt(valid.salesDetail.cardAmount) < parseInt(valid.grandTotal))
-                                errors["grandTotal"] = "grandTotal is bigger than payment";  
+                            totalPayment = parseInt(valid.salesDetail.cardAmount) + parseInt(valid.salesDetail.voucher.value);
                                 
                         if(valid.salesDetail.paymentType.toLowerCase() == "cash")
-                            if(parseInt(valid.salesDetail.cashAmount) < parseInt(valid.grandTotal))
-                                errors["grandTotal"] = "grandTotal is bigger than payment";  
+                            totalPayment = parseInt(valid.salesDetail.cashAmount) + parseInt(valid.salesDetail.voucher.value);
+                                
+                        if(parseInt(totalPayment) < parseInt(valid.grandTotal))
+                            errors["grandTotal"] = "grandTotal is bigger than payment";  
                     } 
                     
                     for (var prop in salesDetailError) {

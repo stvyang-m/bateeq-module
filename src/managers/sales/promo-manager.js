@@ -19,14 +19,14 @@ module.exports = class PromoManager extends BaseManager {
 
     _createIndexes() {
         var dateIndex = {
-            name: `ix_${map.sales.RewardType}__updatedDate`,
+            name: `ix_${map.sales.PromoDoc}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         }
 
         var codeIndex = {
-            name: `ix_${map.sales.RewardType}_code`,
+            name: `ix_${map.sales.PromoDoc}_code`,
             key: {
                 code: 1
             },
@@ -40,12 +40,13 @@ module.exports = class PromoManager extends BaseManager {
         var deleted = {
             _deleted: false
         };
-        var query = _paging.keyword ? {
-            '$and': [deleted]
-        } : deleted;
+        
+        var query = paging.filter ? {
+            '$and': [paging.filter, deleted]
+        } : deleted; 
 
-        if (_paging.keyword) {
-            var regex = new RegExp(_paging.keyword, "i");
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
             var filterCode = {
                 'code': {
                     '$regex': regex

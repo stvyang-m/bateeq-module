@@ -75,7 +75,9 @@ module.exports = {
         ModuleManager: require('./src/managers/master/module-manager'),
         BankManager: require('./src/managers/master/bank-manager'),
         CardTypeManager: require('./src/managers/master/card-type-manager'),
-        StoreManager: require('./src/managers/master/store-manager')
+        StoreManager: require('./src/managers/master/store-manager'),
+        ItemManager: require('./src/managers/master/item-manager'),
+        FinishedGoodsManager: require('./src/managers/master/finished-goods-manager')
     },
     sales: {
         SalesManager: require('./src/managers/sales/sales-manager'),
