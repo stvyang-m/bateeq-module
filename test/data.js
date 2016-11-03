@@ -156,6 +156,7 @@ function getSertFinishedGoods(db) {
         article: { 
             realizationOrder: "RO001"
         },
+        size = 'S',
         domesticCOGS: 100000,
         domesticWholesale: 100000,
         domesticRetail: 100000,
@@ -175,6 +176,7 @@ function getSertFinishedGoods(db) {
         article: { 
             realizationOrder: "RO001"
         },
+        size = 'M',
         domesticCOGS: 100000,
         domesticWholesale: 100000,
         domesticRetail: 100000,
@@ -194,6 +196,7 @@ function getSertFinishedGoods(db) {
         article: { 
             realizationOrder: "RO002"
         },
+        size = 'S',
         domesticCOGS: 100000,
         domesticWholesale: 100000,
         domesticRetail: 100000,
