@@ -6,7 +6,7 @@ var testData;
 
 function getData() {
     var rewardType = testData.rewardTypes["RT-DISKON"];
-    var variant = testData.items["UT-AV1"];
+    var variant = testData.finishedGoods["UT-FG2"];
     var stores = [];
     stores.push(testData.stores["ST-FNG"]);
     stores.push(testData.stores["ST-BJB"]);
