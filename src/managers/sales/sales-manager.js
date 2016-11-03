@@ -38,14 +38,14 @@ module.exports = class SalesManager extends BaseManager {
     
     _createIndexes() {
         var dateIndex = {
-            name: `ix_${map.sales.RewardType}__updatedDate`,
+            name: `ix_${map.sales.SalesDoc}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         }
 
         var codeIndex = {
-            name: `ix_${map.sales.RewardType}_code`,
+            name: `ix_${map.sales.SalesDoc}_code`,
             key: {
                 code: 1
             },
