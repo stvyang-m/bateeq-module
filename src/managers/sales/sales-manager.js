@@ -59,12 +59,12 @@ module.exports = class SalesManager extends BaseManager {
         var deleted = {
             _deleted: false
         };
-        var query = _paging.keyword ? {
+        var query = paging.keyword ? {
             '$and': [deleted]
         } : deleted;
 
-        if (_paging.keyword) {
-            var regex = new RegExp(_paging.keyword, "i");
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
             var filterCode = {
                 'code': {
                     '$regex': regex
