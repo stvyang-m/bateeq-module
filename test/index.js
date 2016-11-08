@@ -53,11 +53,11 @@ describe('#bateeq-module', function(done) {
     // test('@manager/efr-tb-sab-manager', './managers/efr-tb-sab-manager-test');
     // test('@manager/efr-kb-exb-manager', './managers/efr-kb-exb-manager-test');
     // test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test'); 
-    test('@manager/supplier-manager', './managers/supplier-manager-test');
+    // test('@manager/supplier-manager', './managers/supplier-manager-test');
     
-    test('@manager/bank-manager', './managers/bank-manager-test'); 
-    test('@manager/card-type-manager', './managers/card-type-manager-test'); 
-    test('@manager/reward-type-manager', './managers/reward-type-manager-test');
+    // test('@manager/bank-manager', './managers/bank-manager-test'); 
+    // test('@manager/card-type-manager', './managers/card-type-manager-test'); 
+    // test('@manager/reward-type-manager', './managers/reward-type-manager-test');
     test('@manager/promo-manager', './managers/promo-manager-test');
-    test('@manager/sales-manager', './managers/sales-manager-test');
+    // test('@manager/sales-manager', './managers/sales-manager-test');
 })

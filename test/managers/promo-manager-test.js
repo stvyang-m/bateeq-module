@@ -5,7 +5,6 @@ var manager;
 var testData;
 
 function getData() {
-    var rewardType = testData.rewardTypes["RT-DISKON"];
     var variant = testData.finishedGoods["UT-FG2"];
     var stores = [];
     stores.push(testData.stores["ST-FNG"]);
@@ -13,38 +12,48 @@ function getData() {
     stores.push(testData.stores["ST-BJR"]);
 
     var Promo = require('bateeq-models').sales.Promo;
-    var PromoProduct = require('bateeq-models').sales.PromoProduct;
-    var PromoDiscount = require('bateeq-models').sales.PromoDiscount;
+    var PromoCriteria = require('bateeq-models').sales.PromoCriteria;
+    var PromoReward = require('bateeq-models').sales.PromoReward;
+    var PromoCriteriaSelectedProduct = require('bateeq-models').sales.PromoCriteriaSelectedProduct;
+    var PromoRewardDiscountProduct = require('bateeq-models').sales.PromoRewardDiscountProduct;
+    
     var promo = new Promo();
-
     var now = new Date();
     var stamp = now / 1000 | 0;
     var code = stamp.toString(36);
 
     promo.code = code;
-    promo.name = `name[${code}]`;
+    promo.name = 'Discount Item';
     promo.description = `description for ${code}`; 
     promo.validDateFrom = new Date(); 
-    promo.validDateTo= new Date(); 
+    promo.validDateTo = new Date(); 
     promo.stores = stores;
-    promo.promoProducts = [];
+    promo.criteria = {};
+    promo.reward = {};
      
-    var promoDiscount = new PromoDiscount();
-    promoDiscount.reward = 'Discount Product';      //Discount Product
-    promoDiscount.unit = 'Percentage';              //Percentage, Nominal
-    promoDiscount.discount1 = '10';
-    promoDiscount.discount2 = '5';
-    promoDiscount.nominal = '0';
-    promoDiscount.rewardTypeId = rewardType._id;
-    promoDiscount.rewardType = rewardType;
+    var promoCriteria = new PromoCriteria();
+    promoCriteria.type = 'selected-product';
+    promoCriteria.criterions = [];
     
-    var promoProduct = new PromoProduct();
-    promoProduct.itemId = variant._id;
-    promoProduct.item = variant;
-    promoProduct.promoDiscount = promoDiscount;
+    var promoCriteriaSelectedProduct = new PromoCriteriaSelectedProduct();
+    promoCriteriaSelectedProduct.itemId = variant._id;
+    promoCriteriaSelectedProduct.item = variant;
+    promoCriteriaSelectedProduct.minimumQuantity = 0;
+    promoCriteria.criterions.push(promoCriteriaSelectedProduct);
+    
+    var promoReward = new PromoReward();
+    promoReward.type = 'discount-product';
+    promoReward.rewards = [];
+    
+    var promoRewardDiscountProduct = new PromoRewardDiscountProduct();
+    promoRewardDiscountProduct.unit = 'percentage';
+    promoRewardDiscountProduct.discount1 = '10';
+    promoRewardDiscountProduct.discount2 = '5';
+    promoRewardDiscountProduct.nominal = '0';
+    promoReward.rewards.push(promoRewardDiscountProduct);
 
-    promo.promoProducts.push(promoProduct);
-    
+    promo.criteria = promoCriteria;
+    promo.reward = promoReward;
     return promo;
 }
 
@@ -87,7 +96,7 @@ it(`#02. should success when get created data with id`, function(done) {
             _id: createdId
         })
         .then(data => {
-            validate.promoDoc(data);
+            validate.promo(data);
             createdData = data;
             done();
         })
@@ -117,7 +126,7 @@ it(`#04. should success when get updated data with id`, function(done) {
             _id: createdId
         })
         .then(data => {
-            validate.promoDoc(data);
+            validate.promo(data);
             data.code.should.equal(createdData.code);
             data.name.should.equal(createdData.name);
             data.description.should.equal(createdData.description); 
@@ -144,7 +153,7 @@ it(`#06. should _deleted=true`, function(done) {
             _id: createdId
         })
         .then(data => {
-            validate.promoDoc(data);
+            validate.promo(data);
             data._deleted.should.be.Boolean();
             data._deleted.should.equal(true);
             done();
