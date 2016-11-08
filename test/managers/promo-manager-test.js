@@ -4,7 +4,7 @@ var validate = require('bateeq-models').validator.sales;
 var manager;
 var testData;
 
-function getData() {
+function getDataDiscountItem() {
     var variant = testData.finishedGoods["UT-FG2"];
     var stores = [];
     stores.push(testData.stores["ST-FNG"]);
@@ -77,8 +77,9 @@ before('#00. connect db', function(done) {
 });
 
 var createdId;
-it('#01. should success when create new data', function(done) {
-    var data = getData();
+var createdData;
+it('#01. [Discount Item] should success when create new data', function(done) {
+    var data = getDataDiscountItem();
     manager.create(data)
         .then(id => {
             id.should.be.Object();
@@ -90,8 +91,7 @@ it('#01. should success when create new data', function(done) {
         })
 });
 
-var createdData;
-it(`#02. should success when get created data with id`, function(done) {
+it(`#02. [Discount Item] should success when get created data with id`, function(done) {
     manager.getSingleByQuery({
             _id: createdId
         })
@@ -105,7 +105,7 @@ it(`#02. should success when get created data with id`, function(done) {
         })
 });
 
-it(`#03. should success when update created data`, function(done) {
+it(`#03. [Discount Item] should success when update created data`, function(done) {
 
     createdData.code += '[updated]';
     createdData.name += '[updated]';
@@ -121,7 +121,7 @@ it(`#03. should success when update created data`, function(done) {
         });
 });
 
-it(`#04. should success when get updated data with id`, function(done) {
+it(`#04. [Discount Item] should success when get updated data with id`, function(done) {
     manager.getSingleByQuery({
             _id: createdId
         })
@@ -137,7 +137,7 @@ it(`#04. should success when get updated data with id`, function(done) {
         })
 });
 
-it(`#05. should success when delete data`, function(done) {
+it(`#05. [Discount Item] should success when delete data`, function(done) {
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -148,7 +148,7 @@ it(`#05. should success when delete data`, function(done) {
         });
 });
 
-it(`#06. should _deleted=true`, function(done) {
+it(`#06. [Discount Item] should _deleted=true`, function(done) {
     manager.getSingleByQuery({
             _id: createdId
         })
@@ -163,7 +163,7 @@ it(`#06. should _deleted=true`, function(done) {
         })
 });
 
-it('#07. should error when create new data with same code', function(done) {
+it('#07. [Discount Item] should error when create new data with same code', function(done) {
     var data = Object.assign({}, createdData);
     delete data._id;
     manager.create(data)
@@ -183,7 +183,7 @@ it('#07. should error when create new data with same code', function(done) {
         })
 });
 
-it('#08. should error with property code and name ', function(done) {
+it('#08. [Discount Item] should error with property code and name ', function(done) {
     manager.create({})
         .then(id => {
             done("Should not be error with property code and name");
