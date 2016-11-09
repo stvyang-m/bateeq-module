@@ -156,7 +156,7 @@ function getSertFinishedGoods(db) {
         article: { 
             realizationOrder: "RO001"
         },
-        size = 'S',
+        size: 'S',
         domesticCOGS: 100000,
         domesticWholesale: 100000,
         domesticRetail: 100000,
@@ -176,7 +176,7 @@ function getSertFinishedGoods(db) {
         article: { 
             realizationOrder: "RO001"
         },
-        size = 'M',
+        size: 'M',
         domesticCOGS: 100000,
         domesticWholesale: 100000,
         domesticRetail: 100000,
@@ -196,7 +196,7 @@ function getSertFinishedGoods(db) {
         article: { 
             realizationOrder: "RO002"
         },
-        size = 'S',
+        size: 'S',
         domesticCOGS: 100000,
         domesticWholesale: 100000,
         domesticRetail: 100000,
@@ -570,7 +570,16 @@ function getSertStores(db, storages) {
         storage: storages["UT-FNG"],
         salesCategoryId: {},
         salesCategory: {},
-        salesTarget: 5000000
+        salesTarget: 5000000,
+        shifts: [{
+            shift: 1,
+            dateFrom: new Date("2000-01-01T00:00:00"),
+            dateTo: new Date("2000-01-01T11:59:59")
+        }, {
+            shift: 2,
+            dateFrom: new Date("2000-01-01T12:00:00"),
+            dateTo: new Date("2000-01-01T23:59:59")
+        }]
     }, {
         code: "ST-BJB",
         name: "Pusat - Finished Goods[UT]",
@@ -579,7 +588,16 @@ function getSertStores(db, storages) {
         storage: storages["UT-BJB"],
         salesCategoryId: {},
         salesCategory: {},
-        salesTarget: 5000000
+        salesTarget: 5000000,
+        shifts: [{
+            shift: 1,
+            dateFrom: new Date("2000-01-01T00:00:00"),
+            dateTo: new Date("2000-01-01T11:59:59")
+        }, {
+            shift: 2,
+            dateFrom: new Date("2000-01-01T12:00:00"),
+            dateTo: new Date("2000-01-01T23:59:59")
+        }]
     }, {
         code: "ST-BJR",
         name: "Pusat - Return Finished Goods[UT]",
@@ -588,7 +606,16 @@ function getSertStores(db, storages) {
         storage: storages["UT-BJR"],
         salesCategoryId: {},
         salesCategory: {},
-        salesTarget: 5000000
+        salesTarget: 5000000,
+        shifts: [{
+            shift: 1,
+            dateFrom: new Date("2000-01-01T00:00:00"),
+            dateTo: new Date("2000-01-01T11:59:59")
+        }, {
+            shift: 2,
+            dateFrom: new Date("2000-01-01T12:00:00"),
+            dateTo: new Date("2000-01-01T23:59:59")
+        }]
     }, {
         code: "ST-ACC",
         name: "Accessories[UT]",
@@ -597,7 +624,16 @@ function getSertStores(db, storages) {
         storage: storages["UT-ACC"],
         salesCategoryId: {},
         salesCategory: {},
-        salesTarget: 5000000
+        salesTarget: 5000000,
+        shifts: [{
+            shift: 1,
+            dateFrom: new Date("2000-01-01T00:00:00"),
+            dateTo: new Date("2000-01-01T11:59:59")
+        }, {
+            shift: 2,
+            dateFrom: new Date("2000-01-01T12:00:00"),
+            dateTo: new Date("2000-01-01T23:59:59")
+        }]
     }, {
         code: "ST-SWG",
         name: "Sewing[UT]",
@@ -606,7 +642,16 @@ function getSertStores(db, storages) {
         storage: storages["UT-SWG"],
         salesCategoryId: {},
         salesCategory: {},
-        salesTarget: 5000000
+        salesTarget: 5000000,
+        shifts: [{
+            shift: 1,
+            dateFrom: new Date("2000-01-01T00:00:00"),
+            dateTo: new Date("2000-01-01T11:59:59")
+        }, {
+            shift: 2,
+            dateFrom: new Date("2000-01-01T12:00:00"),
+            dateTo: new Date("2000-01-01T23:59:59")
+        }]
     }, {
         code: "ST-MHD",
         name: "Merchandiser[UT]",
@@ -615,7 +660,16 @@ function getSertStores(db, storages) {
         storage: storages["UT-MHD"],
         salesCategoryId: {},
         salesCategory: {},
-        salesTarget: 5000000
+        salesTarget: 5000000,
+        shifts: [{
+            shift: 1,
+            dateFrom: new Date("2000-01-01T00:00:00"),
+            dateTo: new Date("2000-01-01T11:59:59")
+        }, {
+            shift: 2,
+            dateFrom: new Date("2000-01-01T12:00:00"),
+            dateTo: new Date("2000-01-01T23:59:59")
+        }]
     }, {
         code: "ST-ST1",
         name: "Store 01[UT]",
@@ -624,7 +678,16 @@ function getSertStores(db, storages) {
         storage: storages["UT-ST1"],
         salesCategoryId: {},
         salesCategory: {},
-        salesTarget: 5000000
+        salesTarget: 5000000,
+        shifts: [{
+            shift: 1,
+            dateFrom: new Date("2000-01-01T00:00:00"),
+            dateTo: new Date("2000-01-01T11:59:59")
+        }, {
+            shift: 2,
+            dateFrom: new Date("2000-01-01T12:00:00"),
+            dateTo: new Date("2000-01-01T23:59:59")
+        }]
     }, {
         code: "ST-ST2",
         name: "Store 02[UT]",
@@ -633,7 +696,16 @@ function getSertStores(db, storages) {
         storage: storages["UT-ST2"],
         salesCategoryId: {},
         salesCategory: {},
-        salesTarget: 5000000
+        salesTarget: 5000000,
+        shifts: [{
+            shift: 1,
+            dateFrom: new Date("2000-01-01T00:00:00"),
+            dateTo: new Date("2000-01-01T11:59:59")
+        }, {
+            shift: 2,
+            dateFrom: new Date("2000-01-01T12:00:00"),
+            dateTo: new Date("2000-01-01T23:59:59")
+        }]
     }];
 
 
@@ -806,79 +878,9 @@ function getSertCardTypes(db) {
     });
 }
 
-function getSertRewardTypes(db) {
-
-    var rewardTypes = [{
-        code: "RT-DISKON",
-        name: "Diskon",
-        description: "Unit test data: Diskon Reward type."
-    }, {
-        code: "RT-DISKON-PRODUK-TERTENTU",
-        name: "Diskon Produk Tertentu",
-        description: "Unit test data: Diskon Produk Tertentu Reward type."
-    }, {
-        code: "RT-PRODUK-TERTENTU",
-        name: "Produk Tertentu",
-        description: "Unit test data: Produk Tertentu Reward type."
-    }, {
-        code: "RT-HARGA-SPESIAL",
-        name: "Harga Spesial",
-        description: "Unit test data: Harga Spesial Reward type."
-    }, {
-        code: "RT-VOUCHER",
-        name: "Voucher",
-        description: "Unit test data: Voucher Reward type."
-    }];
-
-
-    var RewardTypeManager = require("../src/managers/sales/reward-type-manager");
-    return new Promise((resolve, reject) => {
-        var manager = new RewardTypeManager(db, {
-            username: "unit-test"
-        });
-        var promises = [];
-
-        for (var rewardType of rewardTypes) {
-            var promise = new Promise((resolve, reject) => {
-                var _rewardType = rewardType;
-                manager.getSingleByQueryOrDefault({
-                        code: _rewardType.code
-                    })
-                    .then(data => {
-                        if (data)
-                            resolve(data);
-                        else {
-                            manager.create(_rewardType)
-                                .then(id => {
-                                    manager.getSingleById(id).then(createdData => {
-                                        resolve(createdData);
-                                    });
-                                })
-                                .catch(e => {
-                                    reject(e);
-                                });
-                        }
-                    })
-                    .catch(e => {
-                        reject(e);
-                    });
-            });
-            promises.push(promise);
-        }
-
-        Promise.all(promises)
-            .then(rewardTypes => {
-                resolve(rewardTypes);
-            })
-            .catch(e => {
-                reject(e);
-            });
-    });
-}
-
 module.exports = function(db) {
     return new Promise((resolve, reject) => {
-        Promise.all([getSertStorages(db), getSertItems(db), getSertFinishedGoods(db), getSertSuppliers(db), getSertBanks(db), getSertCardTypes(db), getSertRewardTypes(db)])
+        Promise.all([getSertStorages(db), getSertItems(db), getSertFinishedGoods(db), getSertSuppliers(db), getSertBanks(db), getSertCardTypes(db)])
             .then(results => {
                 var storages = {};
                 var items = {};
@@ -886,7 +888,6 @@ module.exports = function(db) {
                 var suppliers = {}; 
                 var banks = {};
                 var cardTypes = {};
-                var rewardTypes = {};
 
                 for (var storage of results[0])
                     storages[storage.code] = storage;
@@ -906,9 +907,6 @@ module.exports = function(db) {
                 for (var cardType of results[5])
                     cardTypes[cardType.code] = cardType;
                     
-                for (var rewardType of results[6])
-                    rewardTypes[rewardType.code] = rewardType;
-
                 Promise.all([getSertModules(db, storages), getSertStores(db, storages)])
                     .then(results => { 
                         var modules = {};
@@ -928,7 +926,6 @@ module.exports = function(db) {
                             stores : stores,
                             banks : banks,
                             cardTypes : cardTypes,
-                            rewardTypes : rewardTypes,
                             modules: modules
                         });
                     })
