@@ -64,6 +64,65 @@ function getDataDiscountItem() {
     return promo;
 }
 
+function getDataPackageSpecialPrice() {
+    var item1 = testData.finishedGoods["UT-FG1"];
+    var item2 = testData.finishedGoods["UT-FG2"];
+    var stores = [];
+    stores.push(testData.stores["ST-FNG"]);
+    stores.push(testData.stores["ST-BJB"]);
+    stores.push(testData.stores["ST-BJR"]);
+
+    var Promo = require('bateeq-models').sales.Promo;
+    var PromoCriteria = require('bateeq-models').sales.PromoCriteria;
+    var PromoReward = require('bateeq-models').sales.PromoReward;
+    var PromoCriteriaPackage = require('bateeq-models').sales.PromoCriteriaPackage;
+    var PromoRewardSpecialPrice = require('bateeq-models').sales.PromoRewardSpecialPrice;
+    
+    var promo = new Promo();
+    var now = new Date();
+    var stamp = now / 1000 | 0;
+    var code = stamp.toString(36);
+
+    promo.code = code;
+    promo.name = 'Package Special Price';
+    promo.description = `description for ${code}`; 
+    promo.validFrom = new Date("2000-01-01T00:00:00"); 
+    promo.validTo = new Date("2000-12-01T00:00:00"); 
+    promo.stores = stores;
+    promo.criteria = {};
+    promo.reward = {};
+     
+    var promoCriteria = new PromoCriteria();
+    promoCriteria.type = 'package';
+    promoCriteria.criterions = [];
+    
+    var promoCriteriaPackage = new PromoCriteriaPackage();
+    promoCriteriaPackage.itemId = item1._id;
+    promoCriteriaPackage.item = item1;
+    promoCriteria.criterions.push(promoCriteriaPackage);
+    
+    var promoCriteriaPackage = new PromoCriteriaPackage();
+    promoCriteriaPackage.itemId = item2._id;
+    promoCriteriaPackage.item = item2;
+    promoCriteria.criterions.push(promoCriteriaPackage);
+    
+    var promoReward = new PromoReward();
+    promoReward.type = 'special-price';
+    promoReward.rewards = [];
+    
+    var promoRewardSpecialPrice = new PromoRewardSpecialPrice();
+    promoRewardSpecialPrice.quantity1 = 100000;
+    promoRewardSpecialPrice.quantity2 = 200000;
+    promoRewardSpecialPrice.quantity3 = 300000;
+    promoRewardSpecialPrice.quantity4 = 400000;
+    promoRewardSpecialPrice.quantity5 = 500000;
+    promoReward.rewards.push(promoRewardSpecialPrice);
+
+    promo.criteria = promoCriteria;
+    promo.reward = promoReward;
+    return promo;
+}
+
 var createdId;
 var createdData;
 before('#00. connect db', function(done) {
@@ -386,7 +445,7 @@ it('#1.16. [Discount Item] should error with property criterions itemId is empty
         });
 });
 
-it('#1.16. [Discount Item] should error with property criterions itemId not found ', function(done) {
+it('#1.17. [Discount Item] should error with property criterions itemId not found ', function(done) {
     var data = getDataDiscountItem();
     for (var criterion of data.criteria.criterions) {
         criterion.itemId = "000000000000000000000000";
@@ -410,7 +469,7 @@ it('#1.16. [Discount Item] should error with property criterions itemId not foun
         });
 });
 
-it('#1.17. [Discount Item] should error with property criterions itemId must unique ', function(done) {
+it('#1.18. [Discount Item] should error with property criterions itemId must unique ', function(done) {
     var data = getDataDiscountItem();
     var item = testData.finishedGoods["UT-FG1"];
     for (var criterion of data.criteria.criterions) {
@@ -434,7 +493,7 @@ it('#1.17. [Discount Item] should error with property criterions itemId must uni
         });
 });
 
-it('#1.18. [Discount Item] should error with property criterions minimumQuantity less than 0 ', function(done) {
+it('#1.19. [Discount Item] should error with property criterions minimumQuantity less than 0 ', function(done) {
     var data = getDataDiscountItem();
     for (var criterion of data.criteria.criterions) {
         criterion.minimumQuantity = -1;
@@ -447,6 +506,291 @@ it('#1.18. [Discount Item] should error with property criterions minimumQuantity
             try {
                 for (var criterion of e.errors.criteria.criterions) {
                     criterion.should.have.property('minimumQuantity');
+                }
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        });
+});
+
+it('#2.01. [Package Special Price] should success when create new data', function(done) {
+    var data = getDataPackageSpecialPrice();
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
+it(`#2.02. [Package Special Price] should success when get created data with id`, function(done) {
+    manager.getSingleByQuery({
+            _id: createdId
+        })
+        .then(data => {
+            validate.promo(data);
+            createdData = data;
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
+it(`#2.03. [Package Special Price] should success when update created data`, function(done) {
+
+    createdData.code += '[updated]';
+    createdData.name += '[updated]';
+    createdData.description += '[updated]'; 
+
+    manager.update(createdData)
+        .then(id => {
+            createdId.toString().should.equal(id.toString());
+            done();
+        })
+        .catch(e => {
+            done(e);
+        });
+});
+
+it(`#2.04. [Package Special Price] should success when get updated data with id`, function(done) {
+    manager.getSingleByQuery({
+            _id: createdId
+        })
+        .then(data => {
+            validate.promo(data);
+            data.code.should.equal(createdData.code);
+            data.name.should.equal(createdData.name);
+            data.description.should.equal(createdData.description); 
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
+it(`#2.05. [Package Special Price] should success when delete data`, function(done) {
+    manager.delete(createdData)
+        .then(id => {
+            createdId.toString().should.equal(id.toString());
+            done();
+        })
+        .catch(e => {
+            done(e);
+        });
+});
+
+it(`#2.06. [Package Special Price] should _deleted=true`, function(done) {
+    manager.getSingleByQuery({
+            _id: createdId
+        })
+        .then(data => {
+            validate.promo(data);
+            data._deleted.should.be.Boolean();
+            data._deleted.should.equal(true);
+            done();
+        })
+        .catch(e => {
+            done(e);
+        })
+});
+
+it('#2.07. [Package Special Price] should error when create new data with same code', function(done) {
+    var data = Object.assign({}, createdData);
+    delete data._id;
+    manager.create(data)
+        .then(id => {
+            id.should.be.Object();
+            createdId = id;
+            done("Should not be able to create data with same code");
+        })
+        .catch(e => {
+            try {
+                e.errors.should.have.property('code');
+                done();
+            }
+            catch (e) {
+                done(e);
+            }
+        })
+});
+
+it('#2.08. [Package Special Price] should error with property code, name, criteria.type, reward.type ', function(done) {
+    manager.create({})
+        .then(id => {
+            done("Should not be error with property code, name, criteria.type, reward.type");
+        })
+        .catch(e => {
+            try {
+                e.errors.should.have.property('code');
+                e.errors.should.have.property('name');
+                e.errors.should.have.property('stores');
+                e.errors.criteria.should.have.property('type');
+                e.errors.reward.should.have.property('type');
+                //e.errors.should.have.property('validTo');
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        })
+});
+ 
+it('#2.09. [Package Special Price] should error with property validFrom and validTo not date ', function(done) {
+    var data = getDataPackageSpecialPrice();
+    data.validFrom = "2000-01-01";
+    data.validTo = "2000-01-01";
+    manager.create(data)
+        .then(id => {
+            done("Should not be error with property validFrom and validTo not date");
+        })
+        .catch(e => {
+            try {
+                e.errors.should.have.property('validFrom');
+                e.errors.should.have.property('validTo');
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        });
+});
+
+it('#2.10. [Package Special Price] should error with property validFrom greater than equal validTo ', function(done) {
+    var data = getDataPackageSpecialPrice();
+    data.validFrom = new Date("2000-01-01T00:00:00"); 
+    data.validTo = new Date("2000-01-01T00:00:00");
+    manager.create(data)
+        .then(id => {
+            done("Should not be error with property validFrom greater than equal validTo");
+        })
+        .catch(e => {
+            try {
+                e.errors.should.have.property('validFrom');
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        });
+});
+
+it('#2.11. [Package Special Price] should error with property rewards and criterions is empty ', function(done) {
+    var data = getDataPackageSpecialPrice();
+    data.reward.rewards = [];
+    data.criteria.criterions = [];
+    manager.create(data)
+        .then(id => {
+            done("Should not be error with property rewards and criterions is empty");
+        })
+        .catch(e => {
+            try {
+                e.errors.reward.should.have.property('rewards');
+                e.errors.criteria.should.have.property('criterions');
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        });
+});
+
+it('#2.12. [Package Special Price] should error with property rewards quantity1, quantity2, quantity3, quantity4, quantity5 less than 0 ', function(done) {
+    var data = getDataPackageSpecialPrice();
+    for (var reward of data.reward.rewards) {
+        reward.quantity1 = -1;
+        reward.quantity2 = -1;
+        reward.quantity3 = -1;
+        reward.quantity4 = -1;
+        reward.quantity5 = -1;
+    }
+    manager.create(data)
+        .then(id => {
+            done("Should not be error with property rewards quantity1, quantity2, quantity3, quantity4, quantity5 less than 0");
+        })
+        .catch(e => {
+            try {
+                for (var reward of e.errors.reward.rewards) {
+                    reward.should.have.property('quantity1');
+                    reward.should.have.property('quantity2');
+                    reward.should.have.property('quantity3');
+                    reward.should.have.property('quantity4');
+                    reward.should.have.property('quantity5');
+                }
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        });
+});
+
+it('#2.13. [Package Special Price] should error with property criterions itemId is empty ', function(done) {
+    var data = getDataPackageSpecialPrice();
+    for (var criterion of data.criteria.criterions) {
+        criterion.itemId = '';
+    }
+    manager.create(data)
+        .then(id => {
+            done("Should not be error with property criterions itemId is empty");
+        })
+        .catch(e => {
+            try {
+                for (var criterion of e.errors.criteria.criterions) {
+                    criterion.should.have.property('itemId');
+                }
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        });
+});
+
+it('#2.14. [Package Special Price] should error with property criterions itemId not found ', function(done) {
+    var data = getDataPackageSpecialPrice();
+    for (var criterion of data.criteria.criterions) {
+        criterion.itemId = "000000000000000000000000";
+        break;
+    }
+    manager.create(data)
+        .then(id => {
+            done("Should not be error with property criterions itemId not found");
+        })
+        .catch(e => {
+            try {
+                for (var criterion of e.errors.criteria.criterions) {
+                    criterion.should.have.property('itemId');
+                    break;
+                }
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        });
+});
+
+it('#2.15. [Package Special Price] should error with property criterions itemId must unique ', function(done) {
+    var data = getDataPackageSpecialPrice();
+    var item = testData.finishedGoods["UT-FG1"];
+    for (var criterion of data.criteria.criterions) {
+        criterion.itemId = item._id;
+    }
+    manager.create(data)
+        .then(id => {
+            done("Should not be error with property criterions itemId must unique ");
+        })
+        .catch(e => {
+            try {
+                for (var criterion of e.errors.criteria.criterions) {
+                    criterion.should.have.property('itemId');
+                    break;
                 }
                 done();
             }
