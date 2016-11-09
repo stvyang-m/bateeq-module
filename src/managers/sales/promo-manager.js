@@ -103,22 +103,33 @@ module.exports = class PromoManager extends BaseManager {
                     if (!valid.name || valid.name == '')
                         error["name"] = "name is required"; 
                     
+                    var errorDateFrom = false;
                     if (Object.prototype.toString.call(valid.validFrom) === "[object Date]") {
                         if (isNaN( valid.validFrom.getTime())) {
                             error["validFrom"] = "validFrom is not valid";
+                            errorDateFrom = true;
                         }
                     }
                     else {
                         error["validFrom"] = "validFrom is not valid";
+                            errorDateFrom = true;
                     }
                         
+                    var errorDateTo = false;
                     if (Object.prototype.toString.call(valid.validTo) === "[object Date]") {
                         if (isNaN( valid.validTo.getTime())) {
                             error["validTo"] = "validTo is not valid";
+                            errorDateTo = true;
                         } 
                     }
                     else {
                         error["validTo"] = "validTo is not valid"; 
+                        errorDateTo = true;
+                    }
+                    
+                    if(!errorDateFrom && !errorDateTo) {
+                        if(valid.validFrom >= valid.validTo)
+                            error["validFrom"] = "validFrom must not greater than validTo"; 
                     }
                     
                     var getStores = [];
