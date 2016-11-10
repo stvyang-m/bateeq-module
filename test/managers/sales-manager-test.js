@@ -30,6 +30,8 @@ function getData() {
     sales.items.push(new SalesItem({
         itemId: variant._id,
         item: variant,
+        promoId: '',
+        promo: {},
         quantity: 1,
         price: 100000,
         discount1: 0,

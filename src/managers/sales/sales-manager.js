@@ -34,6 +34,10 @@ module.exports = class SalesManager extends BaseManager {
         
         var InventoryManager = require('../inventory/inventory-manager');
         this.inventoryManager = new InventoryManager(db, user);
+        
+        var PromoManager = require('./promo-manager');
+        this.promoManager = new PromoManager(db, user);
+        
     }
     
     _createIndexes() {
@@ -155,23 +159,40 @@ module.exports = class SalesManager extends BaseManager {
             var getCardType = this.cardTypeManager.getSingleByIdOrDefault(sales.salesDetail.cardTypeId);
             var getVoucher = Promise.resolve(null);
             var getItems = [];
+            var getPromos = [];
             if (valid.items && valid.items.length > 0) {
                 for (var item of valid.items) {  
-                    getItems.push(this.itemManager.getSingleByIdOrDefault(item.itemId));
+                    if (!item.itemId || item.itemId == '' || this.isEmpty(item.itemId)) {
+                        getItems.push(Promise.resolve(null));
+                        item.itemId = {};
+                    }
+                    else {
+                        getItems.push(this.itemManager.getSingleByIdOrDefault(item.itemId));
+                    }  
+                    if (!item.promoId || item.promoId == '' || this.isEmpty(item.promoId)) {
+                        getPromos.push(Promise.resolve(null));
+                        item.promoId = {};
+                    }
+                    else {
+                        getPromos.push(this.promoManager.getSingleByIdOrDefault(item.promoId));
+                    } 
                 }
             }
             else {
                 errors["items"] = "items is required";
             }
             
-            Promise.all([getSales, getStore, getBank, getCardType, getVoucher].concat(getItems))
+            var countGetItems = getItems.length;
+            var countGetPromos = getPromos.length;
+            Promise.all([getSales, getStore, getBank, getCardType, getVoucher].concat(getItems).concat(getPromos))
                .then(results => {
                     var _sales = results[0];
                     var _store = results[1];
                     var _bank = results[2];
                     var _cardType = results[3];
                     var _voucherType = results[4];
-                    var articleVariants = results.slice(5, results.length) 
+                    var _items = results.slice(5, results.length - countGetPromos) 
+                    var _promos = results.slice(results.length - countGetPromos, results.length) 
                      
                     if (_sales) {
                         errors["code"] = "code already exists";
@@ -188,14 +209,14 @@ module.exports = class SalesManager extends BaseManager {
                     valid.totalProduct = 0;
                     valid.subTotal = 0;
                     valid.grandTotal = 0;
-                    if (articleVariants.length > 0) {
+                    if (_items.length > 0) {
                         var itemErrors = [];
-                        for (var variant of articleVariants) {
-                            var index = articleVariants.indexOf(variant);
+                        for (var _item of _items) {
+                            var index = _items.indexOf(_item);
                             var item = valid.items[index];
                             var itemError = {};
 
-                            if (!item.itemId || item.itemId == '') {
+                            if (!item.itemId || item.itemId == '' || this.isEmpty(item.itemId)) {
                                 itemError["itemId"] = "itemId is required";
                             }
                             else {
@@ -206,17 +227,30 @@ module.exports = class SalesManager extends BaseManager {
                                     }
                                 }
                             }
-                            if (!variant) {
+                            
+                            if (!_item) {
                                 itemError["itemId"] = "itemId not found";
                             }
                             else {
-                                item.itemId = variant._id;
-                                item.item = variant;
-                                if(variant.size)
-                                    if(variant.size.name)
-                                        item.size = variant.size.name;
-                                item.price = parseInt(variant.domesticSale);
+                                item.itemId = _item._id;
+                                item.item = _item;
+                                if(_item.size)
+                                    if(_item.size.name)
+                                        item.size = _item.size.name;
+                                item.price = parseInt(_item.domesticSale);
                             }
+                            
+                            if (!item.promoId || item.promoId == ''|| this.isEmpty(item.promoId)) { }
+                            else {
+                                var _promo = _promos[index];
+                                if (!_promo) {
+                                    itemError["promoId"] = "promoId not found";
+                                }
+                                else {
+                                    item.promoId = _promo._id;
+                                    item.promo = _promo;
+                                } 
+                            } 
 
                             if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
                                 itemError["quantity"] = "quantity is required";
@@ -266,18 +300,18 @@ module.exports = class SalesManager extends BaseManager {
                                 itemError["specialDiscount"] = "specialDiscount must be greater than 0";
                             } 
                             
-                            item.total = 0;
+                            var total = 0;
                             if(parseInt(item.quantity) > 0) {
                                 //Price
-                                item.total = parseInt(item.quantity) * parseInt(item.price);
+                                total = parseInt(item.quantity) * parseInt(item.price);
                                 //Diskon
-                                item.total = (item.total * (1 - (parseInt(item.discount1) / 100)) * (1 - (parseInt(item.discount2) / 100))) - parseInt(item.discountNominal);
+                                total = (total * (1 - (parseInt(item.discount1) / 100)) * (1 - (parseInt(item.discount2) / 100))) - parseInt(item.discountNominal);
                                 //Spesial Diskon 
-                                item.total = item.total * (1 - (parseInt(item.specialDiscount) / 100))
+                                total = total * (1 - (parseInt(item.specialDiscount) / 100))
                                 //Margin
-                                item.total = item.total * (1 - (parseInt(item.margin) / 100))
+                                total = total * (1 - (parseInt(item.margin) / 100))
                             }  
-                            valid.subTotal = parseInt(valid.subTotal) + parseInt(item.total);
+                            valid.subTotal = parseInt(valid.subTotal) + parseInt(total);
                             valid.totalProduct = parseInt(valid.totalProduct) + parseInt(item.quantity);
                             itemErrors.push(itemError);
                         }
@@ -396,8 +430,8 @@ module.exports = class SalesManager extends BaseManager {
                     // resolve(valid);
 
                     var getStocks = [];
-                    for (var variant of articleVariants) {
-                        getStocks.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(_store.storageId, variant._id));
+                    for (var _item of _items) {
+                        getStocks.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(_store.storageId, _item._id));
                     } 
                     Promise.all(getStocks) 
                         .then(resultStocks => { 
@@ -446,4 +480,13 @@ module.exports = class SalesManager extends BaseManager {
                 })
         });
     }
+    
+    isEmpty(obj) {
+        for(var prop in obj) {
+            if(obj.hasOwnProperty(prop))
+                return false;
+        } 
+        return JSON.stringify(obj) === JSON.stringify({});
+    }
+
 };
