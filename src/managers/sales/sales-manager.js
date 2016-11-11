@@ -129,19 +129,15 @@ module.exports = class SalesManager extends BaseManager {
             var salesDetailError = {};
             if (!valid.code || valid.code == '')
                 errors["code"] = "code is required";
-                
             if (!sales.storeId || sales.storeId == '')
                 errors["storeId"] = "storeId is required"; 
-                
             if(!sales.salesDetail)
             {
                 errors["salesDetail"] = "salesDetail is required";
                 sales.salesDetail = {};
             }
-            
             if (!sales.salesDetail.paymentType || sales.salesDetail.paymentType == '')
                 salesDetailError["paymentType"] = "paymentType is required";
-                
             valid.date = new Date(valid.date);
             if (Object.prototype.toString.call(valid.date) === "[object Date]") {
                 if (isNaN(valid.date.getTime())) {
@@ -150,7 +146,9 @@ module.exports = class SalesManager extends BaseManager {
             }
             else {
                 errors["date"] = "date is not valid";
-            } 
+            }
+            
+            
             
             for (var prop in salesDetailError) {
                 errors["salesDetail"] = salesDetailError;
@@ -308,7 +306,7 @@ module.exports = class SalesManager extends BaseManager {
                                         //     }
                                         // }
                                     }
-                                    if(promo.reward.type == "special-price") 
+                                    if(_promo.reward.type == "special-price") 
                                     {
                                         //cek quantity
                                         var quantityPaket = 0;
@@ -321,7 +319,7 @@ module.exports = class SalesManager extends BaseManager {
                                         //change price
                                         for(var item2 of valid.items) {
                                             if(item.promoId == item2.promoId) {
-                                                for(var reward of promo.reward.rewards) {
+                                                for(var reward of _promo.reward.rewards) {
                                                     if(parseInt(quantityPaket) == 1)
                                                         item2.price = parseInt(reward.quantity1);
                                                     else if(parseInt(quantityPaket) == 2)
