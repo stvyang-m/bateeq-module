@@ -131,19 +131,29 @@ module.exports = class SalesManager extends BaseManager {
                 errors["code"] = "code is required";
             if (!sales.storeId || sales.storeId == '')
                 errors["storeId"] = "storeId is required"; 
+            if(!sales.salesDetail)
+            {
+                errors["salesDetail"] = "salesDetail is required";
+                sales.salesDetail = {};
+            }
             if (!sales.salesDetail.paymentType || sales.salesDetail.paymentType == '')
                 salesDetailError["paymentType"] = "paymentType is required";
-            if (sales.date == undefined || sales.date == "yyyy/mm/dd" || sales.date == "")
-                errors["date"] = "date is required"; 
-            else
-                valid.date = new Date(sales.date);
+            if (Object.prototype.toString.call(valid.date) === "[object Date]") {
+                if (isNaN(valid.date.getTime())) {
+                    errors["date"] = "date is not valid";
+                }
+            }
+            else {
+                errors["date"] = "date is not valid";
+            }
+            
+            
             
             for (var prop in salesDetailError) {
                 errors["salesDetail"] = salesDetailError;
                 break;
             }
-                                
-
+                  
             //Get sales data
             var getSales = this.collection.singleOrDefault({
                 "$and": [{
@@ -154,12 +164,37 @@ module.exports = class SalesManager extends BaseManager {
                         code: valid.code
                     }]
             });  
-            var getStore = this.storeManager.getSingleByIdOrDefault(sales.storeId);
-            var getBank = this.bankManager.getSingleByIdOrDefault(sales.salesDetail.bankId);
-            var getCardType = this.cardTypeManager.getSingleByIdOrDefault(sales.salesDetail.cardTypeId);
+            var getStore;// = this.storeManager.getSingleByIdOrDefault(sales.storeId);
+            var getBank;// = this.bankManager.getSingleByIdOrDefault(sales.salesDetail.bankId);
+            var getCardType;// = this.cardTypeManager.getSingleByIdOrDefault(sales.salesDetail.cardTypeId);
             var getVoucher = Promise.resolve(null);
             var getItems = [];
             var getPromos = [];
+            
+            if (!sales.storeId || sales.storeId == '' || this.isEmpty(sales.storeId)) {
+                getStore = Promise.resolve(null);
+                sales.storeId = {};
+            }
+            else {
+                getStore = this.storeManager.getSingleByIdOrDefault(sales.storeId);
+            }  
+            
+            if (!sales.salesDetail.bankId || sales.salesDetail.bankId == '' || this.isEmpty(sales.salesDetail.bankId)) {
+                getBank = Promise.resolve(null);
+                sales.salesDetail.bankId = {};
+            }
+            else {
+                getBank = this.bankManager.getSingleByIdOrDefault(sales.salesDetail.bankId);
+            }  
+            
+            if (!sales.salesDetail.cardTypeId || sales.salesDetail.cardTypeId == '' || this.isEmpty(sales.salesDetail.cardTypeId)) {
+                getCardType = Promise.resolve(null);
+                sales.salesDetail.cardTypeId = {};
+            }
+            else {
+                getCardType = this.cardTypeManager.getSingleByIdOrDefault(sales.salesDetail.cardTypeId);
+            }  
+                        
             if (valid.items && valid.items.length > 0) {
                 for (var item of valid.items) {  
                     if (!item.itemId || item.itemId == '' || this.isEmpty(item.itemId)) {
@@ -204,7 +239,15 @@ module.exports = class SalesManager extends BaseManager {
                     else {
                         valid.storeId = _store._id;
                         valid.store = _store;
-                    } 
+                    }  
+                    
+                    if (valid.discount == undefined || (valid.discount && valid.discount == '')) {
+                        errors["discount"] = "discount is required";
+                        valid.discount = 0;
+                    }
+                    else if (parseInt(valid.discount) < 0 || parseInt(valid.discount) > 100) {
+                        errors["discount"] = "discount must be greater than 0 or less than 100";
+                    }  
                       
                     valid.totalProduct = 0;
                     valid.subTotal = 0;
@@ -260,20 +303,28 @@ module.exports = class SalesManager extends BaseManager {
                                 itemError["quantity"] = "quantity must be greater than 0";
                             } 
                             
+                            if (item.price == undefined || (item.price && item.price == '')) {
+                                itemError["price"] = "price is required";
+                                item.price = 0;
+                            }
+                            else if (parseInt(item.price) < 0) {
+                                itemError["price"] = "price must be greater than 0";
+                            } 
+                            
                             if (item.discount1 == undefined || (item.discount1 && item.discount1 == '')) {
                                 itemError["discount1"] = "discount1 is required";
                                 item.discount1 = 0;
                             }
-                            else if (parseInt(item.discount1) < 0) {
-                                itemError["discount1"] = "discount1 must be greater than 0";
+                            else if (parseInt(item.discount1) < 0 || parseInt(item.discount1) > 100) {
+                                itemError["discount1"] = "discount1 must be greater than 0 or less than 100";
                             } 
                             
                             if (item.discount2 == undefined || (item.discount2 && item.discount2 == '')) {
                                 itemError["discount2"] = "discount2 is required";
                                 item.discount2 = 0;
                             }
-                            else if (parseInt(item.discount2) < 0) {
-                                itemError["discount2"] = "discount2 must be greater than 0";
+                            else if (parseInt(item.discount2) < 0 || parseInt(item.discount2) > 100) {
+                                itemError["discount2"] = "discount2 must be greater than 0 or less than 100";
                             } 
                             
                             if (item.discountNominal == undefined || (item.discountNominal && item.discountNominal == '')) {
@@ -288,16 +339,16 @@ module.exports = class SalesManager extends BaseManager {
                                 itemError["margin"] = "margin is required";
                                 item.margin = 0;
                             }
-                            else if (parseInt(item.margin) < 0) {
-                                itemError["margin"] = "margin must be greater than 0";
+                            else if (parseInt(item.margin) < 0 || parseInt(item.margin) > 100) {
+                                itemError["margin"] = "margin must be greater than 0 or less than 100";
                             } 
                             
                             if (item.specialDiscount == undefined || (item.specialDiscount && item.specialDiscount == '')) {
                                 itemError["specialDiscount"] = "specialDiscount is required";
                                 item.margin = 0;
                             }
-                            else if (parseInt(item.specialDiscount) < 0) {
-                                itemError["specialDiscount"] = "specialDiscount must be greater than 0";
+                            else if (parseInt(item.specialDiscount) < 0 || parseInt(item.specialDiscount) > 100) {
+                                itemError["specialDiscount"] = "specialDiscount must be greater than 0 or less than 100";
                             } 
                             
                             var total = 0;
@@ -391,8 +442,11 @@ module.exports = class SalesManager extends BaseManager {
                          
                         if(valid.salesDetail.voucher) {
                             var voucherError = {};
+                            if (valid.salesDetail.voucher.value == undefined || (valid.salesDetail.voucher.value && valid.salesDetail.voucher.value == '')) {
+                                valid.salesDetail.voucher.value = 0;
+                            } 
                             if(parseInt(valid.salesDetail.voucher.value) > parseInt(valid.grandTotal)) {
-                                voucherError["value"] = "voucher must be less than total";
+                                voucherError["value"] = "voucher must be less than grandTotal";
                             }
                              
                             for (var prop in voucherError) {
