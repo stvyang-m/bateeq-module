@@ -393,18 +393,18 @@ module.exports = class SalesManager extends BaseManager {
                                 itemError["specialDiscount"] = "specialDiscount must be greater than 0 or less than 100";
                             } 
                             
-                            var total = 0;
+                            item.total = 0;
                             if(parseInt(item.quantity) > 0) {
                                 //Price
-                                total = parseInt(item.quantity) * parseInt(item.price);
+                                item.total = parseInt(item.quantity) * parseInt(item.price);
                                 //Diskon
-                                total = (total * (1 - (parseInt(item.discount1) / 100)) * (1 - (parseInt(item.discount2) / 100))) - parseInt(item.discountNominal);
+                                item.total = (item.total * (1 - (parseInt(item.discount1) / 100)) * (1 - (parseInt(item.discount2) / 100))) - parseInt(item.discountNominal);
                                 //Spesial Diskon 
-                                total = total * (1 - (parseInt(item.specialDiscount) / 100))
+                                item.total = item.total * (1 - (parseInt(item.specialDiscount) / 100))
                                 //Margin
-                                total = total * (1 - (parseInt(item.margin) / 100))
+                                item.total = item.total * (1 - (parseInt(item.margin) / 100))
                             }  
-                            valid.subTotal = parseInt(valid.subTotal) + parseInt(total);
+                            valid.subTotal = parseInt(valid.subTotal) + parseInt(item.total);
                             valid.totalProduct = parseInt(valid.totalProduct) + parseInt(item.quantity);
                             itemErrors.push(itemError);
                         }
