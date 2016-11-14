@@ -249,6 +249,8 @@ module.exports = class SalesManager extends BaseManager {
                     else if (parseInt(valid.discount) < 0 || parseInt(valid.discount) > 100) {
                         errors["discount"] = "discount must be greater than 0 or less than 100";
                     }  
+                    else
+                        valid.discount = parseInt(valid.discount);
                       
                     valid.totalProduct = 0;
                     valid.subTotal = 0;
@@ -344,6 +346,18 @@ module.exports = class SalesManager extends BaseManager {
                             else if (parseInt(item.quantity) <= 0) {
                                 itemError["quantity"] = "quantity must be greater than 0";
                             } 
+                            else 
+                                item.quantity = parseInt(item.quantity);
+                            
+                            if (item.price == undefined || (item.price && item.price == '')) {
+                                itemError["price"] = "price is required";
+                                item.price = 0;
+                            }
+                            else if (parseInt(item.price) < 0) {
+                                itemError["price"] = "price must be greater than 0";
+                            } 
+                            else 
+                                item.price = parseInt(item.price);
                             
                             if (item.price == undefined || (item.price && item.price == '')) {
                                 itemError["price"] = "price is required";
@@ -360,6 +374,8 @@ module.exports = class SalesManager extends BaseManager {
                             else if (parseInt(item.discount1) < 0 || parseInt(item.discount1) > 100) {
                                 itemError["discount1"] = "discount1 must be greater than 0 or less than 100";
                             } 
+                            else 
+                                item.discount1 = parseInt(item.discount1);
                             
                             if (item.discount2 == undefined || (item.discount2 && item.discount2 == '')) {
                                 itemError["discount2"] = "discount2 is required";
@@ -368,6 +384,8 @@ module.exports = class SalesManager extends BaseManager {
                             else if (parseInt(item.discount2) < 0 || parseInt(item.discount2) > 100) {
                                 itemError["discount2"] = "discount2 must be greater than 0 or less than 100";
                             } 
+                            else 
+                                item.discount2 = parseInt(item.discount2);
                             
                             if (item.discountNominal == undefined || (item.discountNominal && item.discountNominal == '')) {
                                 itemError["discountNominal"] = "discountNominal is required";
@@ -376,6 +394,8 @@ module.exports = class SalesManager extends BaseManager {
                             else if (parseInt(item.discountNominal) < 0) {
                                 itemError["discountNominal"] = "discountNominal must be greater than 0";
                             } 
+                            else 
+                                item.discountNominal = parseInt(item.discountNominal);
                             
                             if (item.margin == undefined || (item.margin && item.margin == '')) {
                                 itemError["margin"] = "margin is required";
@@ -384,6 +404,8 @@ module.exports = class SalesManager extends BaseManager {
                             else if (parseInt(item.margin) < 0 || parseInt(item.margin) > 100) {
                                 itemError["margin"] = "margin must be greater than 0 or less than 100";
                             } 
+                            else 
+                                item.margin = parseInt(item.margin);
                             
                             if (item.specialDiscount == undefined || (item.specialDiscount && item.specialDiscount == '')) {
                                 itemError["specialDiscount"] = "specialDiscount is required";
@@ -392,6 +414,8 @@ module.exports = class SalesManager extends BaseManager {
                             else if (parseInt(item.specialDiscount) < 0 || parseInt(item.specialDiscount) > 100) {
                                 itemError["specialDiscount"] = "specialDiscount must be greater than 0 or less than 100";
                             } 
+                            else 
+                                item.specialDiscount = parseInt(item.specialDiscount);
                             
                             var total = 0;
                             if(parseInt(item.quantity) > 0) {
@@ -470,6 +494,8 @@ module.exports = class SalesManager extends BaseManager {
                             else if(parseInt(valid.salesDetail.cardAmount) < 0) {
                                 salesDetailError["cardAmount"] = "cardAmount must be greater than 0";
                             }  
+                            else
+                                valid.salesDetail.cardAmount = parseInt(valid.salesDetail.cardAmount);
                         }  
                         
                         if(valid.salesDetail.paymentType.toLowerCase() == "cash" || valid.salesDetail.paymentType.toLowerCase() == "partial"){ 
@@ -480,6 +506,8 @@ module.exports = class SalesManager extends BaseManager {
                             else if(parseInt(valid.salesDetail.cashAmount) < 0) {
                                 salesDetailError["cashAmount"] = "cashAmount must be greater than 0";
                             } 
+                            else
+                                valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
                         } 
                          
                         if(valid.salesDetail.voucher) {
@@ -490,6 +518,8 @@ module.exports = class SalesManager extends BaseManager {
                             if(parseInt(valid.salesDetail.voucher.value) > parseInt(valid.grandTotal)) {
                                 voucherError["value"] = "voucher must be less than grandTotal";
                             }
+                            else
+                                valid.salesDetail.voucher.value = parseInt(valid.salesDetail.voucher.value);
                              
                             for (var prop in voucherError) {
                                 salesDetailError["voucher"] = voucherError;
