@@ -14,6 +14,9 @@ function getData() {
     store.code = code;
     store.name = `name[${code}]`;
     store.description = `description for ${code}`; 
+    store.address = `address for ${code}`; 
+    store.phone = `phone ${code}`; 
+    store.salesCapital = 5000; 
 
     return store;
 }
