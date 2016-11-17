@@ -11,9 +11,9 @@ describe('#bateeq-module', function(done) {
     // test('@auth/account-manager', './auth/account-manager-test');
     // test('@auth/role-manager', './auth/role-manager-test');
     
-    test('@manager/master/item-manager', './managers/master/item-manager-test');
-    test('@manager/master/material-manager', './managers/master/material-manager-test');
-    test('@manager/master/finished-goods-manager', './managers/master/finished-goods-manager-test');
+    // test('@manager/master/item-manager', './managers/master/item-manager-test');
+    // test('@manager/master/material-manager', './managers/master/material-manager-test');
+    // test('@manager/master/finished-goods-manager', './managers/master/finished-goods-manager-test');
     
     // test('@manager/article-brand-manager', './managers/article-brand-manager-test');
     // test('@manager/article-category-manager', './managers/article-category-manager-test');
@@ -27,12 +27,12 @@ describe('#bateeq-module', function(done) {
     // test('@manager/article-type-manager', './managers/article-type-manager-test');
     // test('@manager/article-manager', './managers/article-manager-test');
     
-    test('@manager/storage-manager', './managers/storage-manager-test');
-    test('@manager/store-manager', './managers/store-manager-test');
-    test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
-    test('@manager/transfer-out-doc-manager', './managers/transfer-out-doc-manager-test');
-    test('@manager/transfer-in-doc-ext-manager', './managers/transfer-in-doc-ext-manager-test');
-    test('@manager/inventory-manager', './managers/inventory-manager-test');
+    // test('@manager/storage-manager', './managers/storage-manager-test');
+    // test('@manager/store-manager', './managers/store-manager-test');
+    // test('@manager/transfer-in-doc-manager', './managers/transfer-in-doc-manager-test');
+    // test('@manager/transfer-out-doc-manager', './managers/transfer-out-doc-manager-test');
+    // test('@manager/transfer-in-doc-ext-manager', './managers/transfer-in-doc-ext-manager-test');
+    // test('@manager/inventory-manager', './managers/inventory-manager-test');
     test('@manager/module-manager', './managers/module-manager-test');
     
     // test('@manager/efr-kb-rtt-manager', './managers/efr-kb-rtt-manager-test');
@@ -56,8 +56,8 @@ describe('#bateeq-module', function(done) {
     // test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test'); 
     // test('@manager/supplier-manager', './managers/supplier-manager-test');
     
-    test('@manager/bank-manager', './managers/bank-manager-test'); 
-    test('@manager/card-type-manager', './managers/card-type-manager-test'); 
+    // test('@manager/bank-manager', './managers/bank-manager-test'); 
+    // test('@manager/card-type-manager', './managers/card-type-manager-test'); 
     // test('@manager/promo-manager', './managers/promo-manager-test');
-    test('@manager/sales-manager', './managers/sales-manager-test');
+    // test('@manager/sales-manager', './managers/sales-manager-test');
 })
