@@ -8,14 +8,14 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var Supplier = BateeqModels.inventory.Supplier;
+var Storage = BateeqModels.master.Storage;
 
 
-module.exports = class SupplierManager {
+module.exports = class StorageManager {
     constructor(db, user) {
         this.db = db;
         this.user = user;
-        this.supplierCollection = this.db.use(map.inventory.Supplier);
+        this.storageCollection = this.db.use(map.master.Storage);
     }
 
     read(paging) {
@@ -54,13 +54,13 @@ module.exports = class SupplierManager {
             }
 
 
-            this.supplierCollection
+            this.storageCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
                 .orderBy(_paging.order, _paging.asc)
                 .execute()
-                .then(suppliers => {
-                    resolve(suppliers);
+                .then(storages => {
+                    resolve(storages);
                 })
                 .catch(e => {
                     reject(e);
@@ -77,8 +77,8 @@ module.exports = class SupplierManager {
                 _deleted: false
             };
             this.getSingleByQuery(query)
-                .then(supplier => {
-                    resolve(supplier);
+                .then(storage => {
+                    resolve(storage);
                 })
                 .catch(e => {
                     reject(e);
@@ -86,7 +86,7 @@ module.exports = class SupplierManager {
         });
     }
 
-    getSingleByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {  
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -95,8 +95,24 @@ module.exports = class SupplierManager {
                 _deleted: false
             };
             this.getSingleByQueryOrDefault(query)
-                .then(supplier => {
-                    resolve(supplier);
+                .then(storage => {
+                    resolve(storage);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+     getByCode(code) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                code: code,
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(storage => {
+                    resolve(storage);
                 })
                 .catch(e => {
                     reject(e);
@@ -106,10 +122,10 @@ module.exports = class SupplierManager {
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.supplierCollection
+            this.storageCollection
                 .single(query)
-                .then(supplier => {
-                    resolve(supplier);
+                .then(storage => {
+                    resolve(storage);
                 })
                 .catch(e => {
                     reject(e);
@@ -119,10 +135,10 @@ module.exports = class SupplierManager {
 
     getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.supplierCollection
+            this.storageCollection
                 .singleOrDefault(query)
-                .then(supplier => {
-                    resolve(supplier);
+                .then(storage => {
+                    resolve(storage);
                 })
                 .catch(e => {
                     reject(e);
@@ -130,12 +146,12 @@ module.exports = class SupplierManager {
         })
     }
 
-    create(supplier) {
+    create(storage) {
         return new Promise((resolve, reject) => {
-            this._validate(supplier)
-                .then(validsupplier => {
+            this._validate(storage)
+                .then(validStorage => {
 
-                    this.supplierCollection.insert(validsupplier)
+                    this.storageCollection.insert(validStorage)
                         .then(id => {
                             resolve(id);
                         })
@@ -149,11 +165,11 @@ module.exports = class SupplierManager {
         });
     }
 
-    update(supplier) {
+    update(storage) {
         return new Promise((resolve, reject) => {
-            this._validate(supplier)
-                .then(validsupplier => {
-                    this.supplierCollection.update(validsupplier)
+            this._validate(storage)
+                .then(validStorage => {
+                    this.storageCollection.update(validStorage)
                         .then(id => {
                             resolve(id);
                         })
@@ -167,12 +183,12 @@ module.exports = class SupplierManager {
         });
     }
 
-    delete(supplier) {
+    delete(storage) {
         return new Promise((resolve, reject) => {
-            this._validate(supplier)
-                .then(validsupplier => {
-                    validsupplier._deleted = true;
-                    this.supplierCollection.update(validsupplier)
+            this._validate(storage)
+                .then(validStorage => {
+                    validStorage._deleted = true;
+                    this.storageCollection.update(validStorage)
                         .then(id => {
                             resolve(id);
                         })
@@ -186,12 +202,12 @@ module.exports = class SupplierManager {
         });
     }
  
-    _validate(supplier) {
+    _validate(storage) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new Supplier(supplier);
+            var valid = new Storage(storage);
             // 1. begin: Declare promises.
-            var getsupplier = this.supplierCollection.singleOrDefault({
+            var getStorage = this.storageCollection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
@@ -203,13 +219,13 @@ module.exports = class SupplierManager {
             // 1. end: Declare promises.
 
             // 2. begin: Validation.
-            Promise.all([getsupplier])
+            Promise.all([getStorage])
                 .then(results => {
-                    var _supplier = results[0];
+                    var _storage = results[0];
 
                     if (!valid.code || valid.code == '')
                         errors["code"] = "code is required";
-                    else if (_supplier) {
+                    else if (_storage) {
                         errors["code"] = "code already exists";
                     }
 

@@ -6,10 +6,10 @@ var ObjectId = require('mongodb').ObjectId;
 // internal deps
 require('mongodb-toolkit');
 var BaseManager = require('../base-manager');
-var StorageManager = require('../inventory/storage-manager');
+var StorageManager = require('../master/storage-manager');
 var BateeqModels = require('bateeq-models');
 var Store = BateeqModels.master.Store;
-var Storage = BateeqModels.inventory.Storage;
+var Storage = BateeqModels.master.Storage;
 var map = BateeqModels.map;
 //var generateCode = require('../../utils/code-generator');
 
@@ -84,7 +84,7 @@ module.exports = class StoreManager extends BaseManager {
                 }]
             });
 
-            var getStorage = !valid.storageId ? Promise.resolve(null) : this.storageManager.getSingleById(valid.storageId);
+            var getStorage = !ObjectId.isValid(valid.storageId) ? Promise.resolve(null) : this.storageManager.getSingleById(valid.storageId);
             // 1. end: Declare promises.
 
             // 2. begin: Validation.

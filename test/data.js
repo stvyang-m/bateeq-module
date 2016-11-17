@@ -38,7 +38,7 @@ function getSertStorages(db) {
     }];
 
 
-    var StorageManager = require("../src/managers/inventory/storage-manager");
+    var StorageManager = require("../src/managers/master/storage-manager");
     return new Promise((resolve, reject) => {
         var manager = new StorageManager(db, {
             username: "unit-test"
@@ -515,7 +515,7 @@ function getSertSuppliers(db) {
         description: "Unit test data: supplier 01."
     }];
 
-    var SupplierManager = require("../src/managers/inventory/supplier-manager");
+    var SupplierManager = require("../src/managers/master/supplier-manager");
     return new Promise((resolve, reject) => {
         var manager = new SupplierManager(db, {
             username: "unit-test"

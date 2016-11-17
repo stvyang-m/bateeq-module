@@ -17,6 +17,7 @@ function getData() {
     store.address = `address for ${code}`; 
     store.phone = `phone ${code}`; 
     store.salesCapital = 5000; 
+    store.storageId = null;
 
     return store;
 }
