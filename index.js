@@ -81,6 +81,7 @@ module.exports = {
     },
     sales: {
         SalesManager: require('./src/managers/sales/sales-manager'),
+        SalesReturnManager: require('./src/managers/sales/sales-return-manager'),
         PromoManager: require('./src/managers/sales/promo-manager')
     },
     ValidationError: require('./src/validation-error')
