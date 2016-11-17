@@ -74,7 +74,8 @@ module.exports = {
         ItemManager: require('./src/managers/master/item-manager'),
         SupplierManager: require('./src/managers/master/supplier-manager'), 
         StorageManager: require('./src/managers/master/storage-manager'),
-        FinishedGoodsManager: require('./src/managers/master/finished-goods-manager')
+        FinishedGoodsManager: require('./src/managers/master/finished-goods-manager'),
+        MaterialManager: require('./src/managers/master/material-manager')
     },
     sales: {
         SalesManager: require('./src/managers/sales/sales-manager'),
