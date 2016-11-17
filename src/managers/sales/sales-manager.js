@@ -9,6 +9,7 @@ var BaseManager = require('../base-manager');
 var BateeqModels = require('bateeq-models');
 var Sales = BateeqModels.sales.Sales; 
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
+var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
 
@@ -92,6 +93,7 @@ module.exports = class SalesManager extends BaseManager {
             sales.code = generateCode("sales");
             this._validate(sales)
                 .then(validSales => {   
+                    var isAnyTransferOut = false;
                     var validTransferOutDoc = {};
                     validTransferOutDoc.code = sales.code;
                     validTransferOutDoc.reference = validSales.code;
@@ -104,10 +106,12 @@ module.exports = class SalesManager extends BaseManager {
                             newitem.itemId = item.itemId;
                             newitem.quantity = item.quantity;
                             validTransferOutDoc.items.push(newitem);
+                            isAnyTransferOut = true;
                         }
                     } 
                     validTransferOutDoc = new TransferOutDoc(validTransferOutDoc);
                     
+                    var isAnyTransferIn = false;
                     var validTransferInDoc = {};
                     validTransferInDoc.code = sales.code;
                     validTransferInDoc.reference = validSales.code;
@@ -120,13 +124,22 @@ module.exports = class SalesManager extends BaseManager {
                             newitem.itemId = item.itemId;
                             newitem.quantity = item.quantity;
                             validTransferInDoc.items.push(newitem);
+                            isAnyTransferIn = true;
                         }
                     } 
                     validTransferInDoc = new TransferInDoc(validTransferInDoc);
                     
                     var createData = [];
-                    createData.push(this.transferOutDocManager.create(validTransferOutDoc));
-                    createData.push(this.transferOutDocManager.create(validTransferInDoc));
+                    if(isAnyTransferOut)
+                        createData.push(this.transferOutDocManager.create(validTransferOutDoc));
+                    else
+                        createData.push(Promise.resolve(null))
+                        
+                    if(isAnyTransferIn)
+                        createData.push(this.transferOutDocManager.create(validTransferInDoc));
+                    else
+                        createData.push(Promise.resolve(null))
+                        
                     createData.push(this.collection.insert(validSales));
                     
                     Promise.all(createData)
