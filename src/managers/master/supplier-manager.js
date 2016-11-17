@@ -5,185 +5,45 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
+var BaseManager = require('../base-manager');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
 var Supplier = BateeqModels.master.Supplier;
 
 
-module.exports = class SupplierManager {
+module.exports = class SupplierManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
-        this.supplierCollection = this.db.use(map.master.Supplier);
+        super(db, user);
+        this.collection = this.db.use(map.master.Supplier);
     }
 
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
+    _getQuery(paging) {  
+        var basicFilter = {
+            _deleted: false
+        }, keywordFilter={};
+        
+        var query = {};
 
-        return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
             };
-            var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var filterName = {
-                    'name': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode, filterName]
-                };
-
-                query['$and'].push($or);
-            }
-
-
-            this.supplierCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(suppliers => {
-                    resolve(suppliers);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleById(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            var filterName = {
+                'name': {
+                    '$regex': regex
+                }
             };
-            this.getSingleByQuery(query)
-                .then(supplier => {
-                    resolve(supplier);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQueryOrDefault(query)
-                .then(supplier => {
-                    resolve(supplier);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.supplierCollection
-                .single(query)
-                .then(supplier => {
-                    resolve(supplier);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    getSingleByQueryOrDefault(query) {
-        return new Promise((resolve, reject) => {
-            this.supplierCollection
-                .singleOrDefault(query)
-                .then(supplier => {
-                    resolve(supplier);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    create(supplier) {
-        return new Promise((resolve, reject) => {
-            this._validate(supplier)
-                .then(validsupplier => {
-
-                    this.supplierCollection.insert(validsupplier)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    update(supplier) {
-        return new Promise((resolve, reject) => {
-            this._validate(supplier)
-                .then(validsupplier => {
-                    this.supplierCollection.update(validsupplier)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
-
-    delete(supplier) {
-        return new Promise((resolve, reject) => {
-            this._validate(supplier)
-                .then(validsupplier => {
-                    validsupplier._deleted = true;
-                    this.supplierCollection.update(validsupplier)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
+            
+            keywordFilter = {
+                '$or': [filterCode, filterName]
+            }; 
+        }
+        query = { '$and': [basicFilter, paging.filter, keywordFilter] };
+        return query;
     }
  
     _validate(supplier) {
@@ -191,7 +51,7 @@ module.exports = class SupplierManager {
         return new Promise((resolve, reject) => {
             var valid = new Supplier(supplier);
             // 1. begin: Declare promises.
-            var getsupplier = this.supplierCollection.singleOrDefault({
+            var getsupplier = this.collection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)

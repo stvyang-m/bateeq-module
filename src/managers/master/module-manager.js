@@ -18,30 +18,32 @@ module.exports = class ModuleManager extends BaseManager {
         this.collection = this.db.use(map.master.Module); 
     } 
 
-    _getQuery(paging) {
-        var deletedFilter = {
+    _getQuery(paging) { 
+        
+        var basicFilter = {
             _deleted: false
-        }, keywordFilter = {};
+        }, keywordFilter={};
         
         var query = {};
 
         if (paging.keyword) {
             var regex = new RegExp(paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var filterName = {
-                    'name': {
-                        '$regex': regex
-                    }
-                };
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
+            };
+            var filterName = {
+                'name': {
+                    '$regex': regex
+                }
+            };
+            
             keywordFilter = {
                 '$or': [filterCode, filterName]
             }; 
         }
-        query = { '$and': [deletedFilter, paging.filter, keywordFilter] };
+        query = { '$and': [basicFilter, paging.filter, keywordFilter] };
         return query;
     }
 
