@@ -61,4 +61,5 @@ describe('#bateeq-module', function(done) {
     test('@manager/card-type-manager', './managers/card-type-manager-test'); 
     test('@manager/promo-manager', './managers/promo-manager-test');
     test('@manager/sales-manager', './managers/sales-manager-test');
+    test('@manager/sales-return-manager', './managers/sales-return-manager-test');
 })
