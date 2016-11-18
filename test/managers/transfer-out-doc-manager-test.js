@@ -49,6 +49,9 @@ before('#00. connect db', function(done) {
                     });
                     testData = result;
                     done();
+                })
+                .catch(e => {
+                    done(e);
                 });
         })
         .catch(e => {
