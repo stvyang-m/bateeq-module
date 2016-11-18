@@ -140,10 +140,10 @@ module.exports = class StoreManager extends BaseManager {
         return new Promise((resolve, reject) => {
             super.create(data)
                 .then(id => {
+                    _storeId = id;
                     this.getSingleById(id)
                         .then(store => {
                             var storage = new Storage();
-                            _storeId = id;
                             storage.code = store.code;
                             storage.name = store.name;
                             storage.description = `storage for store ${store.code}`;
