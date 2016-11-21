@@ -341,11 +341,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                         if(_item.size)
                                             if(_item.size.name)
                                                 item.size = _item.size.name;
-<<<<<<< HEAD
                                         //item.price = parseInt(_item.domesticSale);
-=======
-                                        item.price = parseInt(_item.domesticSale);
->>>>>>> remotes/upstream/dev
                                     }
                                      
                                     if (!item.promoId || !ObjectId.isValid(item.promoId)) { }
@@ -470,11 +466,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                                 if(_returnItem.size)
                                                     if(_returnItem.size.name)
                                                         returnItem.size = _returnItem.size.name;
-<<<<<<< HEAD
                                                 //returnItem.price = parseInt(_returnItem.domesticSale);
-=======
-                                                returnItem.price = parseInt(_returnItem.domesticSale);
->>>>>>> remotes/upstream/dev
                                             }
                                             
                                             if (!returnItem.promoId || !ObjectId.isValid(returnItem.promoId)) { }
@@ -511,11 +503,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                                     } 
                                                     if(!isGetPromo) {
                                                         //langsung copy promo aja
-<<<<<<< HEAD
-                                                        //returnItem.price = parseInt(item.price);
-=======
-                                                        returnItem.price = parseInt(item.price);
->>>>>>> remotes/upstream/dev
+                                                        // returnItem.price = parseInt(item.price);
                                                         // returnItem.discount1 = parseInt(item.discount1);
                                                         // returnItem.discount2 = parseInt(item.discount2);
                                                         // returnItem.discountNominal = parseInt(item.discountNominal);
