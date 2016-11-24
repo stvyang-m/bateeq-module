@@ -136,7 +136,7 @@ module.exports = class SalesManager extends BaseManager {
                         createData.push(Promise.resolve(null))
                         
                     if(isAnyTransferIn)
-                        createData.push(this.transferOutDocManager.create(validTransferInDoc));
+                        createData.push(this.transferInDocManager.create(validTransferInDoc));
                     else
                         createData.push(Promise.resolve(null))
                         
@@ -200,6 +200,7 @@ module.exports = class SalesManager extends BaseManager {
             });  
             var getStore;
             var getBank;
+            var getBankCard;
             var getCardType;
             var getVoucher = Promise.resolve(null);
             var getItems = [];
@@ -219,6 +220,14 @@ module.exports = class SalesManager extends BaseManager {
             else { 
                 getBank = Promise.resolve(null);
                 sales.salesDetail.bankId = {};
+            }
+            
+            if (sales.salesDetail.bankCardId && ObjectId.isValid(sales.salesDetail.bankCardId)) { 
+                getBankCard = this.bankManager.getSingleByIdOrDefault(sales.salesDetail.bankCardId);
+            } 
+            else { 
+                getBankCard = Promise.resolve(null);
+                sales.salesDetail.bankCardId = {};
             }
                 
             if (sales.salesDetail.cardTypeId && ObjectId.isValid(sales.salesDetail.cardTypeId)) { 
@@ -254,14 +263,15 @@ module.exports = class SalesManager extends BaseManager {
             
             var countGetItems = getItems.length;
             var countGetPromos = getPromos.length;
-            Promise.all([getSales, getStore, getBank, getCardType, getVoucher].concat(getItems).concat(getPromos))
+            Promise.all([getSales, getStore, getBank, getBankCard, getCardType, getVoucher].concat(getItems).concat(getPromos))
                .then(results => {
                     var _sales = results[0];
                     var _store = results[1];
                     var _bank = results[2];
-                    var _cardType = results[3];
-                    var _voucherType = results[4];
-                    var _items = results.slice(5, results.length - countGetPromos) 
+                    var _bankCard = results[3];
+                    var _cardType = results[4];
+                    var _voucherType = results[5];
+                    var _items = results.slice(6, results.length - countGetPromos) 
                     var _promos = results.slice(results.length - countGetPromos, results.length) 
                      
                     if (_sales) {
@@ -491,6 +501,16 @@ module.exports = class SalesManager extends BaseManager {
                             else {
                                 valid.salesDetail.bankId = _bank._id;
                                 valid.salesDetail.bank = _bank;
+                            } 
+                            
+                            if (!sales.salesDetail.bankCardId || sales.salesDetail.bankCardId == '')
+                                salesDetailError["bankCardId"] = "bankCardId is required";
+                            if (!_bankCard) {
+                                salesDetailError["bankCardId"] = "bankCardId not found";
+                            }
+                            else {
+                                valid.salesDetail.bankCardId = _bankCard._id;
+                                valid.salesDetail.bankCard = _bankCard;
                             } 
                             
                             if (!valid.salesDetail.card || valid.salesDetail.card == '')
