@@ -596,7 +596,7 @@ module.exports = class SalesManager extends BaseManager {
                                 salesDetailError["cardAmount"] = "cardAmount is required";
                                 valid.salesDetail.cardAmount = 0;
                             }
-                            else if (parseInt(valid.salesDetail.cardAmount) < 0) {
+                            else if (parseInt(valid.salesDetail.cardAmount) <= 0) {
                                 salesDetailError["cardAmount"] = "cardAmount must be greater than 0";
                             }
                             else
@@ -614,7 +614,19 @@ module.exports = class SalesManager extends BaseManager {
                             else
                                 valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
                         }
-
+                         
+                        if (valid.salesDetail.paymentType.toLowerCase() == "partial") {
+                            if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
+                                salesDetailError["cashAmount"] = "cashAmount is required";
+                                valid.salesDetail.cashAmount = 0;
+                            }
+                            else if (parseInt(valid.salesDetail.cashAmount) <= 0) {
+                                salesDetailError["cashAmount"] = "cashAmount must be greater than 0";
+                            }
+                            else
+                                valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
+                        }
+                        
                         if (valid.salesDetail.voucher) {
                             var voucherError = {};
                             if (valid.salesDetail.voucher.value == undefined || (valid.salesDetail.voucher.value && valid.salesDetail.voucher.value == '')) {

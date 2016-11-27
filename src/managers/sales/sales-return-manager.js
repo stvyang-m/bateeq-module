@@ -477,7 +477,17 @@ module.exports = class SalesReturnManager extends BaseManager {
                                                 }
                                                 else {
                                                     returnItem.promoId = _returnItemPromo._id;
-                                                    returnItem.promo = _returnItemPromo; 
+                                                    returnItem.promo = _returnItemPromo;
+                                                } 
+                                            } 
+                                            if (!item.promoId || !ObjectId.isValid(item.promoId)) { }
+                                            else {
+                                                var _promo = _promos[index];
+                                                if (!_promo) {
+                                                    //itemError["promoId"] = "promoId not found";
+                                                }
+                                                else {
+                                                    var promo = item.promo;
                                                     var ro = '';
                                                     if(item.item) {
                                                         if(item.item.article)
@@ -493,15 +503,20 @@ module.exports = class SalesReturnManager extends BaseManager {
                                                     if(ro == returnRo) {
                                                         isGetPromo = false;
                                                     }  
-                                                    else if(promo.reward.type == "special-price") {
+                                                    if(promo.reward.type == "special-price") {
                                                         for(var criterion of promo.criteria.criterions) {
-                                                            if(returnItemId == criterion.itemId) {
+                                                            if(returnItem.itemId == criterion.itemId) {
                                                                 isGetPromo = false;
                                                                 break;
                                                             }
                                                         }
                                                         if(isGetPromo)
-                                                            returnItemError["itemId"] = "Item not in same promo"; 
+                                                            returnItemError["itemId"] = "Barang baru harus berada di paket yang sama"; 
+                                                        else {
+                                                            if(returnItem.quantity != item.quantity) {
+                                                                returnItemError["quantity"] = "Barang baru harus memiliki quantity yang sama";
+                                                            }
+                                                        }
                                                     } 
                                                     if(!isGetPromo) {
                                                         //langsung copy promo aja
@@ -516,7 +531,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                                     }  
                                                 } 
                                             } 
-                                            
+                                                
                                             if (returnItem.quantity == undefined || (returnItem.quantity && returnItem.quantity == '')) {
                                                 returnItemError["quantity"] = "quantity is required";
                                                 returnItem.quantity = 0;
