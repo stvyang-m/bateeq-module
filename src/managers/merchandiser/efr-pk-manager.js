@@ -24,7 +24,7 @@ module.exports = class SPKBarangManager  {
         var ItemManager = require('../master/item-manager');
         this.itemManager = new ItemManager(db, user);
 
-        var ModuleManager = require('../core/module-manager');
+        var ModuleManager = require('../master/module-manager');
         this.moduleManager = new ModuleManager(db, user); 
     }
 
