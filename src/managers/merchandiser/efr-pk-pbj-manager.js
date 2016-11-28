@@ -5,6 +5,7 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
+var BaseManager = require('../base-manager');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
@@ -15,10 +16,9 @@ var FinishedGoods = BateeqModels.master.FinishedGoods;
 
 var moduleId = "EFR-PK/PBJ";
 
-module.exports = class SPKBarangJadiManager {
+module.exports = class SPKBarangJadiManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
+        super(db, user);
         this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
         var StorageManager = require('../master/storage-manager');
         this.storageManager = new StorageManager(db, user);
