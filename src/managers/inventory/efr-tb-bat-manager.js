@@ -108,7 +108,7 @@ module.exports = class TokoTerimaAksesorisManager {
                 'code': {
                     '$regex': regex
                 },
-                'expeditionDocumentId': { "$ne": {} }
+                // 'expeditionDocumentId': { "$ne": {} }
             };
 
             var isReceived = {
