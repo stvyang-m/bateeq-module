@@ -104,7 +104,7 @@ module.exports = class TokoTerimaBarangBaruManager {
                 'code': {
                     '$regex': regex
                 },
-                'expeditionDocumentId': { "$ne": {} }
+                // 'expeditionDocumentId': { "$ne": {} }
             };
 
             var isReceived = {

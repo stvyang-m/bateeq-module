@@ -117,6 +117,25 @@ module.exports = class ItemManager extends BaseManager {
                 })
         });
     }
+
+     getByCode(code) {
+        return new Promise((resolve, reject) => {
+            if (code === '')
+                resolve(null);
+            var query = {
+                code: code,
+                _deleted: false
+            };
+            this.collection.singleOrDefault(query)
+                .then(item => {
+                    resolve(item);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+    
     _getQuery(paging) { 
         var basicFilter = {
             _deleted: false
