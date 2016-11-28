@@ -257,7 +257,7 @@ module.exports = class TokoKirimBarangReturnManager {
                         errors["reference"] = "reference is required";
                     }
                     else {
-                        getSpk = this.spkBarangManager.getByPackingList(valid.reference);
+                        getSpk = this.spkBarangManager.getByReference(valid.reference);
                     }
                     var getItem = [];
                     if (valid.items && valid.items.length > 0) {
