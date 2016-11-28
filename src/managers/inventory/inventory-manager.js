@@ -47,12 +47,12 @@ module.exports = class InventoryManager {
 
             if (_paging.keyword) {
                 var regex = new RegExp(_paging.keyword, "i");
-                var filterArticleCode = {
+                var filterItemCode = {
                     'item.code': {
                         '$regex': regex
                     }
                 };
-                var filterArticleName = {
+                var filterItemName = {
                     'item.name': {
                         '$regex': regex
                     }
@@ -63,7 +63,7 @@ module.exports = class InventoryManager {
                     }
                 };
                 var $or = {
-                    '$or': [filterArticleCode, filterArticleName, filterStorageName]
+                    '$or': [filterItemCode, filterItemName, filterStorageName]
                 };
 
                 query['$and'].push($or);
@@ -173,7 +173,7 @@ module.exports = class InventoryManager {
         });
     }
 
-    getByStorageIdAndArticleVarianId(storageId, itemId) {
+    getByStorageIdAndItemId(storageId, itemId) {
         return new Promise((resolve, reject) => {
             if (storageId === '' || itemId ==='')
                 resolve(null);
