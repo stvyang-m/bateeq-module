@@ -66,6 +66,8 @@ function getData() {
                     voucher : {},
                     bankId : {},
                     bank : {},
+                    bankCardId : {},
+                    bankCard : {},
                     cardTypeId : {},
                     cardType : {},                
                     card : '', //Debit | Credit
