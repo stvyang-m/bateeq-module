@@ -34,28 +34,28 @@ function getData() {
     transferInDoc.items.push(new TransferInItem({
         itemId: variant._id,
         item:variant,
-        quantity: 5,
+        quantity: 100,
         remark: 'transferInDoc.test'
     }));
     
     transferInDoc.items.push(new TransferInItem({
         itemId: variant1._id,
         item: variant1,
-        quantity: 10,
+        quantity: 100,
         remark: 'transferInDoc.test'
     }));
     
     transferInDoc.items.push(new TransferInItem({
         itemId: variant2._id,
         item: variant2,
-        quantity: 10,
+        quantity: 100,
         remark: 'transferInDoc.test'
     }));
     
     transferInDoc.items.push(new TransferInItem({
         itemId: variant3._id,
         item: variant3,
-        quantity: 10,
+        quantity: 100,
         remark: 'transferInDoc.test'
     }));
 
