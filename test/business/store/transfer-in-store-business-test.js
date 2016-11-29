@@ -96,9 +96,6 @@ it('#01. should success when create new data', function(done) {
             done();
         })
         .catch(e => {
-            console.log(e);
-            for(var i of e.errors)
-            console.log(i);
             done(e);
         });
 });
