@@ -52,6 +52,8 @@ function getData() {
         voucher : {},
         bankId : bank._id,
         bank : bank,
+        bankCardId : bank._id,
+        bankCard : bank,
         cardTypeId : cardType._id,
         cardType : cardType,                
         card : 'Credit', //Debit | Credit
@@ -113,6 +115,8 @@ function getDataCash() {
         voucher : {},
         bankId : {},
         bank : {},
+        bankCardId : {},
+        bankCard : {},
         cardTypeId : {},
         cardType : {},                
         card : '', //Debit | Credit
@@ -174,6 +178,8 @@ function getDataPartial() {
         voucher : {},
         bankId : bank._id,
         bank : bank,
+        bankCardId : bank._id,
+        bankCard : bank,
         cardTypeId : cardType._id,
         cardType : cardType,                
         card : 'Credit', //Debit | Credit
@@ -617,20 +623,20 @@ it('#22. should error with property SalesDetail PaymentType:Partial CashAmount+C
         })
 });
  
-it('#23. should error with property SalesDetail Voucher is Bigger than GrandTotal ', function(done) {
-    var data = getData();
-    data.salesDetail.voucher.value = 9999999999999;
-    manager.create(data)
-        .then(id => {
-            done("Should not be error with property SalesDetail Voucher is Bigger than GrandTotal");
-        })
-        .catch(e => {
-            try { 
-                e.errors.salesDetail.voucher.should.have.property('value'); 
-                done();
-            }
-            catch (ex) {
-                done(ex);
-            }
-        })
-});
+// it('#23. should error with property SalesDetail Voucher is Bigger than GrandTotal ', function(done) {
+//     var data = getData();
+//     data.salesDetail.voucher.value = 9999999999999;
+//     manager.create(data)
+//         .then(id => {
+//             done("Should not be error with property SalesDetail Voucher is Bigger than GrandTotal");
+//         })
+//         .catch(e => {
+//             try { 
+//                 e.errors.salesDetail.voucher.should.have.property('value'); 
+//                 done();
+//             }
+//             catch (ex) {
+//                 done(ex);
+//             }
+//         })
+// });
