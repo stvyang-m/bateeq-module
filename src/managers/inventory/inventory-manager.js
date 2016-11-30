@@ -374,8 +374,8 @@ module.exports = class InventoryManager {
 
                     Promise.all([createMovement, updateInventory])
                         .then(results => {
-                            var inventoryId = results[0];
-                            var movementId = results[1];
+                            var movementId = results[0];
+                            var inventoryId = results[1];
 
                             resolve(movementId);
                         })
@@ -393,25 +393,13 @@ module.exports = class InventoryManager {
         var errors = {};
         return new Promise((resolve, reject) => {
             var valid = new Inventory(inventory); 
-            // 1. begin: Declare promises.
-            var getInventoryDoc = this.inventoryCollection.singleOrDefault({
-                "$and": [{
-                    _id: {
-                        '$ne': new ObjectId(valid._id)
-                    }
-                }, {
-                        //code: valid.code
-                    }]
-            });
-            // 1. end: Declare promises.
             var getStorage = this.storageManager.getSingleById(inventory.storageId);
             var getItem= this.itemManager.getSingleById(inventory.itemId);
 
-            Promise.all([getInventoryDoc, getStorage, getItem])
+            Promise.all([getStorage, getItem])
                 .then(results => {
-                    var _inventory = results[0];
-                    var storage = results[1];
-                    var item = results[2];
+                    var storage = results[0];
+                    var item = results[1];
 
                     if (!valid.storageId || valid.storageId == '')
                         errors["storageId"] = "storageId is required";

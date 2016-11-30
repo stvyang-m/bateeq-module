@@ -89,6 +89,8 @@ var newSales = function () {
                             voucher : {},
                             bankId : bank._id,
                             bank : bank,
+                            bankCardId : bank._id,
+                            bankCard : bank,
                             cardTypeId : cardType._id,
                             cardType : cardType,                
                             card : 'Credit', //Debit | Credit
