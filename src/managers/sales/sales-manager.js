@@ -702,7 +702,7 @@ module.exports = class SalesManager extends BaseManager {
                                     break;
                             }
                             for (var prop in errors) {
-                                var ValidationError = require('../../validation-error');
+                                var ValidationError = require('module-toolkit').ValidationError;
                                 reject(new ValidationError('data does not pass validation', errors));
                             }
 
