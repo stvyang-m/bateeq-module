@@ -141,6 +141,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                             salesReturn.returnItems.push(salesReturnItem);
                                         } 
                                     } 
+                                    salesReturn.stamp(this.user.username, 'manager');
                                     
                                     this.collection.insert(salesReturn)
                                         .then(result => {
