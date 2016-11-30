@@ -5,7 +5,7 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
-var BaseManager = require('../base-manager');
+var BaseManager = require('module-toolkit').BaseManager;
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
@@ -310,7 +310,7 @@ module.exports = class TokoTerimaAksesorisManager extends BaseManager {
                             else
                                 if (item.quantity != spkDoc.items[index].quantity)
                                     if (item.remark == "")
-                                        itemError["remark"] = "Masukkan no referensi berita acara"; 
+                                        itemError["remark"] = "Masukkan no referensi berita acara";
                             index++;
                             itemErrors.push(itemError);
                         }
@@ -323,13 +323,13 @@ module.exports = class TokoTerimaAksesorisManager extends BaseManager {
                                 break;
                         }
                         for (var prop in errors) {
-                            var ValidationError = require('../../validation-error');
+                            var ValidationError = require('module-toolkit').ValidationError;
                             reject(new ValidationError('data does not pass validation', errors));
                         }
                     }
                     else {
                         errors["reference"] = "reference not found";
-                        var ValidationError = require('../../validation-error');
+                        var ValidationError = require('module-toolkit').ValidationError;
                         reject(new ValidationError('data does not pass validation', errors));
                     }
                     resolve(transferInDoc);

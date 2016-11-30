@@ -5,7 +5,7 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
-var BaseManager = require('../base-manager');
+var BaseManager = require('module-toolkit').BaseManager;
 var BateeqModels = require('bateeq-models');
 var Sales = BateeqModels.sales.Sales;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
@@ -134,8 +134,8 @@ module.exports = class SalesManager extends BaseManager {
                         createData.push(this.transferOutDocManager.create(validTransferOutDoc));
                     else
                         createData.push(Promise.resolve(null))
-                        
-                    if(isAnyTransferIn)
+
+                    if (isAnyTransferIn)
                         createData.push(this.transferInDocManager.create(validTransferInDoc));
                     else
                         createData.push(Promise.resolve(null))
@@ -210,7 +210,7 @@ module.exports = class SalesManager extends BaseManager {
                         })
                 });
         })
-    } 
+    }
 
     _validate(sales) {
         var errors = {};
@@ -248,8 +248,8 @@ module.exports = class SalesManager extends BaseManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: valid.code
+                }]
             });
             var getStore;
             var getBank;
@@ -274,16 +274,16 @@ module.exports = class SalesManager extends BaseManager {
                 getBank = Promise.resolve(null);
                 sales.salesDetail.bankId = {};
             }
-            
-            if (sales.salesDetail.bankCardId && ObjectId.isValid(sales.salesDetail.bankCardId)) { 
+
+            if (sales.salesDetail.bankCardId && ObjectId.isValid(sales.salesDetail.bankCardId)) {
                 getBankCard = this.bankManager.getSingleByIdOrDefault(sales.salesDetail.bankCardId);
-            } 
-            else { 
+            }
+            else {
                 getBankCard = Promise.resolve(null);
                 sales.salesDetail.bankCardId = {};
             }
-                
-            if (sales.salesDetail.cardTypeId && ObjectId.isValid(sales.salesDetail.cardTypeId)) { 
+
+            if (sales.salesDetail.cardTypeId && ObjectId.isValid(sales.salesDetail.cardTypeId)) {
                 getCardType = this.cardTypeManager.getSingleByIdOrDefault(sales.salesDetail.cardTypeId);
             }
             else {
@@ -317,16 +317,16 @@ module.exports = class SalesManager extends BaseManager {
             var countGetItems = getItems.length;
             var countGetPromos = getPromos.length;
             Promise.all([getSales, getStore, getBank, getBankCard, getCardType, getVoucher].concat(getItems).concat(getPromos))
-               .then(results => {
+                .then(results => {
                     var _sales = results[0];
                     var _store = results[1];
                     var _bank = results[2];
                     var _bankCard = results[3];
                     var _cardType = results[4];
                     var _voucherType = results[5];
-                    var _items = results.slice(6, results.length - countGetPromos) 
-                    var _promos = results.slice(results.length - countGetPromos, results.length) 
-                     
+                    var _items = results.slice(6, results.length - countGetPromos)
+                    var _promos = results.slice(results.length - countGetPromos, results.length)
+
                     if (_sales) {
                         errors["code"] = "code already exists";
                     }
@@ -604,7 +604,7 @@ module.exports = class SalesManager extends BaseManager {
                                 else
                                     valid.salesDetail.cardAmount = parseInt(valid.salesDetail.cardAmount);
                             }
-
+                            
                             if (valid.salesDetail.paymentType.toLowerCase() == "cash" || valid.salesDetail.paymentType.toLowerCase() == "partial") {
                                 if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
                                     salesDetailError["cashAmount"] = "cashAmount is required";
@@ -667,7 +667,7 @@ module.exports = class SalesManager extends BaseManager {
                     }
 
                     for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
+                        var ValidationError = require('module-toolkit').ValidationError;
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 
