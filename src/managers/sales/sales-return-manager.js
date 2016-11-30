@@ -512,8 +512,8 @@ module.exports = class SalesReturnManager extends BaseManager {
                                                         if (isGetPromo)
                                                             returnItemError["itemId"] = "Barang baru harus berada di paket yang sama";
                                                         else {
-                                                            if (returnItem.quantity != item.quantity) {
-                                                                returnItemError["quantity"] = "Barang baru harus memiliki quantity yang sama";
+                                                            if (returnItem.quantity > item.quantity) {
+                                                                returnItemError["quantity"] = "Barang baru tidak boleh lebih besar dari barang diretur";
                                                             }
                                                         }
                                                     }
