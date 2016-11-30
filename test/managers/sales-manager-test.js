@@ -290,17 +290,16 @@ it(`#06. should _deleted=true`, function(done) {
         })
 });
  
-it('#07. should error with property items, storeId, date, paymentType ', function(done) {
+it('#07. should error with property items, storeId, date ', function(done) {
     manager.create({ date : '' })
         .then(id => {
-            done("Should not be error with property items, storeId, paymentType");
+            done("Should not be error with property items, storeId, date");
         })
         .catch(e => {
             try {
                 e.errors.should.have.property('items');
                 e.errors.should.have.property('storeId');
                 e.errors.should.have.property('date');
-                e.errors.salesDetail.should.have.property('paymentType');
                 done();
             }
             catch (ex) {
