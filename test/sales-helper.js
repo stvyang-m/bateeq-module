@@ -1,5 +1,6 @@
 var helper = require('./helper');
 var data = require("./data");
+var generateCode = require('../src/utils/code-generator');
 
 var createSales = function () {
     return new Promise((resolve, reject) => {
@@ -52,8 +53,7 @@ var newSales = function () {
                         var sales = new Sales();
 
                         var now = new Date();
-                        var stamp = now / 1000 | 0;
-                        var code = stamp.toString(36);
+                        var code = generateCode('UnitTest');
 
                         sales.code = code;
                         sales.date = now;
