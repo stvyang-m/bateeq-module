@@ -1,5 +1,6 @@
 var should = require('should');
 var helper = require('../helper');
+var generateCode = require('../../src/utils/code-generator');
 var manager;
 var testData;
 var generateCode = require('../../src/utils/code-generator');
@@ -16,8 +17,7 @@ function getData() {
     var sales = new Sales();
 
     var now = new Date();
-    var stamp = now / 1000 | 0;
-    var code = stamp.toString(36);
+    var code = generateCode('UnitTest');
 
     sales.code = generateCode("sales");;
     sales.date = now;
@@ -79,8 +79,7 @@ function getDataCash() {
     var sales = new Sales();
 
     var now = new Date();
-    var stamp = now / 1000 | 0;
-    var code = stamp.toString(36);
+    var code = generateCode('UnitTest');
 
     sales.code = generateCode("sales-cash");;
     sales.date = now;
@@ -142,8 +141,7 @@ function getDataPartial() {
     var sales = new Sales();
 
     var now = new Date();
-    var stamp = now / 1000 | 0;
-    var code = stamp.toString(36);
+    var code = generateCode('UnitTest');
 
     sales.code = generateCode("sales-partial");;
     sales.date = now;
@@ -291,17 +289,16 @@ it(`#06. should _deleted=true`, function(done) {
         })
 });
  
-it('#07. should error with property items, storeId, date, paymentType ', function(done) {
+it('#07. should error with property items, storeId, date ', function(done) {
     manager.create({ date : '' })
         .then(id => {
-            done("Should not be error with property items, storeId, paymentType");
+            done("Should not be error with property items, storeId, date");
         })
         .catch(e => {
             try {
                 e.errors.should.have.property('items');
                 e.errors.should.have.property('storeId');
                 e.errors.should.have.property('date');
-                e.errors.salesDetail.should.have.property('paymentType');
                 done();
             }
             catch (ex) {

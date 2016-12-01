@@ -1,6 +1,7 @@
 var should = require('should');
 var helper = require('../../helper');
 var validate = require('bateeq-models').validator.master;
+var generateCode = require('../../../src/utils/code-generator');
 var manager;
 var generateCode = require('../../../src/utils/code-generator');
 
@@ -10,9 +11,7 @@ function getData() {
     var Component = require('bateeq-models').master.Component;
     var finishedGoods = new FinishedGoods();
 
-    var now = new Date();
-    var stamp = now / 1000 | 0;
-    var code = stamp.toString(36);
+    var code = generateCode('UnitTest');
 
     finishedGoods.code = generateCode("FinishedGoods");
     finishedGoods.name = `name[${code}]`;

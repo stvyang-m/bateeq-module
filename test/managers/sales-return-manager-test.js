@@ -1,5 +1,6 @@
 var should = require('should');
 var helper = require('../helper');
+var generateCode = require('../../src/utils/code-generator');
 var manager;
 var testData;
 var generateCode = require('../../src/utils/code-generator');
@@ -20,8 +21,7 @@ function getData() {
                 var sales = new Sales();
 
                 var now = new Date();
-                var stamp = now / 1000 | 0;
-                var code = stamp.toString(36);
+                var code = generateCode('UnitTest');
 
                 sales.code = generateCode("sales-return");;
                 sales.date = now;
