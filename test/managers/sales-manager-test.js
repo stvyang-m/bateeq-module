@@ -3,6 +3,7 @@ var helper = require('../helper');
 var generateCode = require('../../src/utils/code-generator');
 var manager;
 var testData;
+var generateCode = require('../../src/utils/code-generator');
 
 function getData() {
     var store = testData.stores["ST-BJB"]; 
@@ -18,7 +19,7 @@ function getData() {
     var now = new Date();
     var code = generateCode('UnitTest');
 
-    sales.code = code;
+    sales.code = generateCode("sales");;
     sales.date = now;
     sales.discount = 0;
     sales.reference = '';
@@ -80,7 +81,7 @@ function getDataCash() {
     var now = new Date();
     var code = generateCode('UnitTest');
 
-    sales.code = code;
+    sales.code = generateCode("sales-cash");;
     sales.date = now;
     sales.discount = 0;
     sales.reference = '';
@@ -142,7 +143,7 @@ function getDataPartial() {
     var now = new Date();
     var code = generateCode('UnitTest');
 
-    sales.code = code;
+    sales.code = generateCode("sales-partial");;
     sales.date = now;
     sales.discount = 0;
     sales.reference = '';

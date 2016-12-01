@@ -3,6 +3,7 @@ var helper = require('../../helper');
 var validate = require('bateeq-models').validator.master;
 var generateCode = require('../../../src/utils/code-generator');
 var manager;
+var generateCode = require('../../../src/utils/code-generator');
 
 function getData() {
     var FinishedGoods = require('bateeq-models').master.FinishedGoods;
@@ -12,7 +13,7 @@ function getData() {
 
     var code = generateCode('UnitTest');
 
-    finishedGoods.code = code;
+    finishedGoods.code = generateCode("FinishedGoods");
     finishedGoods.name = `name[${code}]`;
     finishedGoods.description = `description for ${code}`;
     finishedGoods.uom = 'pcs';
