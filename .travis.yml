@@ -1,6 +1,6 @@
 language: node_js
 node_js:
-  - "6"
+  - "4" 
 services:
 - mongodb
 addons:
@@ -10,4 +10,4 @@ addons:
     packages:
     - mongodb-org-server
 after_success:
-- npm run coveralls 
+- npm run coveralls  
