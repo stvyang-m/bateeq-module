@@ -4,6 +4,7 @@ var validate = require('bateeq-models').validator.inventory;
 var generateCode = require('../../../src/utils/code-generator');
 var manager;
 var testData;
+var generateCode = require('../../../src/utils/code-generator');
 
 function getData() { 
     var store = testData.stores["ST-BJB"]; 
@@ -21,7 +22,7 @@ function getData() {
     var now = new Date();
     var code = generateCode('UnitTest');
 
-    transferInDoc.code = code;
+    transferInDoc.code = generateCode("store-business");;
     transferInDoc.date = now;
 
     transferInDoc.sourceId = source._id;
