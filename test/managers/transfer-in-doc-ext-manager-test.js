@@ -3,6 +3,7 @@ var helper = require('../helper');
 var validate = require('bateeq-models').validator.inventory;
 var manager;
 var testData;
+var generateCode = require('../../src/utils/code-generator');
 
 function getData() {
     var source = testData.suppliers["UT-S01"];
@@ -18,7 +19,7 @@ function getData() {
     var stamp = now / 1000 | 0;
     var code = stamp.toString(36);
 
-    transferInDoc.code = code;
+    transferInDoc.code = generateCode("transfer-in-doc");;
     transferInDoc.date = now;
 
     transferInDoc.sourceId = source._id;

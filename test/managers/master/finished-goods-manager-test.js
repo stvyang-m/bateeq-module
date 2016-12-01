@@ -2,6 +2,7 @@ var should = require('should');
 var helper = require('../../helper');
 var validate = require('bateeq-models').validator.master;
 var manager;
+var generateCode = require('../../../src/utils/code-generator');
 
 function getData() {
     var FinishedGoods = require('bateeq-models').master.FinishedGoods;
@@ -13,7 +14,7 @@ function getData() {
     var stamp = now / 1000 | 0;
     var code = stamp.toString(36);
 
-    finishedGoods.code = code;
+    finishedGoods.code = generateCode("FinishedGoods");
     finishedGoods.name = `name[${code}]`;
     finishedGoods.description = `description for ${code}`;
     finishedGoods.uom = 'pcs';
