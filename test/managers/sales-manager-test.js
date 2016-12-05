@@ -4,11 +4,11 @@ var manager;
 var testData;
 
 function getData() {
-    var store = testData.stores["ST-BJB"]; 
+    var store = testData.stores["ST-BJB"];
     var bank = testData.banks["BA-BCA"];                    //BCA, MANDIRI, BRI, dkk
     var cardType = testData.cardTypes["CT-VISA"];           //CARD, MASTERCARD, VISA
     var variant = testData.finishedGoods["UT-FG2"];
- 
+
     var Sales = require('bateeq-models').sales.Sales;
     var SalesItem = require('bateeq-models').sales.SalesItem;
     var SalesDetail = require('bateeq-models').sales.SalesDetail;
@@ -23,9 +23,9 @@ function getData() {
     sales.discount = 0;
     sales.reference = '';
     sales.remark = '';
-    
+
     sales.storeId = store._id;
-    sales.store = store;  
+    sales.store = store;
 
     sales.items.push(new SalesItem({
         itemId: variant._id,
@@ -40,38 +40,38 @@ function getData() {
         specialDiscount: 0,
         total: 100000
     }));
-    
+
     var salesTotal = 0;
-    for(var i of sales.items) {
+    for (var i of sales.items) {
         salesTotal += i.total;
     }
 
     sales.salesDetail = new SalesDetail({
-        paymentType : 'Card', //Cash, Card, Partial
-        voucherId : {},
-        voucher : {},
-        bankId : bank._id,
-        bank : bank,
-        bankCardId : bank._id,
-        bankCard : bank,
-        cardTypeId : cardType._id,
-        cardType : cardType,                
-        card : 'Credit', //Debit | Credit
-        cardNumber : '1000200030004000',
-        cardName : 'CardName',
-        cashAmount : 0,
-        cardAmount : salesTotal
+        paymentType: 'Card', //Cash, Card, Partial
+        voucherId: {},
+        voucher: {},
+        bankId: bank._id,
+        bank: bank,
+        bankCardId: bank._id,
+        bankCard: bank,
+        cardTypeId: cardType._id,
+        cardType: cardType,
+        card: 'Credit', //Debit | Credit
+        cardNumber: '1000200030004000',
+        cardName: 'CardName',
+        cashAmount: 0,
+        cardAmount: salesTotal
     })
     return sales;
-}  
+}
 
 
 function getDataCash() {
-    var store = testData.stores["ST-BJB"]; 
+    var store = testData.stores["ST-BJB"];
     var bank = testData.banks["BA-BCA"];                    //BCA, MANDIRI, BRI, dkk
     var cardType = testData.cardTypes["CT-VISA"];           //CARD, MASTERCARD, VISA
     var variant = testData.finishedGoods["UT-FG2"];
- 
+
     var Sales = require('bateeq-models').sales.Sales;
     var SalesItem = require('bateeq-models').sales.SalesItem;
     var SalesDetail = require('bateeq-models').sales.SalesDetail;
@@ -86,9 +86,9 @@ function getDataCash() {
     sales.discount = 0;
     sales.reference = '';
     sales.remark = '';
-    
+
     sales.storeId = store._id;
-    sales.store = store;  
+    sales.store = store;
 
     sales.items.push(new SalesItem({
         itemId: variant._id,
@@ -103,38 +103,38 @@ function getDataCash() {
         specialDiscount: 0,
         total: 100000
     }));
-    
+
     var salesTotal = 0;
-    for(var i of sales.items) {
+    for (var i of sales.items) {
         salesTotal += i.total;
     }
 
     sales.salesDetail = new SalesDetail({
-        paymentType : 'Cash', //Cash, Card, Partial
-        voucherId : {},
-        voucher : {},
-        bankId : {},
-        bank : {},
-        bankCardId : {},
-        bankCard : {},
-        cardTypeId : {},
-        cardType : {},                
-        card : '', //Debit | Credit
-        cardNumber : '',
-        cardName : '',
-        cashAmount : salesTotal,
-        cardAmount : 0
+        paymentType: 'Cash', //Cash, Card, Partial
+        voucherId: {},
+        voucher: {},
+        bankId: {},
+        bank: {},
+        bankCardId: {},
+        bankCard: {},
+        cardTypeId: {},
+        cardType: {},
+        card: '', //Debit | Credit
+        cardNumber: '',
+        cardName: '',
+        cashAmount: salesTotal,
+        cardAmount: 0
     })
     return sales;
-}  
+}
 
 
 function getDataPartial() {
-    var store = testData.stores["ST-BJB"]; 
+    var store = testData.stores["ST-BJB"];
     var bank = testData.banks["BA-BCA"];                    //BCA, MANDIRI, BRI, dkk
     var cardType = testData.cardTypes["CT-VISA"];           //CARD, MASTERCARD, VISA
     var variant = testData.finishedGoods["UT-FG2"];
- 
+
     var Sales = require('bateeq-models').sales.Sales;
     var SalesItem = require('bateeq-models').sales.SalesItem;
     var SalesDetail = require('bateeq-models').sales.SalesDetail;
@@ -149,9 +149,9 @@ function getDataPartial() {
     sales.discount = 0;
     sales.reference = '';
     sales.remark = '';
-    
+
     sales.storeId = store._id;
-    sales.store = store;  
+    sales.store = store;
 
     sales.items.push(new SalesItem({
         itemId: variant._id,
@@ -166,43 +166,43 @@ function getDataPartial() {
         specialDiscount: 0,
         total: 100000
     }));
-    
+
     var salesTotal = 0;
-    for(var i of sales.items) {
+    for (var i of sales.items) {
         salesTotal += i.total;
     }
 
     sales.salesDetail = new SalesDetail({
-        paymentType : 'Partial', //Cash, Card, Partial
-        voucherId : {},
-        voucher : {},
-        bankId : bank._id,
-        bank : bank,
-        bankCardId : bank._id,
-        bankCard : bank,
-        cardTypeId : cardType._id,
-        cardType : cardType,                
-        card : 'Credit', //Debit | Credit
-        cardNumber : '1000200030004000',
-        cardName : 'CardName',
-        cashAmount : 10000,
-        cardAmount : salesTotal - 10000
+        paymentType: 'Partial', //Cash, Card, Partial
+        voucherId: {},
+        voucher: {},
+        bankId: bank._id,
+        bank: bank,
+        bankCardId: bank._id,
+        bankCard: bank,
+        cardTypeId: cardType._id,
+        cardType: cardType,
+        card: 'Credit', //Debit | Credit
+        cardNumber: '1000200030004000',
+        cardName: 'CardName',
+        cashAmount: 10000,
+        cardAmount: salesTotal - 10000
     })
     return sales;
-}  
+}
 
 
-before('#00. connect db', function(done) {
+before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
             var data = require("../data");
             data(db)
-                .then(result => { 
+                .then(result => {
                     var SalesManager = require('../../src/managers/sales/sales-manager');
                     manager = new SalesManager(db, {
                         username: 'unit-test'
                     });
-                    testData = result; 
+                    testData = result;
                     done();
                 });
         })
@@ -238,6 +238,46 @@ it(`#02. should success when get created data with id`, function(done) {
             done(e);
         })
 });
+
+// it('#09. should success with property discount equal to 100 ', function (done) {
+//     var data = getData();
+//     data.discount = 100;
+//     manager.create(data)
+//         .then(id => {
+
+//             done();
+//         })
+//         .catch(e => {
+//             done(ex);
+//         })
+// });
+
+// it('#09. should success discount equal  0 ', function (done) {
+//     var data = getData();
+//     data.items[0].price = 0;
+//     manager.create(data)
+//         .then(id => {
+//             id.should.be.Object();
+//             done();
+//         })
+//         .catch(e => {
+//             done(e);
+//         })
+// });
+
+
+// it('#09. should error discount equal  -5 ', function (done) {
+//     var data = getData();
+//     data.items[0].price = -5;
+//     manager.create(data)
+//         .then(id => { 
+//             done("discount != -5"); 
+//         }).catch(e => {
+//             for (var i=0 ; i< e.errors.items.length; i++)
+//             e.errors.items[i].should.have.property('price');
+//             done();
+//         })
+// });
 
 it(`#03. should success when update created data`, function(done) {  
     createdData.remark += '[updated]';  
@@ -289,7 +329,7 @@ it(`#06. should _deleted=true`, function(done) {
             done(e);
         })
 });
- 
+
 it('#07. should error with property items, storeId, date, paymentType ', function(done) {
     manager.create({ date : '' })
         .then(id => {
@@ -326,7 +366,7 @@ it('#08. should error with property discount less than 0 ', function(done) {
             }
         })
 });
- 
+
 it('#09. should error with property discount greater than 100 ', function(done) {
     var data = getData();
     data.discount = 101;
@@ -345,12 +385,17 @@ it('#09. should error with property discount greater than 100 ', function(done) 
         })
 });
 
+
+
+
+
+
 it('#10. should error with property items ItemId not found ', function(done) {
     var data = getData();
     for(var item of data.items) {
         item.itemId = "000000000000000000000000";
     }
-    
+
     manager.create(data)
         .then(id => {
             done("Should not be error with property items ItemId not found");
@@ -367,7 +412,7 @@ it('#10. should error with property items ItemId not found ', function(done) {
             }
         })
 });
- 
+
 it('#11. should error with property items quantity, discount1, discount2, discountNominal, margin, specialDiscount less or equal than 0 ', function(done) {
     var data = getData();
     for(var item of data.items) {
@@ -379,7 +424,7 @@ it('#11. should error with property items quantity, discount1, discount2, discou
         item.margin = -1;
         item.specialDiscount = -1;
     }
-    
+
     manager.create(data)
         .then(id => {
             done("Should not be error with property items quantity, discount1, discount2, discountNominal, margin, specialDiscount less or equal than 0");
@@ -402,7 +447,7 @@ it('#11. should error with property items quantity, discount1, discount2, discou
             }
         })
 });
-  
+
 it('#12. should error with property items discount1, discount2, margin, specialDiscount greater than 100 ', function(done) {
     var data = getData();
     for(var item of data.items) {
@@ -411,7 +456,7 @@ it('#12. should error with property items discount1, discount2, margin, specialD
         item.margin = 101;
         item.specialDiscount = 101;
     }
-    
+
     manager.create(data)
         .then(id => {
             done("Should not be error with property items discount1, discount2, margin, specialDiscount greater than 100");
@@ -543,7 +588,7 @@ it('#18. should error with property SalesDetail PaymentType:Card CardAmount is l
             }
         })
 });
- 
+
 it('#19. should error with property SalesDetail PaymentType:Partial CashAmount CardAmount is less than 0 ', function(done) {
     var data = getDataPartial();
     data.salesDetail.cashAmount = -1;
@@ -622,21 +667,21 @@ it('#22. should error with property SalesDetail PaymentType:Partial CashAmount+C
             }
         })
 });
- 
-// it('#23. should error with property SalesDetail Voucher is Bigger than GrandTotal ', function(done) {
-//     var data = getData();
-//     data.salesDetail.voucher.value = 9999999999999;
-//     manager.create(data)
-//         .then(id => {
-//             done("Should not be error with property SalesDetail Voucher is Bigger than GrandTotal");
-//         })
-//         .catch(e => {
-//             try { 
-//                 e.errors.salesDetail.voucher.should.have.property('value'); 
-//                 done();
-//             }
-//             catch (ex) {
-//                 done(ex);
-//             }
-//         })
-// });
+
+it('#23. should error with property SalesDetail Voucher is Bigger than GrandTotal ', function(done) {
+    var data = getData();
+    data.salesDetail.voucher.value = 9999999999999;
+    manager.create(data)
+        .then(id => {
+            done("Should not be error with property SalesDetail Voucher is Bigger than GrandTotal");
+        })
+        .catch(e => {
+            try { 
+                e.errors.salesDetail.voucher.should.have.property('value'); 
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        })
+});
