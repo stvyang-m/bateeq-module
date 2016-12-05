@@ -20,4 +20,8 @@ module.exports = function(data, Manager, filterCallback) {
                     .then((id) => manager.getSingleById(id));
             }
         });
+<<<<<<< HEAD
 };
+=======
+};
+>>>>>>> refs/remotes/upstream/dev

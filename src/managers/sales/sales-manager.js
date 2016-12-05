@@ -226,8 +226,6 @@ module.exports = class SalesManager extends BaseManager {
                 errors["salesDetail"] = "salesDetail is required";
                 sales.salesDetail = {};
             }
-            if (!sales.salesDetail.paymentType || sales.salesDetail.paymentType == '')
-                salesDetailError["paymentType"] = "paymentType is required";
             valid.date = new Date(valid.date);
             if (Object.prototype.toString.call(valid.date) === "[object Date]") {
                 if (isNaN(valid.date.getTime())) {
@@ -540,122 +538,127 @@ module.exports = class SalesManager extends BaseManager {
                                 break;
                         }
                     }
-
-                    if (valid.salesDetail.paymentType.toLowerCase() != "card" && valid.salesDetail.paymentType.toLowerCase() != "cash" && valid.salesDetail.paymentType.toLowerCase() != "partial") {
-                        salesDetailError["paymentType"] = "paymentType not valid";
-                    }
-                    else {
-                        if (valid.salesDetail.paymentType.toLowerCase() == "card" || valid.salesDetail.paymentType.toLowerCase() == "partial") {
-                            if (!sales.salesDetail.bankId || sales.salesDetail.bankId == '')
-                                salesDetailError["bankId"] = "bankId is required";
-                            if (!_bank) {
-                                salesDetailError["bankId"] = "bankId not found";
-                            }
-                            else {
-                                valid.salesDetail.bankId = _bank._id;
-                                valid.salesDetail.bank = _bank;
-                            }
-
-                            if (!sales.salesDetail.bankCardId || sales.salesDetail.bankCardId == '')
-                                salesDetailError["bankCardId"] = "bankCardId is required";
-                            if (!_bankCard) {
-                                salesDetailError["bankCardId"] = "bankCardId not found";
-                            }
-                            else {
-                                valid.salesDetail.bankCardId = _bankCard._id;
-                                valid.salesDetail.bankCard = _bankCard;
-                            }
-
-                            if (!valid.salesDetail.card || valid.salesDetail.card == '')
-                                salesDetailError["card"] = "card is required";
-                            else {
-                                if (valid.salesDetail.card.toLowerCase() != 'debit' && valid.salesDetail.card.toLowerCase() != 'credit')
-                                    salesDetailError["card"] = "card must be debit or credit";
+                    
+                    if(parseInt(valid.grandTotal) > 0) { 
+                        if (!valid.salesDetail.paymentType || valid.salesDetail.paymentType == '') {
+                            salesDetailError["paymentType"] = "paymentType is required";
+                        }
+                        else if (valid.salesDetail.paymentType.toLowerCase() != "card" && valid.salesDetail.paymentType.toLowerCase() != "cash" && valid.salesDetail.paymentType.toLowerCase() != "partial") {
+                            salesDetailError["paymentType"] = "paymentType not valid";
+                        }
+                        else {
+                            if (valid.salesDetail.paymentType.toLowerCase() == "card" || valid.salesDetail.paymentType.toLowerCase() == "partial") {
+                                if (!sales.salesDetail.bankId || sales.salesDetail.bankId == '')
+                                    salesDetailError["bankId"] = "bankId is required";
+                                if (!_bank) {
+                                    salesDetailError["bankId"] = "bankId not found";
+                                }
                                 else {
-                                    if (valid.salesDetail.card.toLowerCase() != 'debit') {
-                                        if (!sales.salesDetail.cardTypeId || sales.salesDetail.cardTypeId == '')
-                                            salesDetailError["cardTypeId"] = "cardTypeId is required";
-                                        if (!_cardType) {
-                                            salesDetailError["cardTypeId"] = "cardTypeId not found";
-                                        }
-                                        else {
-                                            valid.salesDetail.cardTypeId = _cardType._id;
-                                            valid.salesDetail.cardType = _cardType;
+                                    valid.salesDetail.bankId = _bank._id;
+                                    valid.salesDetail.bank = _bank;
+                                } 
+                                
+                                if (!sales.salesDetail.bankCardId || sales.salesDetail.bankCardId == '')
+                                    salesDetailError["bankCardId"] = "bankCardId is required";
+                                if (!_bankCard) {
+                                    salesDetailError["bankCardId"] = "bankCardId not found";
+                                }
+                                else {
+                                    valid.salesDetail.bankCardId = _bankCard._id;
+                                    valid.salesDetail.bankCard = _bankCard;
+                                } 
+                                
+                                if (!valid.salesDetail.card || valid.salesDetail.card == '')
+                                    salesDetailError["card"] = "card is required";
+                                else {
+                                    if (valid.salesDetail.card.toLowerCase() != 'debit' && valid.salesDetail.card.toLowerCase() != 'credit')
+                                        salesDetailError["card"] = "card must be debit or credit";
+                                    else {
+                                        if (valid.salesDetail.card.toLowerCase() != 'debit') {
+                                            if (!sales.salesDetail.cardTypeId || sales.salesDetail.cardTypeId == '')
+                                                salesDetailError["cardTypeId"] = "cardTypeId is required";
+                                            if (!_cardType) {
+                                                salesDetailError["cardTypeId"] = "cardTypeId not found";
+                                            }
+                                            else {
+                                                valid.salesDetail.cardTypeId = _cardType._id;
+                                                valid.salesDetail.cardType = _cardType;
+                                            }
                                         }
                                     }
                                 }
+
+                                if (!valid.salesDetail.cardNumber || valid.salesDetail.cardNumber == '')
+                                    salesDetailError["cardNumber"] = "cardNumber is required";
+
+                                // if (!valid.salesDetail.cardName || valid.salesDetail.cardName == '')
+                                //     salesDetailError["cardName"] = "cardName is required"; 
+
+                                if (valid.salesDetail.cardAmount == undefined || (valid.salesDetail.cardAmount && valid.salesDetail.cardAmount == '')) {
+                                    salesDetailError["cardAmount"] = "cardAmount is required";
+                                    valid.salesDetail.cardAmount = 0;
+                                }
+                                else if (parseInt(valid.salesDetail.cardAmount) <= 0) {
+                                    salesDetailError["cardAmount"] = "cardAmount must be greater than 0";
+                                }
+                                else
+                                    valid.salesDetail.cardAmount = parseInt(valid.salesDetail.cardAmount);
+                            }
+                            
+                            if (valid.salesDetail.paymentType.toLowerCase() == "cash" || valid.salesDetail.paymentType.toLowerCase() == "partial") {
+                                if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
+                                    salesDetailError["cashAmount"] = "cashAmount is required";
+                                    valid.salesDetail.cashAmount = 0;
+                                }
+                                else if (parseInt(valid.salesDetail.cashAmount) < 0) {
+                                    salesDetailError["cashAmount"] = "cashAmount must be greater than 0";
+                                }
+                                else
+                                    valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
+                            }
+                            
+                            if (valid.salesDetail.paymentType.toLowerCase() == "partial") {
+                                if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
+                                    salesDetailError["cashAmount"] = "cashAmount is required";
+                                    valid.salesDetail.cashAmount = 0;
+                                }
+                                else if (parseInt(valid.salesDetail.cashAmount) <= 0) {
+                                    salesDetailError["cashAmount"] = "cashAmount must be greater than 0";
+                                }
+                                else
+                                    valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
+                            }
+                            
+                            if (valid.salesDetail.voucher) {
+                                var voucherError = {};
+                                if (valid.salesDetail.voucher.value == undefined || (valid.salesDetail.voucher.value && valid.salesDetail.voucher.value == '')) {
+                                    valid.salesDetail.voucher.value = 0;
+                                }
+                                // if (parseInt(valid.salesDetail.voucher.value) > parseInt(valid.grandTotal)) {
+                                //     voucherError["value"] = "voucher must be less than grandTotal";
+                                // }
+                                else
+                                    valid.salesDetail.voucher.value = parseInt(valid.salesDetail.voucher.value);
+
+                                for (var prop in voucherError) {
+                                    salesDetailError["voucher"] = voucherError;
+                                    break;
+                                }
                             }
 
-                            if (!valid.salesDetail.cardNumber || valid.salesDetail.cardNumber == '')
-                                salesDetailError["cardNumber"] = "cardNumber is required";
+                            var totalPayment = 0;
+                            if (valid.salesDetail.paymentType.toLowerCase() == "partial")
+                                totalPayment = parseInt(valid.salesDetail.cashAmount) + parseInt(valid.salesDetail.cardAmount) + parseInt(valid.salesDetail.voucher.value);
 
-                            // if (!valid.salesDetail.cardName || valid.salesDetail.cardName == '')
-                            //     salesDetailError["cardName"] = "cardName is required"; 
+                            if (valid.salesDetail.paymentType.toLowerCase() == "card")
+                                totalPayment = parseInt(valid.salesDetail.cardAmount) + parseInt(valid.salesDetail.voucher.value);
 
-                            if (valid.salesDetail.cardAmount == undefined || (valid.salesDetail.cardAmount && valid.salesDetail.cardAmount == '')) {
-                                salesDetailError["cardAmount"] = "cardAmount is required";
-                                valid.salesDetail.cardAmount = 0;
-                            }
-                            else if (parseInt(valid.salesDetail.cardAmount) <= 0) {
-                                salesDetailError["cardAmount"] = "cardAmount must be greater than 0";
-                            }
-                            else
-                                valid.salesDetail.cardAmount = parseInt(valid.salesDetail.cardAmount);
+                            if (valid.salesDetail.paymentType.toLowerCase() == "cash")
+                                totalPayment = parseInt(valid.salesDetail.cashAmount) + parseInt(valid.salesDetail.voucher.value);
+
+                            if (parseInt(totalPayment) < parseInt(valid.grandTotal))
+                                errors["grandTotal"] = "grandTotal is bigger than payment";
                         }
-
-                        if (valid.salesDetail.paymentType.toLowerCase() == "cash" || valid.salesDetail.paymentType.toLowerCase() == "partial") {
-                            if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
-                                salesDetailError["cashAmount"] = "cashAmount is required";
-                                valid.salesDetail.cashAmount = 0;
-                            }
-                            else if (parseInt(valid.salesDetail.cashAmount) < 0) {
-                                salesDetailError["cashAmount"] = "cashAmount must be greater than 0";
-                            }
-                            else
-                                valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
-                        }
-
-                        if (valid.salesDetail.paymentType.toLowerCase() == "partial") {
-                            if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
-                                salesDetailError["cashAmount"] = "cashAmount is required";
-                                valid.salesDetail.cashAmount = 0;
-                            }
-                            else if (parseInt(valid.salesDetail.cashAmount) <= 0) {
-                                salesDetailError["cashAmount"] = "cashAmount must be greater than 0";
-                            }
-                            else
-                                valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
-                        }
-
-                        if (valid.salesDetail.voucher) {
-                            var voucherError = {};
-                            if (valid.salesDetail.voucher.value == undefined || (valid.salesDetail.voucher.value && valid.salesDetail.voucher.value == '')) {
-                                valid.salesDetail.voucher.value = 0;
-                            }
-                            // if (parseInt(valid.salesDetail.voucher.value) > parseInt(valid.grandTotal)) {
-                            //     voucherError["value"] = "voucher must be less than grandTotal";
-                            // }
-                            else
-                                valid.salesDetail.voucher.value = parseInt(valid.salesDetail.voucher.value);
-
-                            for (var prop in voucherError) {
-                                salesDetailError["voucher"] = voucherError;
-                                break;
-                            }
-                        }
-
-                        var totalPayment = 0;
-                        if (valid.salesDetail.paymentType.toLowerCase() == "partial")
-                            totalPayment = parseInt(valid.salesDetail.cashAmount) + parseInt(valid.salesDetail.cardAmount) + parseInt(valid.salesDetail.voucher.value);
-
-                        if (valid.salesDetail.paymentType.toLowerCase() == "card")
-                            totalPayment = parseInt(valid.salesDetail.cardAmount) + parseInt(valid.salesDetail.voucher.value);
-
-                        if (valid.salesDetail.paymentType.toLowerCase() == "cash")
-                            totalPayment = parseInt(valid.salesDetail.cashAmount) + parseInt(valid.salesDetail.voucher.value);
-
-                        if (parseInt(totalPayment) < parseInt(valid.grandTotal))
-                            errors["grandTotal"] = "grandTotal is bigger than payment";
                     }
 
                     for (var prop in salesDetailError) {
@@ -716,7 +719,7 @@ module.exports = class SalesManager extends BaseManager {
                 })
                 .catch(e => {
                     for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
+                        var ValidationError = require('module-toolkit').ValidationError;
                         reject(new ValidationError('data does not pass validation', errors));
                     }
                     reject(e);
