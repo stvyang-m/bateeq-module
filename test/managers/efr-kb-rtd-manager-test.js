@@ -7,7 +7,7 @@ var testData;
 function getData() {
     var source = testData.storages["UT-FNG"];
     var destination = testData.storages["UT-BJR"];
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.items["UT-AV1"];
     
     var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
     var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
@@ -27,7 +27,7 @@ function getData() {
 
     transferOutDoc.remark = `remark for ${code}`;
 
-    transferOutDoc.items.push(new TransferOutItem({ articleVariantId: variant._id, quantity: 1, remark: 'transferOutDoc.test' }));
+    transferOutDoc.items.push(new TransferOutItem({ itemId: variant._id, quantity: 1, remark: 'transferOutDoc.test' }));
 
     return transferOutDoc;
 }
@@ -35,7 +35,7 @@ function getData() {
 function getDataItemQuantityIsWrong() {
     var source = testData.storages["UT-FNG"];
     var destination = testData.storages["UT-BJR"];
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.items["UT-AV1"];
     
     var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
     var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
@@ -55,7 +55,7 @@ function getDataItemQuantityIsWrong() {
 
     transferOutDoc.remark = `remark for ${code}`;
  
-    transferOutDoc.items.push({ articleVariantId: variant._id, quantity: 0 }); 
+    transferOutDoc.items.push({ itemId: variant._id, quantity: 0 }); 
 
     return transferOutDoc;
 }

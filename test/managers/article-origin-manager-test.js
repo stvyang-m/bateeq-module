@@ -1,10 +1,10 @@
 var should = require('should');
 var helper = require('../helper');
-var validate = require('bateeq-models').validator.core.article;
+var validate = require('bateeq-models').validator.master.article;
 var manager;
 
 function getData() {
-    var ArticleOrigin = require('bateeq-models').core.article.ArticleOrigin;
+    var ArticleOrigin = require('bateeq-models').master.article.ArticleOrigin;
     var articleOrigin = new ArticleOrigin();
 
     var now = new Date();
@@ -21,7 +21,7 @@ function getData() {
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var ArticleOriginManager = require('../../src/managers/core/article/article-origin-manager');
+            var ArticleOriginManager = require('../../src/managers/master/article/article-origin-manager');
             manager = new ArticleOriginManager(db, {
                 username: 'unit-test'
             });

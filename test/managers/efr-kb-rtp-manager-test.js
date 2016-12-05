@@ -9,7 +9,7 @@ var testData;
 function getData() {
     var source = testData.storages["UT-ST1"];
     var destination = testData.storages["UT-BJR"];
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.items["UT-AV1"];
 
     var TransferOutDoc = require('bateeq-models').inventory.TransferOutDoc;
     var TransferOutItem = require('bateeq-models').inventory.TransferOutItem;
@@ -29,7 +29,7 @@ function getData() {
 
     transferOutDoc.remark = `remark for ${code}`;
 
-    transferOutDoc.items.push(new TransferOutItem({ articleVariantId: variant._id, quantity: 1, remark: 'doc efr-kb-rtp' }));
+    transferOutDoc.items.push(new TransferOutItem({ itemId: variant._id, quantity: 1, remark: 'doc efr-kb-rtp' }));
 
     return transferOutDoc;
 }
@@ -38,7 +38,7 @@ function getData() {
 function getDataSPK() {
     var source = testData.storages["UT-ST2"];
     var destination = testData.storages["UT-ST2"];
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.items["UT-AV1"];
 
     var SpkDoc = require('bateeq-models').merchandiser.SPK;
     var SpkItem = require('bateeq-models').merchandiser.SPKItem;
@@ -52,7 +52,7 @@ function getDataSPK() {
 
     spkDoc.reference = `reference[${spkDoc.date}]`;
 
-    spkDoc.items.push(new SpkItem({ articleVariantId: variant._id, quantity: 1, remark: 'SPK PBA.test' }));
+    spkDoc.items.push(new SpkItem({ itemId: variant._id, quantity: 1, remark: 'SPK PBA.test' }));
     return spkDoc;
 }
 
@@ -91,7 +91,7 @@ it('#01. should success when create new SPK data', function (done) {
     manager2.create(dataSPK)
         .then(id => {
             id.should.be.Object();
-            manager3.getById(id)
+            manager3.getSingleById(id)
                 .then(spkDoc => {
                     createdRef = spkDoc.packingList;
                     dataSPK.password = spkDoc.password;
@@ -211,7 +211,7 @@ it('#08. should error with property items minimum one', function (done) {
 it('#09. should error with property items must be greater one', function (done) {
     var data = getData();
 data.reference=createdRef;
-    data.items = [{ articleVariantId: '578dd8a976d4f1003e0d7a3f' },
+    data.items = [{ itemId: '578dd8a976d4f1003e0d7a3f' },
         { quantity: 0 }];
     manager.create(data)
         .then(id => {
@@ -222,7 +222,7 @@ data.reference=createdRef;
                 e.errors.should.have.property('items');
                 e.errors.items.should.Array();
                 for (var i of e.errors.items) {
-                    i.should.have.property('articleVariantId');
+                    i.should.have.property('itemId');
                     i.should.have.property('quantity');
                 }
                 done();

@@ -10,7 +10,7 @@ function getData(refNo) {
 
     var source = testData.storages["UT-ACC"];
     var destination = testData.storages["UT-ST1"];
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.items["UT-AV1"];
 
     var TransferInDoc = require('bateeq-models').inventory.TransferInDoc;
     var TransferInItem = require('bateeq-models').inventory.TransferInItem;
@@ -30,7 +30,7 @@ function getData(refNo) {
 
     transferInDoc.remark = `remark for ${code}`;
 
-    transferInDoc.items.push(new TransferInItem({ articleVariantId: variant._id, quantity: 1, remark: 'transferInDoc.test' }));
+    transferInDoc.items.push(new TransferInItem({ itemId: variant._id, quantity: 1, remark: 'transferInDoc.test' }));
 
     return transferInDoc;
 }
@@ -38,7 +38,7 @@ function getData(refNo) {
 function getDataSPK() {
     var source = testData.storages["UT-ACC"];
     var destination = testData.storages["UT-ST1"];
-    var variant = testData.variants["UT-AV1"];
+    var variant = testData.items["UT-AV1"];
 
     var SpkDoc = require('bateeq-models').merchandiser.SPK;
     var SpkItem = require('bateeq-models').merchandiser.SPKItem;
@@ -52,7 +52,7 @@ function getDataSPK() {
 
     spkDoc.reference = `reference[${spkDoc.date}]`;
 
-    spkDoc.items.push(new SpkItem({ articleVariantId: variant._id, quantity: 1, remark: 'SPK PBA.test' }));
+    spkDoc.items.push(new SpkItem({ itemId: variant._id, quantity: 1, remark: 'SPK PBA.test' }));
     return spkDoc;
 }
 
@@ -93,7 +93,7 @@ it('#01. should success when create new SPK data', function (done) {
     manager2.create(dataSPK)
         .then(id => {
             id.should.be.Object();
-            manager3.getById(id)
+            manager3.getSingleById(id)
                 .then(spkDoc => {
                     createdRef = spkDoc.packingList;
                     dataSPK.password = spkDoc.password;
@@ -223,7 +223,7 @@ it('#09. should error with property items minimum one', function (done) {
 });
 
 it('#10. should error with reference is exist and quantity items is 0', function (done) {
-    createdData.items = [{ articleVariantId: "578855c4964302281454fa51", quantity: 0, remark: 'transferInDoc.test' }];
+    createdData.items = [{ itemId: "578855c4964302281454fa51", quantity: 0, remark: 'transferInDoc.test' }];
     manager.create(createdData)
         .then(id => {
             done("should error with reference is exist and quantity items is 0");

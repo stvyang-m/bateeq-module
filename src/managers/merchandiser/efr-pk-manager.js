@@ -5,6 +5,7 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
+var BaseManager = require('module-toolkit').BaseManager;
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
@@ -13,18 +14,17 @@ var SPKItem = BateeqModels.merchandiser.SPKItem;
 
 var moduleId = "EFR-PK/PBA";
 
-module.exports = class SPKBarangManager  {
+module.exports = class SPKBarangManager  extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
+        super(db, user);
         this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
-        var StorageManager = require('../inventory/storage-manager');
+        var StorageManager = require('../master/storage-manager');
         this.storageManager = new StorageManager(db, user);
 
-        var ArticleVariantManager = require('../core/article/article-variant-manager');
-        this.articleVariantManager = new ArticleVariantManager(db, user);
+        var ItemManager = require('../master/item-manager');
+        this.itemManager = new ItemManager(db, user);
 
-        var ModuleManager = require('../core/module-manager');
+        var ModuleManager = require('../master/module-manager');
         this.moduleManager = new ModuleManager(db, user); 
     }
 
@@ -175,7 +175,7 @@ module.exports = class SPKBarangManager  {
         });
     }
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -193,7 +193,7 @@ module.exports = class SPKBarangManager  {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -201,7 +201,7 @@ module.exports = class SPKBarangManager  {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(spkDoc => {
                     resolve(spkDoc);
                 })
@@ -257,7 +257,7 @@ module.exports = class SPKBarangManager  {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
             this.SPKDocCollection
                 .singleOrDefault(query)

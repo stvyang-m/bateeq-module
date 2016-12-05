@@ -5,6 +5,7 @@ var ObjectId = require('mongodb').ObjectId;
 
 // internal deps
 require('mongodb-toolkit');
+var BaseManager = require('module-toolkit').BaseManager;
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
@@ -14,18 +15,17 @@ var TransferInItem = BateeqModels.inventory.TransferInItem;
 
 const moduleId = "EFR-TB/BAT";
 
-module.exports = class TokoTerimaAksesorisManager {
+module.exports = class TokoTerimaAksesorisManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
+        super(db, user);
         this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
         this.spkDocCollection = this.db.use(map.merchandiser.SPKDoc);
 
-        var StorageManager = require('./storage-manager');
+        var StorageManager = require('../master/storage-manager');
         this.storageManager = new StorageManager(db, user);
 
-        var ArticleVariantManager = require('../core/article/article-variant-manager');
-        this.articleVariantManager = new ArticleVariantManager(db, user);
+        var ItemManager = require('../master/item-manager');
+        this.itemManager = new ItemManager(db, user);
 
         var InventoryManager = require('./inventory-manager');
         this.inventoryManager = new InventoryManager(db, user);
@@ -33,7 +33,7 @@ module.exports = class TokoTerimaAksesorisManager {
         var TransferInDocManager = require('./transfer-in-doc-manager');
         this.transferInDocManager = new TransferInDocManager(db, user);
 
-        var ModuleManager = require('../core/module-manager');
+        var ModuleManager = require('../master/module-manager');
         this.moduleManager = new ModuleManager(db, user);
 
         var SPKManager = require('../merchandiser/efr-pk-manager');
@@ -108,7 +108,7 @@ module.exports = class TokoTerimaAksesorisManager {
                 'code': {
                     '$regex': regex
                 },
-                'expeditionDocumentId': { "$ne": {} }
+                // 'expeditionDocumentId': { "$ne": {} }
             };
 
             var isReceived = {
@@ -138,7 +138,7 @@ module.exports = class TokoTerimaAksesorisManager {
     }
 
 
-    getById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
@@ -154,13 +154,13 @@ module.exports = class TokoTerimaAksesorisManager {
         });
     }
 
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(transferInDoc => {
                     resolve(transferInDoc);
                 })
@@ -183,7 +183,7 @@ module.exports = class TokoTerimaAksesorisManager {
         })
     }
 
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
             this.transferInDocCollection
                 .singleOrDefault(query)
@@ -310,7 +310,7 @@ module.exports = class TokoTerimaAksesorisManager {
                             else
                                 if (item.quantity != spkDoc.items[index].quantity)
                                     if (item.remark == "")
-                                        itemError["remark"] = "Masukkan no referensi berita acara"; 
+                                        itemError["remark"] = "Masukkan no referensi berita acara";
                             index++;
                             itemErrors.push(itemError);
                         }
@@ -323,13 +323,13 @@ module.exports = class TokoTerimaAksesorisManager {
                                 break;
                         }
                         for (var prop in errors) {
-                            var ValidationError = require('../../validation-error');
+                            var ValidationError = require('module-toolkit').ValidationError;
                             reject(new ValidationError('data does not pass validation', errors));
                         }
                     }
                     else {
                         errors["reference"] = "reference not found";
-                        var ValidationError = require('../../validation-error');
+                        var ValidationError = require('module-toolkit').ValidationError;
                         reject(new ValidationError('data does not pass validation', errors));
                     }
                     resolve(transferInDoc);
