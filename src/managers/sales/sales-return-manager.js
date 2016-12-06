@@ -656,11 +656,11 @@ module.exports = class SalesReturnManager extends BaseManager {
 
                                             if (stock) {
                                                 if (returnItem.quantity > stock.quantity) {
-                                                    returnItemError["quantity"] = "Quantity is bigger than Stock";
+                                                    returnItemError["quantity"] = "Stok Tidak Tersedia";
                                                 }
                                             }
                                             else {
-                                                returnItemError["quantity"] = "Quantity is bigger than Stock";
+                                                returnItemError["quantity"] = "Stok Tidak Tersedia";
                                             }
                                             stockIndex += 1;
                                             returnItemErrors.push(returnItemError);
