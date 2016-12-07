@@ -541,17 +541,17 @@ module.exports = class SalesManager extends BaseManager {
                     
                     if(parseInt(valid.grandTotal) > 0) { 
                         if (!valid.salesDetail.paymentType || valid.salesDetail.paymentType == '') {
-                            salesDetailError["paymentType"] = "paymentType is required";
+                            salesDetailError["paymentType"] = "Tipe Pembayaran harus diisi";
                         }
                         else if (valid.salesDetail.paymentType.toLowerCase() != "card" && valid.salesDetail.paymentType.toLowerCase() != "cash" && valid.salesDetail.paymentType.toLowerCase() != "partial") {
-                            salesDetailError["paymentType"] = "paymentType not valid";
+                            salesDetailError["paymentType"] = "Tipe Pembayaran tidak ditemukan";
                         }
                         else {
                             if (valid.salesDetail.paymentType.toLowerCase() == "card" || valid.salesDetail.paymentType.toLowerCase() == "partial") {
                                 if (!sales.salesDetail.bankId || sales.salesDetail.bankId == '')
-                                    salesDetailError["bankId"] = "bankId is required";
+                                    salesDetailError["bankId"] = "Bank (EDC) harus diisi";
                                 if (!_bank) {
-                                    salesDetailError["bankId"] = "bankId not found";
+                                    salesDetailError["bankId"] = "Bank (EDC) tidak ditemukan";
                                 }
                                 else {
                                     valid.salesDetail.bankId = _bank._id;
@@ -559,9 +559,9 @@ module.exports = class SalesManager extends BaseManager {
                                 } 
                                 
                                 if (!sales.salesDetail.bankCardId || sales.salesDetail.bankCardId == '')
-                                    salesDetailError["bankCardId"] = "bankCardId is required";
+                                    salesDetailError["bankCardId"] = "Bank (KARTU) harus diisi";
                                 if (!_bankCard) {
-                                    salesDetailError["bankCardId"] = "bankCardId not found";
+                                    salesDetailError["bankCardId"] = "Bank (KARTU) tidak ditemukan";
                                 }
                                 else {
                                     valid.salesDetail.bankCardId = _bankCard._id;
@@ -569,16 +569,16 @@ module.exports = class SalesManager extends BaseManager {
                                 } 
                                 
                                 if (!valid.salesDetail.card || valid.salesDetail.card == '')
-                                    salesDetailError["card"] = "card is required";
+                                    salesDetailError["card"] = "Kartu harus diisi";
                                 else {
                                     if (valid.salesDetail.card.toLowerCase() != 'debit' && valid.salesDetail.card.toLowerCase() != 'credit')
-                                        salesDetailError["card"] = "card must be debit or credit";
+                                        salesDetailError["card"] = "Kartu harus debit/kredit";
                                     else {
                                         if (valid.salesDetail.card.toLowerCase() != 'debit') {
                                             if (!sales.salesDetail.cardTypeId || sales.salesDetail.cardTypeId == '')
-                                                salesDetailError["cardTypeId"] = "cardTypeId is required";
+                                                salesDetailError["cardTypeId"] = "Tipe Kartu harus diisi";
                                             if (!_cardType) {
-                                                salesDetailError["cardTypeId"] = "cardTypeId not found";
+                                                salesDetailError["cardTypeId"] = "Tipe Kartu tidak ditemukan";
                                             }
                                             else {
                                                 valid.salesDetail.cardTypeId = _cardType._id;
@@ -589,17 +589,17 @@ module.exports = class SalesManager extends BaseManager {
                                 }
 
                                 if (!valid.salesDetail.cardNumber || valid.salesDetail.cardNumber == '')
-                                    salesDetailError["cardNumber"] = "cardNumber is required";
+                                    salesDetailError["cardNumber"] = "Nomor Kartu harus diisi";
 
                                 // if (!valid.salesDetail.cardName || valid.salesDetail.cardName == '')
                                 //     salesDetailError["cardName"] = "cardName is required"; 
 
                                 if (valid.salesDetail.cardAmount == undefined || (valid.salesDetail.cardAmount && valid.salesDetail.cardAmount == '')) {
-                                    salesDetailError["cardAmount"] = "cardAmount is required";
+                                    salesDetailError["cardAmount"] = "Card Amount harus diisi";
                                     valid.salesDetail.cardAmount = 0;
                                 }
                                 else if (parseInt(valid.salesDetail.cardAmount) <= 0) {
-                                    salesDetailError["cardAmount"] = "cardAmount must be greater than 0";
+                                    salesDetailError["cardAmount"] = "Card Amount harus lebih besar dari 0";
                                 }
                                 else
                                     valid.salesDetail.cardAmount = parseInt(valid.salesDetail.cardAmount);
@@ -607,11 +607,11 @@ module.exports = class SalesManager extends BaseManager {
                             
                             if (valid.salesDetail.paymentType.toLowerCase() == "cash" || valid.salesDetail.paymentType.toLowerCase() == "partial") {
                                 if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
-                                    salesDetailError["cashAmount"] = "cashAmount is required";
+                                    salesDetailError["cashAmount"] = "Cash Amount harus diisi";
                                     valid.salesDetail.cashAmount = 0;
                                 }
                                 else if (parseInt(valid.salesDetail.cashAmount) < 0) {
-                                    salesDetailError["cashAmount"] = "cashAmount must be greater than 0";
+                                    salesDetailError["cashAmount"] = "Cash Amount harus lebih besar dari 0";
                                 }
                                 else
                                     valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
@@ -619,11 +619,11 @@ module.exports = class SalesManager extends BaseManager {
                             
                             if (valid.salesDetail.paymentType.toLowerCase() == "partial") {
                                 if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
-                                    salesDetailError["cashAmount"] = "cashAmount is required";
+                                    salesDetailError["cashAmount"] = "Cash Amount harus diisi";
                                     valid.salesDetail.cashAmount = 0;
                                 }
                                 else if (parseInt(valid.salesDetail.cashAmount) <= 0) {
-                                    salesDetailError["cashAmount"] = "cashAmount must be greater than 0";
+                                    salesDetailError["cashAmount"] = "Cash Amount harus lebih besar dari 0";
                                 }
                                 else
                                     valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
@@ -688,11 +688,11 @@ module.exports = class SalesManager extends BaseManager {
                                 var itemError = {};
                                 if (stock) {
                                     if (item.quantity > stock.quantity) {
-                                        itemError["quantity"] = "Quantity is bigger than Stock";
+                                        itemError["quantity"] = "Stok Tidak Tersedia";
                                     }
                                 }
                                 else {
-                                    itemError["quantity"] = "Quantity is bigger than Stock";
+                                    itemError["quantity"] = "Stok Tidak Tersedia";
                                 }
                                 itemErrors.push(itemError);
                             }
