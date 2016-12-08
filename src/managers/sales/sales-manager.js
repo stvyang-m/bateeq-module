@@ -14,7 +14,7 @@ var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
 
 module.exports = class SalesManager extends BaseManager {
-    constructor(db, user) {
+    constructor(db, user) {        
         super(db, user);
         this.collection = this.db.use(map.sales.SalesDoc);
 
@@ -40,8 +40,7 @@ module.exports = class SalesManager extends BaseManager {
         this.inventoryManager = new InventoryManager(db, user);
 
         var PromoManager = require('./promo-manager');
-        this.promoManager = new PromoManager(db, user);
-
+        this.promoManager = new PromoManager(db, user);  
     }
 
     _createIndexes() {
@@ -160,46 +159,39 @@ module.exports = class SalesManager extends BaseManager {
         return new Promise((resolve, reject) => {
             this.collection.singleOrDefault({ _id: new ObjectId(salesDoc.sales._id), _deleted: false })
                 .then(result => {
-
                     // update sales
                     result.isVoid = true;
-                    var date = new Date();
-                    result._updatedDate = date;
-                    this.collection.update(result)
+                    var valid = new Sales(result);
+                    valid.stamp(this.user.username, 'manager');
+                    this.collection.update(valid)
                         .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        });
-
-                    // update transfer in
-                    var totalInventoryMovement = 0;
-                    var referenceNo = "";
-                    this.collection.singleOrDefault({ _id: new ObjectId(salesDoc.sales._id), _deleted: false })
-                        .then(validSales => {
+                            // add transfer in
+                            var createData = [];
                             var validTransferInDoc = {};
-                            validTransferInDoc.code = generateCode("sales");
-                            validTransferInDoc.reference = validSales.code;
-                            referenceNo = validSales.code;
-                            validTransferInDoc.sourceId = validSales.store.storageId;
-                            validTransferInDoc.destinationId = validSales.store.storageId;
+                            validTransferInDoc.code = generateCode("voidsales");
+                            validTransferInDoc.reference = valid.code;
+                            validTransferInDoc.sourceId = valid.store.storageId;
+                            validTransferInDoc.destinationId = valid.store.storageId;
                             validTransferInDoc.items = [];
-                            for (var item of validSales.items) {
+                            for (var item of valid.items) {
                                 var newitem = {};
                                 newitem.itemId = item.itemId;
                                 newitem.quantity = item.quantity;
                                 validTransferInDoc.items.push(newitem);
-                                totalInventoryMovement++;
                             }
-                            validTransferInDoc = new TransferInDoc(validTransferInDoc);
-
-                            var createData = [];
+                            validTransferInDoc = new TransferInDoc(validTransferInDoc); 
                             createData.push(this.transferInDocManager.create(validTransferInDoc));
+                            
+                            //update void salesReturn if isReturn = true
+                            if(valid.isReturn) {
+                                var SalesReturnManager = require('./sales-return-manager');
+                                var salesReturnManager = new SalesReturnManager(this.db, this.user);
+                                createData.push(salesReturnManager._void(valid));
+                            }
 
                             Promise.all(createData)
                                 .then(results => {
-                                    resolve(results[1]);
+                                    resolve(id);
                                 })
                                 .catch(e => {
                                     reject(e);
@@ -207,7 +199,7 @@ module.exports = class SalesManager extends BaseManager {
                         })
                         .catch(e => {
                             reject(e);
-                        })
+                        });
                 });
         })
     }
@@ -248,8 +240,8 @@ module.exports = class SalesManager extends BaseManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                    code: valid.code
-                }]
+                        code: valid.code
+                    }]
             });
             var getStore;
             var getBank;
@@ -538,8 +530,8 @@ module.exports = class SalesManager extends BaseManager {
                                 break;
                         }
                     }
-                    
-                    if(parseInt(valid.grandTotal) > 0) { 
+
+                    if (parseInt(valid.grandTotal) > 0) {
                         if (!valid.salesDetail.paymentType || valid.salesDetail.paymentType == '') {
                             salesDetailError["paymentType"] = "Tipe Pembayaran harus diisi";
                         }
@@ -556,8 +548,8 @@ module.exports = class SalesManager extends BaseManager {
                                 else {
                                     valid.salesDetail.bankId = _bank._id;
                                     valid.salesDetail.bank = _bank;
-                                } 
-                                
+                                }
+
                                 if (!sales.salesDetail.bankCardId || sales.salesDetail.bankCardId == '')
                                     salesDetailError["bankCardId"] = "Bank (KARTU) harus diisi";
                                 if (!_bankCard) {
@@ -566,8 +558,8 @@ module.exports = class SalesManager extends BaseManager {
                                 else {
                                     valid.salesDetail.bankCardId = _bankCard._id;
                                     valid.salesDetail.bankCard = _bankCard;
-                                } 
-                                
+                                }
+
                                 if (!valid.salesDetail.card || valid.salesDetail.card == '')
                                     salesDetailError["card"] = "Kartu harus diisi";
                                 else {
@@ -604,7 +596,7 @@ module.exports = class SalesManager extends BaseManager {
                                 else
                                     valid.salesDetail.cardAmount = parseInt(valid.salesDetail.cardAmount);
                             }
-                            
+
                             if (valid.salesDetail.paymentType.toLowerCase() == "cash" || valid.salesDetail.paymentType.toLowerCase() == "partial") {
                                 if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
                                     salesDetailError["cashAmount"] = "Cash Amount harus diisi";
@@ -616,7 +608,7 @@ module.exports = class SalesManager extends BaseManager {
                                 else
                                     valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
                             }
-                            
+
                             if (valid.salesDetail.paymentType.toLowerCase() == "partial") {
                                 if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
                                     salesDetailError["cashAmount"] = "Cash Amount harus diisi";
@@ -628,7 +620,7 @@ module.exports = class SalesManager extends BaseManager {
                                 else
                                     valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
                             }
-                            
+
                             if (valid.salesDetail.voucher) {
                                 var voucherError = {};
                                 if (valid.salesDetail.voucher.value == undefined || (valid.salesDetail.voucher.value && valid.salesDetail.voucher.value == '')) {
@@ -725,14 +717,6 @@ module.exports = class SalesManager extends BaseManager {
                     reject(e);
                 })
         });
-    }
-
-    isEmpty(obj) {
-        for (var prop in obj) {
-            if (obj.hasOwnProperty(prop))
-                return false;
-        }
-        return JSON.stringify(obj) === JSON.stringify({});
     }
 
 };
