@@ -14,7 +14,7 @@ var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
 
 module.exports = class SalesManager extends BaseManager {
-    constructor(db, user) {        
+    constructor(db, user) {
         super(db, user);
         this.collection = this.db.use(map.sales.SalesDoc);
 
@@ -40,7 +40,7 @@ module.exports = class SalesManager extends BaseManager {
         this.inventoryManager = new InventoryManager(db, user);
 
         var PromoManager = require('./promo-manager');
-        this.promoManager = new PromoManager(db, user);  
+        this.promoManager = new PromoManager(db, user);
     }
 
     _createIndexes() {
@@ -92,56 +92,72 @@ module.exports = class SalesManager extends BaseManager {
             sales.code = generateCode("sales");
             this._validate(sales)
                 .then(validSales => {
-                    var isAnyTransferOut = false;
-                    var validTransferOutDoc = {};
-                    validTransferOutDoc.code = sales.code;
-                    validTransferOutDoc.reference = validSales.code;
-                    validTransferOutDoc.sourceId = validSales.store.storageId;
-                    validTransferOutDoc.destinationId = validSales.store.storageId;
-                    validTransferOutDoc.items = [];
-                    for (var item of validSales.items) {
-                        if (!item.isReturn) {
-                            var newitem = {};
-                            newitem.itemId = item.itemId;
-                            newitem.quantity = item.quantity;
-                            validTransferOutDoc.items.push(newitem);
-                            isAnyTransferOut = true;
-                        }
-                    }
-                    validTransferOutDoc = new TransferOutDoc(validTransferOutDoc);
-
-                    var isAnyTransferIn = false;
-                    var validTransferInDoc = {};
-                    validTransferInDoc.code = sales.code;
-                    validTransferInDoc.reference = validSales.code;
-                    validTransferInDoc.sourceId = validSales.store.storageId;
-                    validTransferInDoc.destinationId = validSales.store.storageId;
-                    validTransferInDoc.items = [];
-                    for (var item of validSales.items) {
-                        if (item.isReturn) {
-                            var newitem = {};
-                            newitem.itemId = item.itemId;
-                            newitem.quantity = item.quantity;
-                            validTransferInDoc.items.push(newitem);
-                            isAnyTransferIn = true;
-                        }
-                    }
-                    validTransferInDoc = new TransferInDoc(validTransferInDoc);
-
                     var createData = [];
-                    if (isAnyTransferOut)
-                        createData.push(this.transferOutDocManager.create(validTransferOutDoc));
-                    else
-                        createData.push(Promise.resolve(null))
 
-                    if (isAnyTransferIn)
-                        createData.push(this.transferInDocManager.create(validTransferInDoc));
-                    else
-                        createData.push(Promise.resolve(null))
+                    var funcOut = (sales, manager) => {
+                        return () => {
+                            var isAnyTransferOut = false;
+                            var validTransferOutDoc = {};
+                            validTransferOutDoc.code = sales.code;
+                            validTransferOutDoc.reference = sales.code;
+                            validTransferOutDoc.sourceId = sales.store.storageId;
+                            validTransferOutDoc.destinationId = sales.store.storageId;
+                            validTransferOutDoc.items = [];
+                            for (var item of sales.items) {
+                                if (!item.isReturn) {
+                                    var newitem = {};
+                                    newitem.itemId = item.itemId;
+                                    newitem.quantity = item.quantity;
+                                    validTransferOutDoc.items.push(newitem);
+                                    isAnyTransferOut = true;
+                                }
+                            }
+                            validTransferOutDoc = new TransferOutDoc(validTransferOutDoc);
+                            if (isAnyTransferOut)
+                                return manager.create(validTransferOutDoc)
+                            else
+                                return Promise.resolve(null)
+                        }
+                    };
+                    createData.push(funcOut(validSales, this.transferOutDocManager));
 
-                    createData.push(this.collection.insert(validSales));
+                    var funcIn = (sales, manager) => {
+                        return () => {
+                            var isAnyTransferIn = false;
+                            var validTransferInDoc = {};
+                            validTransferInDoc.code = sales.code;
+                            validTransferInDoc.reference = sales.code;
+                            validTransferInDoc.sourceId = sales.store.storageId;
+                            validTransferInDoc.destinationId = sales.store.storageId;
+                            validTransferInDoc.items = [];
+                            for (var item of sales.items) {
+                                if (item.isReturn) {
+                                    var newitem = {};
+                                    newitem.itemId = item.itemId;
+                                    newitem.quantity = item.quantity;
+                                    validTransferInDoc.items.push(newitem);
+                                    isAnyTransferIn = true;
+                                }
+                            }
+                            validTransferInDoc = new TransferInDoc(validTransferInDoc);
+                            if (isAnyTransferIn)
+                                return manager.create(validTransferInDoc);
+                            else
+                                return Promise.resolve(null);
+                        }
+                    };
+                    createData.push(funcIn(validSales, this.transferInDocManager));
 
-                    Promise.all(createData)
+                    var funcSales = (sales, manager) => {
+                        return () => {
+                            return manager.insert(sales);
+                        }
+                    };
+                    createData.push(funcSales(validSales, this.collection));
+
+                    require('js-toolkit').Promise.ext;
+                    //Promise.all(createData)
+                    Promise.chain(createData)
                         .then(results => {
                             resolve(results[2]);
                         })
@@ -179,11 +195,11 @@ module.exports = class SalesManager extends BaseManager {
                                 newitem.quantity = item.quantity;
                                 validTransferInDoc.items.push(newitem);
                             }
-                            validTransferInDoc = new TransferInDoc(validTransferInDoc); 
+                            validTransferInDoc = new TransferInDoc(validTransferInDoc);
                             createData.push(this.transferInDocManager.create(validTransferInDoc));
-                            
+
                             //update void salesReturn if isReturn = true
-                            if(valid.isReturn) {
+                            if (valid.isReturn) {
                                 var SalesReturnManager = require('./sales-return-manager');
                                 var salesReturnManager = new SalesReturnManager(this.db, this.user);
                                 createData.push(salesReturnManager._void(valid));
