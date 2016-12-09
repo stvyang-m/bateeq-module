@@ -92,7 +92,36 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
         });
     }
 
-
+    getSingleById(id) {
+        return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+    
+    getSingleByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.SPKDocCollection
+                .single(query)
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
 
     create(spkDoc) {
         return new Promise((resolve, reject) => {
@@ -451,8 +480,13 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                         var item = fg;
                         this.itemManager.getByCode(item.code)
                             .then(resultItem => {
-                                if (resultItem)
-                                    this.finishedGoodsManager.update(resultItem)
+                                if (resultItem) {
+                                    resultItem.name = item.name;
+                                    resultItem.uom = item.uom;
+                                    resultItem.article.realizationOrder = item.realizationOrder;
+                                    resultItem.size = item.size;
+                                    resultItem.domesticSale = item.domesticSale;
+                                    this.finishedGoodsManager.update(item)
                                         .then(id => {
                                             this.itemManager.getSingleById(id)
                                                 .then(resultItem => {
@@ -465,6 +499,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                         .catch(e => {
                                             reject(e);
                                         });
+                                }
                                 else {
                                     var finishGood = new FinishedGoods();
                                     finishGood.code = item.code;
@@ -542,16 +577,25 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                         for (var spkDocument of spks.values()) {
                             var spkDocs = new Promise((resolve, reject) => {
                                 var spkDoc = spkDocument;
-                                this.pkManager.getByPackingList(spkDoc.packingList)
+                                this.pkManager.getByPL(spkDoc.packingList)
                                     .then(resultItem => {
-                                        if (resultItem)
-                                            this.SPKDocCollection.update(resultItem)
+                                        if (resultItem) {
+                                            resultItem.source = spkDoc.source;
+                                            resultItem.sourceId = new ObjectId(spkDoc.source._id);
+                                            resultItem.destination = spkDoc.destination;
+                                            resultItem.destinationId = new ObjectId(spkDoc.destination._id);
+                                            resultItem.reference = spkDoc.PackingList;
+                                            resultItem.date = spkDoc.dateForm;
+                                            resultItem.password = spkDoc.Password;
+                                            resultItem.items = spkDoc.items;
+                                            this.SPKDocCollection.update(spkDoc)
                                                 .then(resultItem => {
                                                     resolve(resultItem);
                                                 })
                                                 .catch(e => {
                                                     reject(e);
                                                 });
+                                        }
                                         else {
                                             var spkResult = new SPKDoc(spkDoc);
                                             spkResult.stamp(this.user.username, 'manager');

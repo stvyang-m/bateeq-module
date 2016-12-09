@@ -14,7 +14,7 @@ var SPKItem = BateeqModels.merchandiser.SPKItem;
 
 var moduleId = "EFR-PK/PBA";
 
-module.exports = class SPKBarangManager  extends BaseManager {
+module.exports = class SPKBarangManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
         this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
@@ -25,7 +25,7 @@ module.exports = class SPKBarangManager  extends BaseManager {
         this.itemManager = new ItemManager(db, user);
 
         var ModuleManager = require('../master/module-manager');
-        this.moduleManager = new ModuleManager(db, user); 
+        this.moduleManager = new ModuleManager(db, user);
     }
 
     read(paging) {
@@ -61,7 +61,7 @@ module.exports = class SPKBarangManager  extends BaseManager {
                 };
 
                 query['$and'].push($or);
-            } 
+            }
             this.SPKDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
@@ -87,7 +87,7 @@ module.exports = class SPKBarangManager  extends BaseManager {
         return new Promise((resolve, reject) => {
             var filter = {
                 _deleted: false,
-                isReceived: true 
+                isReceived: true
             };
             var query = _paging.keyword ? {
                 '$and': [filter]
@@ -110,7 +110,7 @@ module.exports = class SPKBarangManager  extends BaseManager {
                 };
 
                 query['$and'].push($or);
-            } 
+            }
             this.SPKDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
@@ -124,7 +124,7 @@ module.exports = class SPKBarangManager  extends BaseManager {
                 });
         });
     }
-    
+
     readNotReceived(paging) {
         var _paging = Object.assign({
             page: 1,
@@ -160,7 +160,7 @@ module.exports = class SPKBarangManager  extends BaseManager {
                 };
 
                 query['$and'].push($or);
-            } 
+            }
             this.SPKDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
@@ -211,7 +211,7 @@ module.exports = class SPKBarangManager  extends BaseManager {
         });
     }
 
-    getByReference(ref){
+    getByReference(ref) {
         return new Promise((resolve, reject) => {
             var query = {
                 packingList: ref,
@@ -227,7 +227,23 @@ module.exports = class SPKBarangManager  extends BaseManager {
         });
     }
 
-    getByPackingList(ref){
+    getByPL(packingList) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                packingList: packingList,
+                _deleted: false
+            };
+            this.SPKDocCollection.singleOrDefault(query)
+                .then(SPKDoc => {
+                    resolve(SPKDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getByPackingList(ref) {
         return new Promise((resolve, reject) => {
             var query = {
                 packingList: ref,
@@ -269,13 +285,13 @@ module.exports = class SPKBarangManager  extends BaseManager {
                 });
         })
     }
- 
+
     create(spkDoc) {
         return new Promise((resolve, reject) => {
-             resolve(spkDoc);
+            resolve(spkDoc);
         });
     }
-   
+
     update(spkDoc) {
         return new Promise((resolve, reject) => {
             this._validate(spkDoc)
@@ -291,38 +307,38 @@ module.exports = class SPKBarangManager  extends BaseManager {
                 .catch(e => {
                     reject(e);
                 })
-        });  
+        });
     }
 
-    
+
 
     updateReceivedByRef(ref) {
         return new Promise((resolve, reject) => {
             this.getByReference(ref)
-            .then(spkDoc =>{
-                spkDoc.isReceived = true;
-                this.SPKDocCollection.update(spkDoc).then(id => {
-                            resolve(id);
-                        })
+                .then(spkDoc => {
+                    spkDoc.isReceived = true;
+                    this.SPKDocCollection.update(spkDoc).then(id => {
+                        resolve(id);
+                    })
                         .catch(e => {
                             reject(e);
                         });
-            })
-            .catch(e=>{
-                reject(e);
-            });
+                })
+                .catch(e => {
+                    reject(e);
+                });
         });
     }
 
     delete(spkDoc) {
         return new Promise((resolve, reject) => {
-             resolve(spkDoc);
+            resolve(spkDoc);
         });
     }
 
-    _validate(spkDoc) { 
-        return new Promise((resolve, reject) => {  
-             resolve(spkDoc);
+    _validate(spkDoc) {
+        return new Promise((resolve, reject) => {
+            resolve(spkDoc);
         });
     }
 

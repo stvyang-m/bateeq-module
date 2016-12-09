@@ -92,6 +92,37 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
         });
     }
 
+    getSingleById(id) {
+        return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getSingleByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.SPKDocCollection
+                .single(query)
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+
     create(spkDoc) {
         return new Promise((resolve, reject) => {
             this._validate(spkDoc)
@@ -381,7 +412,6 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                     data.push({ "PackingList": dataFile[i][0], "Password": dataFile[i][1], "Barcode": dataFile[i][2], "Name": dataFile[i][3], "Size": dataFile[i][4], "Price": dataFile[i][5], "UOM": dataFile[i][6], "QTY": dataFile[i][7], "RO": dataFile[i][8] });
                 }
             }
-
             var dataError = [], errorMessage;
             for (var i = 0; i < data.length; i++) {
                 errorMessage = "";
@@ -431,6 +461,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                 }
             }
             if (dataError.length === 0) {
+
                 var fg = [];
                 for (var i = 0; i < data.length; i++) {
                     fg.push({ "code": data[i]["Barcode"], "name": data[i]["Name"], "uom": data[i]["UOM"], "realizationOrder": data[i]["RO"], "size": data[i]["Size"], "domesticSale": data[i]["Price"] });
@@ -449,7 +480,12 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                         var item = fg;
                         this.itemManager.getByCode(item.code)
                             .then(resultItem => {
-                                if (resultItem)
+                                if (resultItem) {
+                                    resultItem.name = item.name;
+                                    resultItem.uom = item.uom;
+                                    resultItem.article.realizationOrder = item.realizationOrder;
+                                    resultItem.size = item.size;
+                                    resultItem.domesticSale = item.domesticSale;
                                     this.finishedGoodsManager.update(resultItem)
                                         .then(id => {
                                             this.itemManager.getSingleById(id)
@@ -463,6 +499,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                                         .catch(e => {
                                             reject(e);
                                         });
+                                }
                                 else {
                                     var finishGood = new FinishedGoods();
                                     finishGood.code = item.code;
@@ -540,9 +577,17 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                         for (var spkDocument of spks.values()) {
                             var spkDocs = new Promise((resolve, reject) => {
                                 var spkDoc = spkDocument;
-                                this.pkManager.getByPackingList(spkDoc.packingList)
+                                this.pkManager.getByPL(spkDoc.packingList)
                                     .then(resultItem => {
-                                        if (resultItem)
+                                        if (resultItem) {
+                                            resultItem.source = spkDoc.source;
+                                            resultItem.sourceId = new ObjectId(spkDoc.source._id);
+                                            resultItem.destination = spkDoc.destination;
+                                            resultItem.destinationId = new ObjectId(spkDoc.destination._id);
+                                            resultItem.reference = spkDoc.PackingList;
+                                            resultItem.date = spkDoc.dateForm;
+                                            resultItem.password = spkDoc.Password;
+                                            resultItem.items = spkDoc.items;
                                             this.SPKDocCollection.update(resultItem)
                                                 .then(resultItem => {
                                                     resolve(resultItem);
@@ -550,6 +595,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                                                 .catch(e => {
                                                     reject(e);
                                                 });
+                                        }
                                         else {
                                             var spkResult = new SPKDoc(spkDoc);
                                             spkResult.stamp(this.user.username, 'manager');
@@ -588,6 +634,8 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                     .catch(e => {
                         reject(e);
                     });
+            } else {
+                resolve(dataError);
             }
 
         });
