@@ -41,7 +41,6 @@ module.exports = class SalesManager extends BaseManager {
 
         var PromoManager = require('./promo-manager');
         this.promoManager = new PromoManager(db, user);
-
     }
 
     _createIndexes() {
@@ -93,56 +92,72 @@ module.exports = class SalesManager extends BaseManager {
             sales.code = generateCode("sales");
             this._validate(sales)
                 .then(validSales => {
-                    var isAnyTransferOut = false;
-                    var validTransferOutDoc = {};
-                    validTransferOutDoc.code = sales.code;
-                    validTransferOutDoc.reference = validSales.code;
-                    validTransferOutDoc.sourceId = validSales.store.storageId;
-                    validTransferOutDoc.destinationId = validSales.store.storageId;
-                    validTransferOutDoc.items = [];
-                    for (var item of validSales.items) {
-                        if (!item.isReturn) {
-                            var newitem = {};
-                            newitem.itemId = item.itemId;
-                            newitem.quantity = item.quantity;
-                            validTransferOutDoc.items.push(newitem);
-                            isAnyTransferOut = true;
-                        }
-                    }
-                    validTransferOutDoc = new TransferOutDoc(validTransferOutDoc);
-
-                    var isAnyTransferIn = false;
-                    var validTransferInDoc = {};
-                    validTransferInDoc.code = sales.code;
-                    validTransferInDoc.reference = validSales.code;
-                    validTransferInDoc.sourceId = validSales.store.storageId;
-                    validTransferInDoc.destinationId = validSales.store.storageId;
-                    validTransferInDoc.items = [];
-                    for (var item of validSales.items) {
-                        if (item.isReturn) {
-                            var newitem = {};
-                            newitem.itemId = item.itemId;
-                            newitem.quantity = item.quantity;
-                            validTransferInDoc.items.push(newitem);
-                            isAnyTransferIn = true;
-                        }
-                    }
-                    validTransferInDoc = new TransferInDoc(validTransferInDoc);
-
                     var createData = [];
-                    if (isAnyTransferOut)
-                        createData.push(this.transferOutDocManager.create(validTransferOutDoc));
-                    else
-                        createData.push(Promise.resolve(null))
 
-                    if (isAnyTransferIn)
-                        createData.push(this.transferInDocManager.create(validTransferInDoc));
-                    else
-                        createData.push(Promise.resolve(null))
+                    var funcOut = (sales, manager) => {
+                        return () => {
+                            var isAnyTransferOut = false;
+                            var validTransferOutDoc = {};
+                            validTransferOutDoc.code = sales.code;
+                            validTransferOutDoc.reference = sales.code;
+                            validTransferOutDoc.sourceId = sales.store.storageId;
+                            validTransferOutDoc.destinationId = sales.store.storageId;
+                            validTransferOutDoc.items = [];
+                            for (var item of sales.items) {
+                                if (!item.isReturn) {
+                                    var newitem = {};
+                                    newitem.itemId = item.itemId;
+                                    newitem.quantity = item.quantity;
+                                    validTransferOutDoc.items.push(newitem);
+                                    isAnyTransferOut = true;
+                                }
+                            }
+                            validTransferOutDoc = new TransferOutDoc(validTransferOutDoc);
+                            if (isAnyTransferOut)
+                                return manager.create(validTransferOutDoc)
+                            else
+                                return Promise.resolve(null)
+                        }
+                    };
+                    createData.push(funcOut(validSales, this.transferOutDocManager));
 
-                    createData.push(this.collection.insert(validSales));
+                    var funcIn = (sales, manager) => {
+                        return () => {
+                            var isAnyTransferIn = false;
+                            var validTransferInDoc = {};
+                            validTransferInDoc.code = sales.code;
+                            validTransferInDoc.reference = sales.code;
+                            validTransferInDoc.sourceId = sales.store.storageId;
+                            validTransferInDoc.destinationId = sales.store.storageId;
+                            validTransferInDoc.items = [];
+                            for (var item of sales.items) {
+                                if (item.isReturn) {
+                                    var newitem = {};
+                                    newitem.itemId = item.itemId;
+                                    newitem.quantity = item.quantity;
+                                    validTransferInDoc.items.push(newitem);
+                                    isAnyTransferIn = true;
+                                }
+                            }
+                            validTransferInDoc = new TransferInDoc(validTransferInDoc);
+                            if (isAnyTransferIn)
+                                return manager.create(validTransferInDoc);
+                            else
+                                return Promise.resolve(null);
+                        }
+                    };
+                    createData.push(funcIn(validSales, this.transferInDocManager));
 
-                    Promise.all(createData)
+                    var funcSales = (sales, manager) => {
+                        return () => {
+                            return manager.insert(sales);
+                        }
+                    };
+                    createData.push(funcSales(validSales, this.collection));
+
+                    require('js-toolkit').Promise.ext;
+                    //Promise.all(createData)
+                    Promise.chain(createData)
                         .then(results => {
                             resolve(results[2]);
                         })
@@ -160,46 +175,39 @@ module.exports = class SalesManager extends BaseManager {
         return new Promise((resolve, reject) => {
             this.collection.singleOrDefault({ _id: new ObjectId(salesDoc.sales._id), _deleted: false })
                 .then(result => {
-
                     // update sales
                     result.isVoid = true;
-                    var date = new Date();
-                    result._updatedDate = date;
-                    this.collection.update(result)
+                    var valid = new Sales(result);
+                    valid.stamp(this.user.username, 'manager');
+                    this.collection.update(valid)
                         .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        });
-
-                    // update transfer in
-                    var totalInventoryMovement = 0;
-                    var referenceNo = "";
-                    this.collection.singleOrDefault({ _id: new ObjectId(salesDoc.sales._id), _deleted: false })
-                        .then(validSales => {
+                            // add transfer in
+                            var createData = [];
                             var validTransferInDoc = {};
-                            validTransferInDoc.code = generateCode("sales");
-                            validTransferInDoc.reference = validSales.code;
-                            referenceNo = validSales.code;
-                            validTransferInDoc.sourceId = validSales.store.storageId;
-                            validTransferInDoc.destinationId = validSales.store.storageId;
+                            validTransferInDoc.code = generateCode("voidsales");
+                            validTransferInDoc.reference = valid.code;
+                            validTransferInDoc.sourceId = valid.store.storageId;
+                            validTransferInDoc.destinationId = valid.store.storageId;
                             validTransferInDoc.items = [];
-                            for (var item of validSales.items) {
+                            for (var item of valid.items) {
                                 var newitem = {};
                                 newitem.itemId = item.itemId;
                                 newitem.quantity = item.quantity;
                                 validTransferInDoc.items.push(newitem);
-                                totalInventoryMovement++;
                             }
                             validTransferInDoc = new TransferInDoc(validTransferInDoc);
-
-                            var createData = [];
                             createData.push(this.transferInDocManager.create(validTransferInDoc));
+
+                            //update void salesReturn if isReturn = true
+                            if (valid.isReturn) {
+                                var SalesReturnManager = require('./sales-return-manager');
+                                var salesReturnManager = new SalesReturnManager(this.db, this.user);
+                                createData.push(salesReturnManager._void(valid));
+                            }
 
                             Promise.all(createData)
                                 .then(results => {
-                                    resolve(results[1]);
+                                    resolve(id);
                                 })
                                 .catch(e => {
                                     reject(e);
@@ -207,7 +215,7 @@ module.exports = class SalesManager extends BaseManager {
                         })
                         .catch(e => {
                             reject(e);
-                        })
+                        });
                 });
         })
     }
@@ -248,8 +256,8 @@ module.exports = class SalesManager extends BaseManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                    code: valid.code
-                }]
+                        code: valid.code
+                    }]
             });
             var getStore;
             var getBank;
@@ -538,8 +546,8 @@ module.exports = class SalesManager extends BaseManager {
                                 break;
                         }
                     }
-                    
-                    if(parseInt(valid.grandTotal) > 0) { 
+
+                    if (parseInt(valid.grandTotal) > 0) {
                         if (!valid.salesDetail.paymentType || valid.salesDetail.paymentType == '') {
                             salesDetailError["paymentType"] = "Tipe Pembayaran harus diisi";
                         }
@@ -556,8 +564,8 @@ module.exports = class SalesManager extends BaseManager {
                                 else {
                                     valid.salesDetail.bankId = _bank._id;
                                     valid.salesDetail.bank = _bank;
-                                } 
-                                
+                                }
+
                                 if (!sales.salesDetail.bankCardId || sales.salesDetail.bankCardId == '')
                                     salesDetailError["bankCardId"] = "Bank (KARTU) harus diisi";
                                 if (!_bankCard) {
@@ -566,8 +574,8 @@ module.exports = class SalesManager extends BaseManager {
                                 else {
                                     valid.salesDetail.bankCardId = _bankCard._id;
                                     valid.salesDetail.bankCard = _bankCard;
-                                } 
-                                
+                                }
+
                                 if (!valid.salesDetail.card || valid.salesDetail.card == '')
                                     salesDetailError["card"] = "Kartu harus diisi";
                                 else {
@@ -604,7 +612,7 @@ module.exports = class SalesManager extends BaseManager {
                                 else
                                     valid.salesDetail.cardAmount = parseInt(valid.salesDetail.cardAmount);
                             }
-                            
+
                             if (valid.salesDetail.paymentType.toLowerCase() == "cash" || valid.salesDetail.paymentType.toLowerCase() == "partial") {
                                 if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
                                     salesDetailError["cashAmount"] = "Cash Amount harus diisi";
@@ -616,7 +624,7 @@ module.exports = class SalesManager extends BaseManager {
                                 else
                                     valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
                             }
-                            
+
                             if (valid.salesDetail.paymentType.toLowerCase() == "partial") {
                                 if (valid.salesDetail.cashAmount == undefined || (valid.salesDetail.cashAmount && valid.salesDetail.cashAmount == '')) {
                                     salesDetailError["cashAmount"] = "Cash Amount harus diisi";
@@ -628,7 +636,7 @@ module.exports = class SalesManager extends BaseManager {
                                 else
                                     valid.salesDetail.cashAmount = parseInt(valid.salesDetail.cashAmount);
                             }
-                            
+
                             if (valid.salesDetail.voucher) {
                                 var voucherError = {};
                                 if (valid.salesDetail.voucher.value == undefined || (valid.salesDetail.voucher.value && valid.salesDetail.voucher.value == '')) {
@@ -725,14 +733,6 @@ module.exports = class SalesManager extends BaseManager {
                     reject(e);
                 })
         });
-    }
-
-    isEmpty(obj) {
-        for (var prop in obj) {
-            if (obj.hasOwnProperty(prop))
-                return false;
-        }
-        return JSON.stringify(obj) === JSON.stringify({});
     }
 
 };
