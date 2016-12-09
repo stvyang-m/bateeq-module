@@ -65,13 +65,38 @@ describe('#bateeq-module', function (done) {
 
     //new unit test 
 
-    test('@managers/master/material', './managers/master/material');
-    test('@managers/master/module', './managers/master/module');
-    test('@managers/master/storage', './managers/master/storage');
-    test('@managers/master/store', './managers/master/store');
-    test('@managers/master/supplier', './managers/master/supplier');
-    test("@manager/master/bank", "./managers/master/bank");
-    test("@manager/master/card-type", "./managers/master/card-type");
-    test("@manager/master/finished-goods", "./managers/master/finished-goods");
-    test("@manager/master/item", "./managers/master/item");
+    // test('@managers/master/material', './managers/master/material');
+    // test('@managers/master/module', './managers/master/module');
+    // test('@managers/master/storage', './managers/master/storage');
+    // test('@managers/master/store', './managers/master/store');
+    // test('@managers/master/supplier', './managers/master/supplier');
+    // test("@manager/master/bank", "./managers/master/bank");
+    // test("@manager/master/card-type", "./managers/master/card-type");
+    // test("@manager/master/finished-goods", "./managers/master/finished-goods");
+    // test("@manager/master/item", "./managers/master/item");
+
+
+
+
+
+    //unit test etl -- data migration 
+    // test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
+    // test("@etl/items-data-etl", "./etl/items-data-etl-test");
+    // test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
+    // test("@etl/storages-migration-etl", "./etl/storages-migration-etl-test");
+    // test("@etl/stores-migration-etl", "./etl/stores-migration-etl-test");
+    // test("@etl/storages-data-etl", "./etl/storages-data-etl-test");
+    // test("@etl/stores-data-etl-test", "./etl/stores-data-etl-test");
+
+
+
+    // test("@etl/sales-migration-etl", "./etl/sales-data-etl-test");
+    test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
+    //2nd
+    test("@etl/storages-migration-etl", "./etl/storages-migration-etl-test");
+    //1st
+    test("@etl/stores-migration-etl", "./etl/stores-migration-etl-test");
+
+
+
 })
