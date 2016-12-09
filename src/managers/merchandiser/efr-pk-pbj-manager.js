@@ -486,7 +486,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                     resultItem.article.realizationOrder = item.realizationOrder;
                                     resultItem.size = item.size;
                                     resultItem.domesticSale = item.domesticSale;
-                                    this.finishedGoodsManager.update(item)
+                                    this.finishedGoodsManager.update(resultItem)
                                         .then(id => {
                                             this.itemManager.getSingleById(id)
                                                 .then(resultItem => {
@@ -588,7 +588,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                             resultItem.date = spkDoc.dateForm;
                                             resultItem.password = spkDoc.Password;
                                             resultItem.items = spkDoc.items;
-                                            this.SPKDocCollection.update(spkDoc)
+                                            this.SPKDocCollection.update(resultItem)
                                                 .then(resultItem => {
                                                     resolve(resultItem);
                                                 })
