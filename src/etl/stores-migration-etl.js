@@ -7,12 +7,16 @@ var BaseManager = require('module-toolkit').BaseManager;
 var MongoClient = require('mongodb').MongoClient,
     test = require('assert');
 
+var StoreManager = require('../../src/managers/master/store-manager');
+
 
 
 module.exports = class StoreDataEtl extends BaseManager {
     constructor(db, user) {
         super(db, user);
-        this.collection = this.db.use(map.master.Store);
+        this.storeManager = new StoreManager(db, user);
+
+        this.collection = this.storeManager.collection;
         // this.adas=1;
     }
 

@@ -7,12 +7,16 @@ var BaseManager = require('module-toolkit').BaseManager;
 var MongoClient = require('mongodb').MongoClient,
     test = require('assert');
 
+var ItemManager = require('../../src/managers/master/item-manager');
 
 
 module.exports = class ItemDataEtl extends BaseManager {
     constructor(db, user) {
         super(db, user);
-        this.collection = this.db.use(map.master.Item);
+
+        this.ItemManager=new ItemManager(db,user);
+
+        this.collection = this.ItemManager.collection;
         // this.adas=1;
     }
 
@@ -21,7 +25,7 @@ module.exports = class ItemDataEtl extends BaseManager {
             sqlConnect.getConnect()
                 .then((connect) => {
                     var request = connect;
-                    request.query("select Barcode,Nm_Product,Size,Harga,Harga1,ro from Produk", function (err, Produk) {
+                    request.query("select top 10 Barcode,Nm_Product,Size,Harga,Harga1,ro from Produk", function (err, Produk) {
                         resolve(Produk);
                     });
                 });

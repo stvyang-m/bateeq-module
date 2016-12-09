@@ -5,12 +5,17 @@ var fs = require("fs");
 var BaseManager = require('module-toolkit').BaseManager;
 var MongoClient = require('mongodb').MongoClient,
     test = require('assert');
+var StoreManager= require('../../src/managers/master/store-manager');
+var StoragesManager= require('../../src/managers/master/storage-manager');
 
 module.exports = class StorageDataEtl extends BaseManager {
     constructor(db, user) {
         super(db, user);
-        this.collection = this.db.use(map.master.Store);
-        this.collectionStorages = this.db.use(map.master.Storage);
+        this.storeManager = new StoreManager(db, user);
+        this.storageManager = new StoreManager(db, user);
+
+        this.collection = this.storeManager.collection;
+        this.collectionStorages = this.storageManager.collection;
     }
 
     // getDataStorages() {
