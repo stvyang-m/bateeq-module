@@ -81,5 +81,10 @@ module.exports = {
         SalesManager: require('./src/managers/sales/sales-manager'),
         SalesReturnManager: require('./src/managers/sales/sales-return-manager'),
         PromoManager: require('./src/managers/sales/promo-manager')
-    }
+    },
+    etl: { 
+        itemsMigration:require('./src/etl/items-migration-etl'),
+        storesMigration:require('./src/etl/stores-migration-etl'),
+        storagesMigration:require('./src/etl/storages-migration-etl'),
+    } 
 }

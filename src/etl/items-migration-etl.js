@@ -25,7 +25,7 @@ module.exports = class ItemDataEtl extends BaseManager {
             sqlConnect.getConnect()
                 .then((connect) => {
                     var request = connect;
-                    request.query("select top 10 Barcode,Nm_Product,Size,Harga,Harga1,ro from Produk", function (err, Produk) {
+                    request.query("select Barcode,Nm_Product,Size,Harga,Harga1,ro from Produk", function (err, Produk) {
                         resolve(Produk);
                     });
                 });
