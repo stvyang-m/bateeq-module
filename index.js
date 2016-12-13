@@ -86,5 +86,6 @@ module.exports = {
         itemsMigration:require('./src/etl/items-migration-etl'),
         storesMigration:require('./src/etl/stores-migration-etl'),
         storagesMigration:require('./src/etl/storages-migration-etl'),
+        salesMigration:require('./src/etl/sales-migration-etl'),
     } 
 }
