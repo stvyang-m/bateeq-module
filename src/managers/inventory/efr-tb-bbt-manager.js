@@ -301,8 +301,8 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                         var itemErrors = [];
                         for (var item of transferInDoc.items) {
                             var itemError = {};
-                            if (item.quantity <= 0)
-                                itemError["quantity"] = "items should not contains 0 quantity";
+                            if (item.quantity < 0)
+                                itemError["quantity"] = "items should not less than 0 quantity";
                             else
                                 if (item.quantity != spkDoc.items[index].quantity)
                                     if (item.remark == "")
