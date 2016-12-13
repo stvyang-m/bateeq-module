@@ -90,8 +90,8 @@ describe('#bateeq-module', function (done) {
 
 
 
-    // test("@etl/sales-migration-etl", "./etl/sales-data-etl-test");
-    test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
+    test("@etl/sales-migration-etl", "./etl/sales-data-etl-test");
+    // test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
     //2nd
     // test("@etl/storages-migration-etl", "./etl/storages-migration-etl-test");
     //1st
