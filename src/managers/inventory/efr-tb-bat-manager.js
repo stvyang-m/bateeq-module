@@ -220,6 +220,20 @@ module.exports = class TokoTerimaAksesorisManager extends BaseManager {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
                     validTransferInDoc.code = generateCode(moduleId)
+                    
+                    //kaga transfer in yang qty 0
+                    var length = validTransferInDoc.items.length;
+                    for(var i = 0; i < length; ) {
+                        var item = validTransferInDoc.items[i];
+                        if (item.quantity == 0) {
+                            validTransferInDoc.items.splice(i, 1);
+                        }
+                        else {
+                            i++
+                        }
+                        length = validTransferInDoc.items.length;
+                    } 
+                    
                     this.transferInDocManager.create(validTransferInDoc)
                         .then(id => {
                             var reference = transferInDoc.reference;
