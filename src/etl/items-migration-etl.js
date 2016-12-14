@@ -14,7 +14,7 @@ module.exports = class ItemDataEtl extends BaseManager {
     constructor(db, user) {
         super(db, user);
 
-        this.ItemManager=new ItemManager(db,user);
+        this.ItemManager = new ItemManager(db, user);
 
         this.collection = this.ItemManager.collection;
         // this.adas=1;
@@ -59,15 +59,19 @@ module.exports = class ItemDataEtl extends BaseManager {
 
                     var _stampItems = new ObjectId();
 
-                    var ro = "";
-                    if ((item.ro == null) || (item.ro == "-")) {
-                        ro = "";
-                    } else {
-                        ro = item.ro;
-                    };
+
 
                     var isfound = false;
                     for (var item2 of result[1]) {
+                        
+                        var ro = "";
+                        if ((item.ro==null) || (item.ro.trim()== "-")) {
+                            ro = "";
+                        } else {
+                            ro = item.ro;
+                        };
+
+                        
 
                         if (item.Barcode == item2.code) {
                             //update;
@@ -122,41 +126,41 @@ module.exports = class ItemDataEtl extends BaseManager {
 
                         var insert =
 
-                                {
-                                    "_id": _idItems,
-                                    "_stamp": _stampItems,
-                                    "_type": "finished-goods",
-                                    "_version": "1.0.0",
-                                    "_active": true,
-                                    "_deleted": false,
-                                    "_createdBy": "router",
-                                    "_createdDate": new Date(),
-                                    "_createAgent": "manager",
-                                    "_updatedBy": "router",
-                                    "_updatedDate": new Date(),
-                                    "_updateAgent": "manager",
-                                    "code": item.Barcode,
-                                    "name": item.Nm_Product,
-                                    "description": "",
-                                    "uom": "PCS",
-                                    "components": [],
-                                    "tags": "",
-                                    "articleId": {},
-                                    "article": {
-                                        "realizationOrder": ro,
+                            {
+                                "_id": _idItems,
+                                "_stamp": _stampItems,
+                                "_type": "finished-goods",
+                                "_version": "1.0.0",
+                                "_active": true,
+                                "_deleted": false,
+                                "_createdBy": "router",
+                                "_createdDate": new Date(),
+                                "_createAgent": "manager",
+                                "_updatedBy": "router",
+                                "_updatedDate": new Date(),
+                                "_updateAgent": "manager",
+                                "code": item.Barcode,
+                                "name": item.Nm_Product,
+                                "description": "",
+                                "uom": "PCS",
+                                "components": [],
+                                "tags": "",
+                                "articleId": {},
+                                "article": {
+                                    "realizationOrder": ro,
 
-                                    },
-                                    "size": item.Size,
-                                    "domesticCOGS": item.Harga,
-                                    "domesticWholesale": 0,
-                                    "domesticRetail": 0,
-                                    "domesticSale": item.Harga1,
-                                    "internationalCOGS": 0,
-                                    "internationalWholesale": 0,
-                                    "internationalRetail": 0,
-                                    "internationalSale": 0
+                                },
+                                "size": item.Size,
+                                "domesticCOGS": item.Harga,
+                                "domesticWholesale": 0,
+                                "domesticRetail": 0,
+                                "domesticSale": item.Harga1,
+                                "internationalCOGS": 0,
+                                "internationalWholesale": 0,
+                                "internationalRetail": 0,
+                                "internationalSale": 0
 
-                                }
+                            }
                         // insertArr.push(insert)
 
                         tasks.push(this.collection.insert(insert, { ordered: false }));
