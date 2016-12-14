@@ -12,7 +12,7 @@ module.exports = class StorageDataEtl extends BaseManager {
     constructor(db, user) {
         super(db, user);
         this.storeManager = new StoreManager(db, user);
-        this.storageManager = new StoreManager(db, user);
+        this.storageManager = new StoragesManager(db, user);
 
         this.collection = this.storeManager.collection;
         this.collectionStorages = this.storageManager.collection;

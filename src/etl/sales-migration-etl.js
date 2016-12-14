@@ -36,7 +36,10 @@ module.exports = class SalesDataEtl extends BaseManager {
             sqlConnect.getConnect()
                 .then((request) => {
                     var self = this;
-                    var query = "select * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment)a WHERE branch= 'SLO.02'";
+                    var query= "select * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin)a where nomor ='201501.00083' and branch ='SLO.02' and shift ='2' and tanggal ='2015-01-30 00:00:00.000' and POS ='POS01'";
+                   
+
+                    // var query = "select * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment)a WHERE branch= 'SLO.02'";
                     request.query(query, function (err, salesResult) {
                         // var a = [];
 
@@ -126,6 +129,7 @@ module.exports = class SalesDataEtl extends BaseManager {
 
             for (var i = 0; i < salesData.length; i++) {
                 var sales = salesData[i];
+
                 var CardType = "";
                 if ((sales.no_krt[0] == 5) && ((sales.no_krt[1] == 1) || (sales.no_krt[1] == 2) || (sales.no_krt[1] == 3) || (sales.no_krt[1] == 4) || (sales.no_krt[1] == 5))) {
 
@@ -139,30 +143,6 @@ module.exports = class SalesDataEtl extends BaseManager {
                 } else {
                     CardType = "";
                 };
-
-                // var promise4 = getcards(db, CardType);
-
-                var paymentType = "Cash";
-
-                if ((sales.payment.trim() == "DEBIT CARD") || (sales.payment.trim() == "CREDIT CARD")) {
-                    paymentType = "Card";
-                }
-                else if ((sales.payment.trim() == "PARTIAL DEBIT CARD") || (sales.payment.trim() == "PARTIAL CREDIT CARD")) {
-                    paymentType = "Partial";
-                } else {
-                    paymentType = "Cash";
-                };
-
-                var cardTemp = "";
-
-                if ((sales.payment.trim() == "DEBIT CARD") || (sales.payment.trim() == "PARTIAL DEBIT CARD")) {
-                    cardTemp = "Debit";
-                } else if ((sales.payment.trim() == "CREDIT CARD") || (sales.payment.trim() == "PARTIAL CREDIT CARD")) {
-                    cardTemp = "Credit";
-                } else {
-                    cardTemp = "";
-                };
-
                 getStores.push(this.getStore(sales.branch));
                 getBanks.push(this.getBanks(sales.kartu));
                 getItems.push(this.getItems(request, sales.branch, sales.nomor));
@@ -192,6 +172,29 @@ module.exports = class SalesDataEtl extends BaseManager {
                         var _bank = _banks[i];
                         var _item = _items[i];
                         var _card = _cards[i];
+
+                        // var promise4 = getcards(db, CardType);
+
+                        var paymentType = "Cash";
+
+                        if ((sales.payment.trim() == "DEBIT CARD") || (sales.payment.trim() == "CREDIT CARD")) {
+                            paymentType = "Card";
+                        }
+                        else if ((sales.payment.trim() == "PARTIAL DEBIT CARD") || (sales.payment.trim() == "PARTIAL CREDIT CARD")) {
+                            paymentType = "Partial";
+                        } else {
+                            paymentType = "Cash";
+                        };
+
+                        var cardTemp = "";
+
+                        if ((sales.payment.trim() == "DEBIT CARD") || (sales.payment.trim() == "PARTIAL DEBIT CARD")) {
+                            cardTemp = "Debit";
+                        } else if ((sales.payment.trim() == "CREDIT CARD") || (sales.payment.trim() == "PARTIAL CREDIT CARD")) {
+                            cardTemp = "Credit";
+                        } else {
+                            cardTemp = "";
+                        };
 
 
                         // for (var item of result[0]) {
@@ -277,7 +280,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 "_version": "1.0.0",
                                 "_active": true,
                                 "_deleted": false,
-                                "_createdBy": "router",
+                                "_createdBy": sales.userin,
                                 "_createdDate": new Date(),
                                 "_createAgent": "manager",
                                 "_updatedBy": "router",
@@ -292,18 +295,30 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 "grandTotal": sales.grandTotal,
                                 "reference": sales.reference,
                                 // "shift": s[i].shift,
-                                "shift": sales.shift,
+                                "shift": parseInt(sales.shift),
                                 "pos": sales.pos,
                                 "storeId": _store._id,
                                 "store": _store,
                                 "items": _item,
 
-                                "salesDetails":
+                                "salesDetail":
                                 {
                                     "_stamp": new ObjectId(),
+                                    "_type": "sales-type",
+                                    "_version": "1.0.0",
+                                    "_active": true,
+                                    "deleted": false,
+                                    "_createdBy": "router",
+                                    "_createdDate": new Date(),
+                                    "_createAgent": "manager",
+                                    "_updatedBy": "router",
+                                    "_updatedDate": new Date(),
+                                    "_updateAgent": "manager",
                                     "paymentType": paymentType, //object card berdasarkan penjualan.kartu
                                     "voucherId": {},
-                                    "voucher": sales.voucher,
+                                    "voucher": {
+                                        "value": sales.voucher,
+                                    },
                                     "bankId": (_bank) ? _bank._id : '', //query penjualan.kartu
                                     "bank": (_bank) ? _bank : '',
                                     "cardTypeId": (_card) ? _card._id : '',
@@ -319,6 +334,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 },
 
                                 "remark": "",
+                                "isReturn": false,
                                 "isVoid": false,
                             }
                         tasks.push(this.collectionSalesManager.insert(insert, { ordered: false }))
@@ -369,29 +385,77 @@ module.exports = class SalesDataEtl extends BaseManager {
                         barcodes.push(sales[i].barcode);
                     }
 
-                    self.getItemsMongo(barcodes).then(lstBarcode => {
-                        resolve(lstBarcode);
-                    }).catch(error => {
-                        reject(error);
-                    });
+                    self.getItemsMongo(barcodes)
+                        .then(listItem => {
+                            var itemDetails = [];
+                            for (var i = 0; i < sales.length; i++) {
+                                for (var j = 0; j < listItem.length; j++) {
+                                    if (sales[i].barcode == listItem[j].code) {
+                                        var itemDetail = {
+                                            "_stamp": listItem[j]._stamp,
+                                            "_type": "sales-item",
+                                            "_version": "1.0.0",
+                                            "_active": true,
+                                            "_deleted": false,
+                                            "_createdBy": "router",
+                                            "_createdDate": new Date(),
+                                            "_createAgent": "manager",
+                                            "_updatedBy": "router",
+                                            "_updateAgent": "manager",
+                                            "itemId": listItem[j]._id,
+                                            "item": listItem[j],
+                                            "promoId": "",
+                                            "promo": {},
+                                            "size": "",
+                                            "quantity": sales[i].qty,
+                                            "price": sales[i].harga,
+                                            "discount1": sales[i].disc,
+                                            "discount2": sales[i].disc1,
+                                            "discountNominal": 0,
+                                            "margin": 0,
+                                            "specialDiscount": 0,
+                                            "total": sales[i].subtotal,
+                                            "isReturn": false,
+                                            "returnItems": [],
+                                        };
+                                        // itemDetail.item = listItem[j];
+                                        // itemDetail.quantity = queryfilter[i].qty;
+                                        itemDetails.push(itemDetail);
+                                        break;
+                                    }
+                                }
+                            }
 
-                    resolve(sales);
+                            resolve(itemDetails);
+
+
+                        }).catch(error => {
+                            reject(error);
+                        });
+
+                    // self.getItemsMongo(barcodes).then(lstBarcode => {
+                    //     resolve(lstBarcode);
+                    // }).catch(error => {
+                    //     reject(error);
+                    // });
+
+                    // resolve(sales);
                 }
             });
         })
     };
 
-    createItem(queryfilter) {
-        var self = this;
-        return new Promise((resolve, reject) => {
-            var promise1 = self.getItemsMongo(queryfilter.barcode);
-            Promise.all([promise1]).then(result => {
-                var item = result[0];
-                resolve(item);
-            });
+    // createItem(queryfilter) {
+    //     var self = this;
+    //     return new Promise((resolve, reject) => {
+    //         var promise1 = self.getItemsMongo(queryfilter.barcode);
+    //         Promise.all([promise1]).then(result => {
+    //             var item = result[0];
+    //             resolve(item);
+    //         });
 
-        });
-    };
+    //     });
+    // };
 
 
 
