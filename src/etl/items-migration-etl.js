@@ -63,8 +63,9 @@ module.exports = class ItemDataEtl extends BaseManager {
 
                     var isfound = false;
                     for (var item2 of result[1]) {
+                        
                         var ro = "";
-                        if ((item.ro == null) || (item.ro.trim()== "-")) {
+                        if ((item.ro==null) || (item.ro.trim()== "-")) {
                             ro = "";
                         } else {
                             ro = item.ro;
