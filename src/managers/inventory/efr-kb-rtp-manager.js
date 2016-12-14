@@ -254,7 +254,7 @@ module.exports = class TokoKirimBarangReturnManager {
                         }
                     }
                     if (!valid.reference) {
-                        errors["reference"] = "reference is required";
+                        //errors["reference"] = "reference is required";
                     }
                     else {
                         getSpk = this.spkBarangManager.getByReference(valid.reference);
@@ -273,18 +273,19 @@ module.exports = class TokoKirimBarangReturnManager {
                             var index = 0;
                             var itemErrors = [];
                             var itemError = {};
+                            var inventoryQuantity = 0;
 
                             var dataSpk = results[0];
                             if (!dataSpk) {
-                                errors["reference"] = "reference not found";
+                                //errors["reference"] = "Referensi Tidak Ditemukan";
                             }
                             var items = results.slice(1, results.length)
                             if (items.length > 0) {
                                 for (var item of valid.items) {
                                     if (items[index] == null) {
-                                        var inventoryQuantity = 0;
+                                        inventoryQuantity = 0;
                                     } else {
-                                        var inventoryQuantity = items[index].quantity;
+                                        inventoryQuantity = items[index].quantity;
                                     }
                                     index++;
                                     if (item.quantity > inventoryQuantity) {
