@@ -23,12 +23,12 @@ before("#00. connect db", function (done) {
         })
 });
 
-it("#01. should error when get empty data ", function (done) {
-    instanceManager.getNewDataSales()
-        .then((sales) => {
+it("#01. should success insert all data ", function (done) {
+    instanceManager.migrate()
+        .then((sales) =>{
             // instanceManager.getStores(sales)
             //     .then((store) => {
-                    console.log(sales);
+                    // console.log(sales);
                     done();
             //     })
             //     .catch((e) => {
