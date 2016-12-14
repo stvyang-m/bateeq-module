@@ -338,7 +338,6 @@ it('#07. should error with property items, storeId, date ', function(done) {
             try {
                 e.errors.should.have.property('items');
                 e.errors.should.have.property('storeId');
-                e.errors.should.have.property('date');
                 done();
             }
             catch (ex) {
@@ -382,11 +381,6 @@ it('#09. should error with property discount greater than 100 ', function(done) 
             }
         })
 });
-
-
-
-
-
 
 it('#10. should error with property items ItemId not found ', function(done) {
     var data = getData();
@@ -658,24 +652,6 @@ it('#22. should error with property SalesDetail PaymentType:Partial CashAmount+C
         .catch(e => {
             try { 
                 e.errors.should.have.property('grandTotal'); 
-                done();
-            }
-            catch (ex) {
-                done(ex);
-            }
-        })
-});
-
-it('#23. should error with property SalesDetail Voucher is Bigger than GrandTotal ', function(done) {
-    var data = getData();
-    data.salesDetail.voucher.value = 9999999999999;
-    manager.create(data)
-        .then(id => {
-            done("Should not be error with property SalesDetail Voucher is Bigger than GrandTotal");
-        })
-        .catch(e => {
-            try { 
-                e.errors.salesDetail.voucher.should.have.property('value'); 
                 done();
             }
             catch (ex) {
