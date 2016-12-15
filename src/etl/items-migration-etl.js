@@ -33,6 +33,8 @@ module.exports = class ItemDataEtl extends BaseManager {
     }
 
 
+
+
     getDataItem() {
 
         return new Promise((resolve, reject) => {
@@ -58,20 +60,19 @@ module.exports = class ItemDataEtl extends BaseManager {
                     var _idItems = new ObjectId();
 
                     var _stampItems = new ObjectId();
-
-
+                    var ro = "";
+                    if ((!item.ro) || (item.ro.trim() == "-")) {
+                        ro = "";
+                    } else {
+                        ro = item.ro;
+                    };
 
                     var isfound = false;
                     for (var item2 of result[1]) {
-                        
-                        var ro = "";
-                        if ((item.ro==null) || (item.ro.trim()== "-")) {
-                            ro = "";
-                        } else {
-                            ro = item.ro;
-                        };
 
-                        
+
+
+
 
                         if (item.Barcode == item2.code) {
                             //update;
