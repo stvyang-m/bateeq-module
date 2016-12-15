@@ -12,6 +12,7 @@ var CardTypeManager = require('../../src/managers/master/card-type-manager');
 var StoreManager = require('../../src/managers/master/store-manager');
 var SalesManager = require('../../src/managers/sales/sales-manager');
 
+
 // var request=sqlConnect.getConnect();
 
 module.exports = class SalesDataEtl extends BaseManager {
@@ -37,26 +38,33 @@ module.exports = class SalesDataEtl extends BaseManager {
                 .then((request) => {
                     var self = this;
                     // var query= "select * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin)a where nomor ='201501.00083' and branch ='SLO.02' and shift ='2' and tanggal ='2015-01-30 00:00:00.000' and POS ='POS01'";
-                   
 
-                    var query = "select * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment)a WHERE branch= 'SLO.02'";
+
+                    var query = "select top 10 * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a WHERE branch= 'SLO.02'";
                     request.query(query, function (err, salesResult) {
                         // var a = [];
+                        if (err) {
+                            console.log(err);
+                            reject(err);
+                        }
+                        else {
+                            self.migrateDataStores(request, salesResult)
+                                .then(sales => {
+                                    resolve(sales);
+                                    // a.push(sales);
+                                    // a.push(sales)
+                                    // a = a + "" + sales;
+                                    //   resolve(self.collectionSalesManager.insert(sales, { ordered: false }))
+                                    // resolve(sales);
+                                    // a.push(sales);
+                                    // console.log(sales);
 
-                        self.migrateDataStores(request, salesResult)
-                            .then(sales => {
-                                resolve(sales);
-                                // a.push(sales);
-                                // a.push(sales)
-                                // a = a + "" + sales;
-                                //   resolve(self.collectionSalesManager.insert(sales, { ordered: false }))
-                                // resolve(sales);
-                                // a.push(sales);
-                                // console.log(sales);
+                                })
+                                .catch(err => {
+                                    console.log(err);
+                                });
+                        }
 
-                            }).catch(err => {
-                                console.log(err);
-                            });
                         //    
                         // resolve(self.collectionSalesManager.insertMany(a, { ordered: false }))
                         //  resolve(a);
@@ -69,7 +77,7 @@ module.exports = class SalesDataEtl extends BaseManager {
 
     // getNewDataSales(request) {
     //     return new Promise(function (resolve, reject) {
-    //         var query = "select top 5 * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment)a WHERE branch= 'SLO.02'";
+    //         var query = "select top 10 * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a WHERE branch= 'SLO.02'";
     //         request.query(query, function (err, sales) {
     //             if (err)
     //                 reject(err);
@@ -148,11 +156,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                 getItems.push(this.getItems(request, sales.branch, sales.nomor));
                 getCards.push(this.getCards(CardType));
             }
-            // var getNewDataSales = this.getNewDataSales(request);
-            // var getDataSales = this.getDataSales();
 
-
-            // Promise.all([getNewDataSales, getDataSales, getStore, getItems, getBanks, getCards]).then(result => {
             var countStore = getStores.length;
             var countBank = getBanks.length;
             var countItem = getItems.length;
@@ -165,6 +169,8 @@ module.exports = class SalesDataEtl extends BaseManager {
                     var _items = results.splice(0, countItem);
                     var _cards = results.splice(0, countCard);
 
+
+                    var salesDatas = [];
                     var tasks = [];
                     for (var i = 0; i < salesData.length; i++) {
                         var sales = salesData[i];
@@ -195,175 +201,111 @@ module.exports = class SalesDataEtl extends BaseManager {
                         } else {
                             cardTemp = "";
                         };
-
-
-                        // for (var item of result[0]) {
                         var _id = new ObjectId();
                         var _idStorage = new ObjectId();
                         var _stamp = new ObjectId();
                         var _stampStorage = new ObjectId();
 
-                        // var isfound = false;
-                        // for (var item2 of result[1]) {
+                        var salesDataNew = {
+                            "_id": _id,
+                            "_stamp": _stamp,
+                            "_type": "sales-doc",
+                            "_version": "1.0.0",
+                            "_active": true,
+                            "_deleted": false,
+                            "_createdBy": sales.userin,
+                            "_createdDate": sales.tglin,
+                            "_createAgent": "manager",
+                            "_updatedBy": "router",
+                            "_updatedDate": new Date(),
+                            "_updateAgent": "manager",
+                            "code": sales.nomor,
+                            // "date": s[i].tanggal,
+                            "date": sales.tanggal,
+                            "totalProduct": sales.totalProduct,
+                            "subTotal": sales.subTotal,
+                            "discount": sales.discount,
+                            "grandTotal": sales.grandTotal,
+                            "reference": sales.reference,
+                            // "shift": s[i].shift,
+                            "shift": parseInt(sales.shift),
+                            "pos": sales.pos,
+                            "storeId": _store._id,
+                            "store": _store,
+                            "items": _item,
 
-                        // if (item.Kd_Cbg == item2.code) {
-                        //update;
-                        // isfound = true;
-
-                        // var update =
-                        //     {
-                        //         "_id": item2._id,
-                        //         "_stamp": item2._stamp,
-                        //         "_type": "sales-doc",
-                        //         "_version": "1.0.0",
-                        //         "_active": true,
-                        //         "_deleted": false,
-                        //         "_createdBy": "router",
-                        //         "_createdDate": item2._createdDate,
-                        //         "_createAgent": "manager",
-                        //         "_updatedBy": "router",
-                        //         "_updatedDate": new Date(),
-                        //         "_updateAgent": "manager",
-                        //         "code": item.nomor,
-                        //         // "date": s[i].tanggal,
-                        //         "date": item.tanggal,
-                        //         "totalProduct": item.totalProduct,
-                        //         "subTotal": item.subTotal,
-                        //         "discount": item.discount,
-                        //         "grandTotal": item.grandTotal,
-                        //         "reference": item.reference,
-                        //         // "shift": s[i].shift,
-                        //         "shift": item.shift,
-                        //         "pos": item.pos,
-                        //         "storeId": result[2]._id,
-                        //         "store": result[2],
-                        //         "items": result[3],
-
-                        //         "salesDetails":
-                        //         {
-                        //             "_stamp": new ObjectId(),
-                        //             "paymentType": paymentType, //object card berdasarkan penjualan.kartu
-                        //             "voucherId": {},
-                        //             "voucher": item.voucher,
-                        //             "bankId": (result[5]) ? result[5]._id : '', //query penjualan.kartu
-                        //             "bank": (result[5]) ? result[5] : '',
-                        //             "cardTypeId": (result[4]) ? result[4]._id : '',
-                        //             "cardType": (result[4]) ? result[4] : '',
-                        //             "bankCardId": "",
-                        //             "bankCard": {},
-                        //             "card": cardTemp,
-                        //             "cardNumber": item.no_krt,
-                        //             "cardName": "",
-                        //             "cashAmount": item.cash,
-                        //             "cardAmount": item.debit + item.credit,
-
-                        //         },
-
-                        //         "remark": "",
-                        //         "isVoid": false,
-                        //     }
-
-                        // tasks.push(this.collection.update({ _id: item2._id }, update, { ordered: false }));
-
-                        // break;
-                        // }
-
-                        // }
-
-                        // if (!isfound) {
-
-                        var insert =
+                            "salesDetail":
                             {
-                                "_id": _id,
-                                "_stamp": _stamp,
-                                "_type": "sales-doc",
+                                "_stamp": new ObjectId(),
+                                "_type": "sales-type",
                                 "_version": "1.0.0",
                                 "_active": true,
-                                "_deleted": false,
+                                "deleted": false,
                                 "_createdBy": "router",
                                 "_createdDate": new Date(),
                                 "_createAgent": "manager",
                                 "_updatedBy": "router",
                                 "_updatedDate": new Date(),
                                 "_updateAgent": "manager",
-                                "code": sales.nomor,
-                                // "date": s[i].tanggal,
-                                "date": sales.tanggal,
-                                "totalProduct": sales.totalProduct,
-                                "subTotal": sales.subTotal,
-                                "discount": sales.discount,
-                                "grandTotal": sales.grandTotal,
-                                "reference": sales.reference,
-                                // "shift": s[i].shift,
-                                "shift": parseInt(sales.shift),
-                                "pos": sales.pos,
-                                "storeId": _store._id,
-                                "store": _store,
-                                "items": _item,
-
-                                "salesDetail":
-                                {
-                                    "_stamp": new ObjectId(),
-                                    "_type": "sales-type",
-                                    "_version": "1.0.0",
-                                    "_active": true,
-                                    "deleted": false,
-                                    "_createdBy": "router",
-                                    "_createdDate": new Date(),
-                                    "_createAgent": "manager",
-                                    "_updatedBy": "router",
-                                    "_updatedDate": new Date(),
-                                    "_updateAgent": "manager",
-                                    "paymentType": paymentType, //object card berdasarkan penjualan.kartu
-                                    "voucherId": {},
-                                    "voucher": {
-                                        "value": sales.voucher,
-                                    },
-                                    "bankId": (_bank) ? _bank._id : '', //query penjualan.kartu
-                                    "bank": (_bank) ? _bank : '',
-                                    "cardTypeId": (_card) ? _card._id : '',
-                                    "cardType": (_card) ? _card : '',
-                                    "bankCardId": "",
-                                    "bankCard": {},
-                                    "card": cardTemp,
-                                    "cardNumber": sales.no_krt,
-                                    "cardName": "",
-                                    "cashAmount": sales.cash,
-                                    "cardAmount": sales.debit + sales.credit,
-
+                                "paymentType": paymentType, //object card berdasarkan penjualan.kartu
+                                "voucherId": {},
+                                "voucher": {
+                                    "value": sales.voucher,
                                 },
+                                "bankId": (_bank) ? _bank._id : '', //query penjualan.kartu
+                                "bank": (_bank) ? _bank : '',
+                                "cardTypeId": (_card) ? _card._id : '',
+                                "cardType": (_card) ? _card : '',
+                                "bankCardId": "",
+                                "bankCard": {},
+                                "card": cardTemp,
+                                "cardNumber": sales.no_krt,
+                                "cardName": "",
+                                "cashAmount": sales.cash,
+                                "cardAmount": sales.debit + sales.credit,
 
-                                "remark": "",
-                                "isReturn": false,
-                                "isVoid": false,
-                            }
-                        tasks.push(this.collectionSalesManager.insert(insert, { ordered: false }))
+                            },
+
+                            "remark": "",
+                            "isReturn": false,
+                            "isVoid": false,
+                        }
+                        salesDatas.push(salesDataNew);
                     }
 
-                    Promise.all(tasks)
-                        .then((task) => {
-                            resolve(tasks);
+                    var getMongos = [];
+                    for (var salesLoop of salesDatas) {
+                        getMongos.push(this.collectionSalesManager.singleOrDefault({ code: salesLoop.code }));
+                    }
+
+                    Promise.all(getMongos)
+                        .then((allSalesMongos) => {
+                            for (var salesLoop of salesDatas) {
+                                var index = salesDatas.indexOf(salesLoop);
+                                var mongoData = allSalesMongos[index];
+                                if (mongoData) {
+                                    //    "_stamp": _stamp,
+                                    salesLoop._id=mongoData._id;
+                                    salesLoop._stamp=mongoData._stamp;
+                                    tasks.push(this.SalesManager.update(salesLoop));
+                                }
+                                else {
+                                    //insert
+                                    //tasks.push(this.collectionSalesManager.insert(insert, { ordered: false }))
+                                    tasks.push(this.SalesManager.create(salesLoop));
+                                }
+                            }
+                            Promise.all(tasks)
+                                .then((task) => {
+                                    resolve(tasks);
+                                }).catch(error => {
+                                    reject(error);
+                                });
+                            // resolve(null);
+                        })
+                        .catch(error => {
+                            reject(error);
                         });
-
-                    // await
-                    // insertArr.push(insert)
-                    // resolve(insert);
-
-                    // resolve(insert);
-                    // }
-
-                    // }
-
-                    // return (tasks);
-                    // Promise.all(tasks)
-                    //     .then((result) => {
-                    //         resolve(tasks);
-
-                    //     })
-
-                    //     .catch((e) => {
-                    //         done();
-                    //     })
 
                 });
 

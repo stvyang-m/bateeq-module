@@ -9,7 +9,9 @@ var config = {
     database: 'efrata.pos',
     options: {
         encrypt: true
-    }
+    },
+    connectionTimeout : 100000,
+    requestTimeout : 100000
 
 };
 
