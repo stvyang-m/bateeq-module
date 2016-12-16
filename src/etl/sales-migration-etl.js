@@ -40,7 +40,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                     // var query= "select * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin)a where nomor ='201501.00083' and branch ='SLO.02' and shift ='2' and tanggal ='2015-01-30 00:00:00.000' and POS ='POS01'";
 
 
-                    var query = "select top 10 * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a WHERE branch= 'SLO.02'";
+                    var query = "select * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a WHERE branch= 'SLO.02'";
                     request.query(query, function (err, salesResult) {
                         // var a = [];
                         if (err) {
@@ -51,13 +51,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                             self.migrateDataStores(request, salesResult)
                                 .then(sales => {
                                     resolve(sales);
-                                    // a.push(sales);
-                                    // a.push(sales)
-                                    // a = a + "" + sales;
-                                    //   resolve(self.collectionSalesManager.insert(sales, { ordered: false }))
-                                    // resolve(sales);
-                                    // a.push(sales);
-                                    // console.log(sales);
+
 
                                 })
                                 .catch(err => {
@@ -132,11 +126,34 @@ module.exports = class SalesDataEtl extends BaseManager {
         return new Promise((resolve, reject) => {
             var getStores = [];
             var getBanks = [];
+            var getBankCards = [];
             var getItems = [];
             var getCards = [];
+            var paymentType;
 
             for (var i = 0; i < salesData.length; i++) {
                 var sales = salesData[i];
+
+                // paymentType = "cash";
+
+                // if ((sales.payment.trim() == "DEBIT CARD") || (sales.payment.trim() == "CREDIT CARD")) {
+                //     paymentType = "card";
+                // }
+                // else if ((sales.payment.trim() == "PARTIAL DEBIT CARD") || (sales.payment.trim() == "PARTIAL CREDIT CARD")) {
+                //     paymentType = "partial";
+                // } else {
+                //     paymentType = "cash";
+                // };
+
+                // var cardTemp = "";
+
+                // if ((sales.payment.trim() == "DEBIT CARD") || (sales.payment.trim() == "PARTIAL DEBIT CARD")) {
+                //     cardTemp = "debit";
+                // } else if ((sales.payment.trim() == "CREDIT CARD") || (sales.payment.trim() == "PARTIAL CREDIT CARD")) {
+                //     cardTemp = "credit";
+                // } else {
+                //     cardTemp = "";
+                // };
 
                 var CardType = "";
                 if ((sales.no_krt[0] == 5) && ((sales.no_krt[1] == 1) || (sales.no_krt[1] == 2) || (sales.no_krt[1] == 3) || (sales.no_krt[1] == 4) || (sales.no_krt[1] == 5))) {
@@ -151,23 +168,38 @@ module.exports = class SalesDataEtl extends BaseManager {
                 } else {
                     CardType = "";
                 };
+
+                var BankName = "-"
+                if ((sales.kartu.trim() == "") && (sales.payment.toLowerCase() != "cash")) {
+                    BankName = "-";
+                    // getBankCardId.push(this.getBanks("-"));
+                } else {
+                    BankName = sales.kartu.trim();
+                }
+
                 getStores.push(this.getStore(sales.branch));
-                getBanks.push(this.getBanks(sales.kartu));
+                getBanks.push(this.getBanks(BankName));
                 getItems.push(this.getItems(request, sales.branch, sales.nomor));
                 getCards.push(this.getCards(CardType));
+
+
+                getBankCards.push(this.getBanks("-"));
+
             }
 
             var countStore = getStores.length;
             var countBank = getBanks.length;
             var countItem = getItems.length;
             var countCard = getCards.length;
+            var countBankCards = getBankCards.length;
 
-            Promise.all(getStores.concat(getBanks).concat(getItems).concat(getCards))
+            Promise.all(getStores.concat(getBanks).concat(getItems).concat(getCards).concat(getBankCards))
                 .then(results => {
                     var _stores = results.splice(0, countStore);
                     var _banks = results.splice(0, countBank);
                     var _items = results.splice(0, countItem);
                     var _cards = results.splice(0, countCard);
+                    var _bankCards = results.splice(0, countBankCards)
 
 
                     var salesDatas = [];
@@ -178,26 +210,26 @@ module.exports = class SalesDataEtl extends BaseManager {
                         var _bank = _banks[i];
                         var _item = _items[i];
                         var _card = _cards[i];
-
+                        var _bankCard = _bankCards[i];
                         // var promise4 = getcards(db, CardType);
 
-                        var paymentType = "Cash";
+                        var paymentType = "cash";
 
                         if ((sales.payment.trim() == "DEBIT CARD") || (sales.payment.trim() == "CREDIT CARD")) {
-                            paymentType = "Card";
+                            paymentType = "card";
                         }
                         else if ((sales.payment.trim() == "PARTIAL DEBIT CARD") || (sales.payment.trim() == "PARTIAL CREDIT CARD")) {
-                            paymentType = "Partial";
+                            paymentType = "partial";
                         } else {
-                            paymentType = "Cash";
+                            paymentType = "cash";
                         };
 
                         var cardTemp = "";
 
                         if ((sales.payment.trim() == "DEBIT CARD") || (sales.payment.trim() == "PARTIAL DEBIT CARD")) {
-                            cardTemp = "Debit";
+                            cardTemp = "debit";
                         } else if ((sales.payment.trim() == "CREDIT CARD") || (sales.payment.trim() == "PARTIAL CREDIT CARD")) {
-                            cardTemp = "Credit";
+                            cardTemp = "credit";
                         } else {
                             cardTemp = "";
                         };
@@ -225,7 +257,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                             "totalProduct": sales.totalProduct,
                             "subTotal": sales.subTotal,
                             "discount": sales.discount,
-                            "grandTotal": sales.grandTotal,
+                            "grandTotal": parseInt(sales.grandTotal),
                             "reference": sales.reference,
                             // "shift": s[i].shift,
                             "shift": parseInt(sales.shift),
@@ -250,19 +282,19 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 "paymentType": paymentType, //object card berdasarkan penjualan.kartu
                                 "voucherId": {},
                                 "voucher": {
-                                    "value": sales.voucher,
+                                    "value": parseInt(sales.voucher),
                                 },
-                                "bankId": (_bank) ? _bank._id : '', //query penjualan.kartu
-                                "bank": (_bank) ? _bank : '',
-                                "cardTypeId": (_card) ? _card._id : '',
-                                "cardType": (_card) ? _card : '',
-                                "bankCardId": "",
-                                "bankCard": {},
+                                "bankId": (paymentType == "cash") ? {} : ((_bank) ? _bank._id : {}), //query penjualan.kartu
+                                "bank": (paymentType == "cash") ? {} : ((_bank) ? _bank : {}),
+                                "cardTypeId": (_card) ? _card._id : {},
+                                "cardType": (_card) ? _card : {},
+                                "bankCardId": (paymentType == "cash") ? {} : ((_bankCard) ? _bankCard._id : {}),
+                                "bankCard": (paymentType == "cash") ? {} : ((_bankCard) ? _bankCard : {}),
                                 "card": cardTemp,
                                 "cardNumber": sales.no_krt,
                                 "cardName": "",
-                                "cashAmount": sales.cash,
-                                "cardAmount": sales.debit + sales.credit,
+                                "cashAmount": parseInt(sales.cash),
+                                "cardAmount": parseInt(sales.debit) + parseInt(sales.credit),
 
                             },
 
@@ -270,6 +302,13 @@ module.exports = class SalesDataEtl extends BaseManager {
                             "isReturn": false,
                             "isVoid": false,
                         }
+
+                        // if (paymentType != "cash") {
+                        //     salesDataNew.bankId = _bank ? _bank._id : "";
+                        //     salesDataNew.bankCardId = _bankCard ? _bank._id : "";
+                        // }
+
+
                         salesDatas.push(salesDataNew);
                     }
 
@@ -285,14 +324,15 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 var mongoData = allSalesMongos[index];
                                 if (mongoData) {
                                     //    "_stamp": _stamp,
-                                    salesLoop._id=mongoData._id;
-                                    salesLoop._stamp=mongoData._stamp;
-                                    tasks.push(this.SalesManager.update(salesLoop));
+                                    salesLoop._id = mongoData._id;
+                                    salesLoop._stamp = mongoData._stamp;
+                                    tasks.push(this.collectionSalesManager.update(salesLoop, { ordered: false }))
+                                    // tasks.push(this.SalesManager.update(salesLoop));
                                 }
                                 else {
                                     //insert
-                                    //tasks.push(this.collectionSalesManager.insert(insert, { ordered: false }))
-                                    tasks.push(this.SalesManager.create(salesLoop));
+                                    tasks.push(this.collectionSalesManager.insert(salesLoop, { ordered: false }))
+                                    // tasks.push(this.SalesManager.create(salesLoop));
                                 }
                             }
                             Promise.all(tasks)
