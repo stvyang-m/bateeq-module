@@ -56,14 +56,14 @@ module.exports = class StoreDataEtl extends BaseManager {
 
                 shift = [
                     {
-                        "shift": 1.0,
-                        "dateFrom": "2000-01-01T00:00:00.000Z",
-                        "dateTo": "2000-01-01T11:59:59.000Z",
+                        "shift": 1,
+                        "dateFrom": new Date("2000-01-01T00:00:00.000Z"),
+                        "dateTo": new Date("2000-01-01T11:59:59.000Z"),
                     },
                     {
-                        "shift": 2.0,
-                        "dateFrom": "2000-01-01T12:00:00.000Z",
-                        "dateTo": "2000-01-01T23:59:59.000Z",
+                        "shift": 2,
+                        "dateFrom": new Date("2000-01-01T12:00:00.000Z"),
+                        "dateTo": new Date("2000-01-01T23:59:59.000Z"),
                     }
                 ];
 
@@ -151,7 +151,7 @@ module.exports = class StoreDataEtl extends BaseManager {
 
                                     "salesCategoryId": {},
                                     "salesCategory": item.jenis_penjualan,
-                                    "shift": item2.shift,
+                                    "shift": shift,
                                     "city": item.Kota_Cbg,
                                     "pic": item.Kontak,
                                     "fax": item.FAX,

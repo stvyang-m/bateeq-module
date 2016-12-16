@@ -134,8 +134,8 @@ module.exports = class StorageDataEtl extends BaseManager {
 
                             var update =
                                 {
-                                    "_id": item2._id,
-                                    "_stamp": item2._stamp,
+                                    "_id": item.storage._id,
+                                    "_stamp": item.storage._stamp,
                                     "_type": "storage",
                                     "_version": "1.0.0",
                                     "_active": item._active,
@@ -196,7 +196,7 @@ module.exports = class StorageDataEtl extends BaseManager {
                     })
 
                     .catch((e) => {
-                        error(e);
+                        reject(e);
                     })
 
             });
