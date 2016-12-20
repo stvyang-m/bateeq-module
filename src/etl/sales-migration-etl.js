@@ -213,23 +213,23 @@ module.exports = class SalesDataEtl extends BaseManager {
                         var _bankCard = _bankCards[i];
                         // var promise4 = getcards(db, CardType);
 
-                        var paymentType = "cash";
+                        var paymentType = "Cash";
 
                         if ((sales.payment.trim() == "DEBIT CARD") || (sales.payment.trim() == "CREDIT CARD")) {
-                            paymentType = "card";
+                            paymentType = "Card";
                         }
                         else if ((sales.payment.trim() == "PARTIAL DEBIT CARD") || (sales.payment.trim() == "PARTIAL CREDIT CARD")) {
-                            paymentType = "partial";
+                            paymentType = "Partial";
                         } else {
-                            paymentType = "cash";
+                            paymentType = "Cash";
                         };
 
                         var cardTemp = "";
 
                         if ((sales.payment.trim() == "DEBIT CARD") || (sales.payment.trim() == "PARTIAL DEBIT CARD")) {
-                            cardTemp = "debit";
+                            cardTemp = "Debit";
                         } else if ((sales.payment.trim() == "CREDIT CARD") || (sales.payment.trim() == "PARTIAL CREDIT CARD")) {
-                            cardTemp = "credit";
+                            cardTemp = "Credit";
                         } else {
                             cardTemp = "";
                         };
@@ -284,12 +284,12 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 "voucher": {
                                     "value": parseInt(sales.voucher),
                                 },
-                                "bankId": (paymentType == "cash") ? {} : ((_bank) ? _bank._id : {}), //query penjualan.kartu
-                                "bank": (paymentType == "cash") ? {} : ((_bank) ? _bank : {}),
+                                "bankId": (paymentType == "Cash") ? {} : ((_bank) ? _bank._id : {}), //query penjualan.kartu
+                                "bank": (paymentType == "Cash") ? {} : ((_bank) ? _bank : {}),
                                 "cardTypeId": (_card) ? _card._id : {},
                                 "cardType": (_card) ? _card : {},
-                                "bankCardId": (paymentType == "cash") ? {} : ((_bankCard) ? _bankCard._id : {}),
-                                "bankCard": (paymentType == "cash") ? {} : ((_bankCard) ? _bankCard : {}),
+                                "bankCardId": (paymentType == "Cash") ? {} : ((_bankCard) ? _bankCard._id : {}),
+                                "bankCard": (paymentType == "Cash") ? {} : ((_bankCard) ? _bankCard : {}),
                                 "card": cardTemp,
                                 "cardNumber": sales.no_krt,
                                 "cardName": "",

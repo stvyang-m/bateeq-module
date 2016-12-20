@@ -128,7 +128,7 @@ module.exports = class StoreDataEtl extends BaseManager {
                                     "name": item.Nm_Cbg,
                                     "description": "",
                                     "salesTarget": item.target_omset_bulan,
-                                    "storageId": item2._idStorage,
+                                    "storageId": item2.storage._id,
                                     "storage": {
                                         "_id": item2.storage._id,
                                         "_stamp": item2.storage._stamp,
@@ -151,7 +151,7 @@ module.exports = class StoreDataEtl extends BaseManager {
 
                                     "salesCategoryId": {},
                                     "salesCategory": item.jenis_penjualan,
-                                    "shift": shift,
+                                    // "shift": shift,
                                     "city": item.Kota_Cbg,
                                     "pic": item.Kontak,
                                     "fax": item.FAX,
@@ -165,7 +165,7 @@ module.exports = class StoreDataEtl extends BaseManager {
                                     "status": status,
                                     "address": [(item.Alm_Cbg || '').trim().toString(), (item.Kota_Cbg || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
                                     "phone": [(item.Kontak || '').trim().toString(), (item.Telp || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
-                                    "salesCapital": 0
+                                    // "salesCapital": 0
                                 }
                             if (update.phone == '') {
                                 update.phone = "-";
