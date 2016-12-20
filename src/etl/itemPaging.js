@@ -7,16 +7,17 @@ var BaseManager = require('module-toolkit').BaseManager;
 var MongoClient = require('mongodb').MongoClient,
     test = require('assert');
 
-var StoreManager = require('../../src/managers/master/store-manager');
+var ItemManager = require('../../src/managers/master/item-manager');
 
 
 
-module.exports = class StoreDataEtl extends BaseManager {
+module.exports = class ItemDataEtl extends BaseManager {
     constructor(db, user) {
         super(db, user);
-        this.storeManager = new StoreManager(db, user);
 
-        this.collection = this.storeManager.collection;
+        this.ItemManager = new ItemManager(db, user);
+
+        this.collection = this.ItemManager.collection;
         // this.adas=1;
     }
 
@@ -26,7 +27,7 @@ module.exports = class StoreDataEtl extends BaseManager {
             sqlConnect.getConnect()
                 .then((connect) => {
                     var self = this;
-                    var query = "select count(Kd_Cbg) as MaxLength from Branch";
+                    var query = "select count(Kd_Cbg) as MaxLength from Produk";
                     var request = connect;
                     request.query(query, function (err, BranchLength) {
                         if (err) {
@@ -223,9 +224,9 @@ module.exports = class StoreDataEtl extends BaseManager {
                         update.phone = "-";
                     }
                     this.collection.update(update, { ordered: false })
-                    .then((result) => {
-                        resolve(result);
-                    })
+                        .then((result) => {
+                            resolve(result);
+                        })
                     //update
                 } else {
                     //insert
