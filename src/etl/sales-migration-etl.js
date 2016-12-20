@@ -40,6 +40,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                     // var query= "select * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin)a where nomor ='201501.00083' and branch ='SLO.02' and shift ='2' and tanggal ='2015-01-30 00:00:00.000' and POS ='POS01'";
 
 
+                  
                     var query = "select * from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a WHERE branch= 'SLO.02'";
                     request.query(query, function (err, salesResult) {
                         // var a = [];
@@ -286,8 +287,12 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 },
                                 "bankId": (paymentType == "Cash") ? {} : ((_bank) ? _bank._id : {}), //query penjualan.kartu
                                 "bank": (paymentType == "Cash") ? {} : ((_bank) ? _bank : {}),
-                                "cardTypeId": (_card) ? _card._id : {},
-                                "cardType": (_card) ? _card : {},
+                                "cardTypeId": (cardTemp == "Debit") ? {} : ((_card) ? _card._id : {}),
+                                "cardType": (cardTemp == "Debit") ? {} : ((_card) ? _card : {}),
+
+                                //         "cardTypeId": (_card) ? _card._id : {},
+                                // "cardType": (_card) ? _card : {},
+
                                 "bankCardId": (paymentType == "Cash") ? {} : ((_bankCard) ? _bankCard._id : {}),
                                 "bankCard": (paymentType == "Cash") ? {} : ((_bankCard) ? _bankCard : {}),
                                 "card": cardTemp,

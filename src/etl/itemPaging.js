@@ -22,34 +22,36 @@ module.exports = class ItemDataEtl extends BaseManager {
     }
 
 
-    getDataStores() {
+    getDataItems() {
         return new Promise((resolve, reject) => {
             sqlConnect.getConnect()
                 .then((connect) => {
                     var self = this;
-                    var query = "select count(Kd_Cbg) as MaxLength from Produk";
+                    var query = "select count(Barcode) as MaxLength from Produk";
                     var request = connect;
-                    request.query(query, function (err, BranchLength) {
+                    request.query(query, function (err, ProdukLength) {
                         if (err) {
                             console.log(err);
                             reject(err);
                         }
                         else {
-                            var DataRows = 25;
+
+                            var testPage=3;
+                            var DataRows = 100;
                             // var numberOfPage = [];
-                            var numberOfPage = Math.ceil(BranchLength[0].MaxLength / DataRows);
+                            var numberOfPage = Math.ceil(ProdukLength[0].MaxLength / DataRows);
 
                             var process = [];
-                            for (var i = 1; i <= numberOfPage; i++) {
-                                process.push(self.migrateDataStores(request, i, DataRows))
+                            for (var i = 1; i <= testPage; i++) {
+                                process.push(self.migrateDataItems(request, i, DataRows))
                             }
 
                             Promise.all(process).then(results => {
-                                var stores = [];
+                                var items = [];
                                 for (var result of results) {
-                                    stores.push(result);
+                                    items.push(result);
                                 }
-                                resolve(stores);
+                                resolve(items);
                             }).catch(error => {
                                 reject(error);
                             });
@@ -70,30 +72,24 @@ module.exports = class ItemDataEtl extends BaseManager {
 
     getDataMongo(code) {
         return new Promise((resolve, reject) => {
-            this.collection.find({ "code": code }).toArray(function (err, store) {
-                resolve(store);
+            this.collection.find({ "code": code }).toArray(function (err, item) {
+                resolve(item);
             });
 
         });
     }
 
-    migrateDataStores(request, pageNumber, DataRows) {
+    migrateDataItems(request, pageNumber, DataRows) {
         var self = this;
         return new Promise(function (resolve, reject) {
 
-            // for (var i = 1; i <= pageNumber; i++) {
-            //     this.getDataStores(request, i, DataRows);
+            var query = "exec pagination_item_test " + pageNumber + "," + DataRows + " ";
 
-            // }
-
-            var query = "exec Pagination_Branch_test " + pageNumber + "," + DataRows + " ";
-
-            request.query(query, function (err, stores) {
-
+            request.query(query, function (err, items) {
                 var tasks = [];
 
-                for (var store of stores) {
-                    tasks.push(self.insert(store));
+                for (var item of items) {
+                    tasks.push(self.insert(item));
                 }
 
                 Promise.all(tasks)
@@ -107,69 +103,29 @@ module.exports = class ItemDataEtl extends BaseManager {
         });
     }
 
-    insert(store) {
+    insert(item) {
         return new Promise((resolve, reject) => {
 
+            var _idItems = new ObjectId();
+            var _stampItems = new ObjectId();
 
-            var shift = [];
-
-            shift = [
-                {
-                    "shift": 1,
-                    "dateFrom": new Date("2000-01-01T00:00:00.000Z"),
-                    "dateTo": new Date("2000-01-01T11:59:59.000Z"),
-                },
-                {
-                    "shift": 2,
-                    "dateFrom": new Date("2000-01-01T12:00:00.000Z"),
-                    "dateTo": new Date("2000-01-01T23:59:59.000Z"),
-                }
-            ];
-
-            var _id = new ObjectId();
-            var _idStorage = new ObjectId();
-            var _stamp = new ObjectId();
-            var _stampStorage = new ObjectId();
-
-            var openedDate = "";
-            if (store.tanggal_buka == null) {
-                openedDate = "";
+            var ro = "";
+            if ((!item.ro) || (item.ro.trim() == "-")) {
+                ro = "";
             } else {
-                openedDate = store.tanggal_buka;
+                ro = item.ro;
             };
 
-            var closedDate = "";
-            if (store.tanggal_tutup == null) {
-                closedDate = "";
-
-            } else {
-                closedDate = store.tanggal_tutup;
-            };
-
-            var status = "";
-
-            var _active = false;
-            if (!store.status) {
-                status = "";
-                _active = false;
-            } else if (store.status.trim() == "CLOSE") {
-                status = store.status;
-                _active = false;
-            } else {
-                status = store.status;
-                _active = true;
-            };
-
-            this.getDataMongo(store.Kd_Cbg).then((results) => {
+            this.getDataMongo(item.Barcode).then((results) => {
                 if (results && results.length > 0) {
                     var result = results[0];
                     var update =
                         {
                             "_id": result._id,
                             "_stamp": result._stamp,
-                            "_type": "store",
+                            "_type": "finished-goods",
                             "_version": "1.0.0",
-                            "_active": _active,
+                            "_active": true,
                             "_deleted": false,
                             "_createdBy": "router",
                             "_createdDate": result._createdDate,
@@ -178,65 +134,39 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "_updatedDate": new Date(),
                             "_updateAgent": "manager",
                             "code": result.code,
-                            "name": store.Nm_Cbg,
+                            "name": item.Nm_Product,
                             "description": "",
-                            "salesTarget": store.target_omset_bulan,
-                            "storageId": result.storageId,
-                            "storage": {
-                                "_id": result.storage._id,
-                                "_stamp": result.storage._stamp,
-                                "_type": "storage",
-                                "_version": "1.0.0",
-                                "_active": _active,
-                                "_deleted": false,
-                                "_createdBy": "router",
-                                "_createdDate": result.storage._createdDate,
-                                "_createAgent": "manager",
-                                "_updatedBy": "router",
-                                "_updatedDate": new Date(),
-                                "_updateAgent": "manager",
-                                "code": store.Kd_Cbg,
-                                "name": store.Nm_Cbg,
-                                "description": "",
-                                "address": [(store.Alm_Cbg || '').trim().toString(), (store.Kota_Cbg || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
-                                "phone": [(store.Kontak || '').trim().toString(), (store.Telp || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
+                            "uom": "PCS",
+                            "components": [],
+                            "tags": "",
+                            "articleId": {},
+                            "article": {
+                                "realizationOrder": ro
                             },
-
-                            "salesCategoryId": {},
-                            "salesCategory": store.jenis_penjualan,
-                            "shift": shift,
-                            "city": store.Kota_Cbg,
-                            "pic": store.Kontak,
-                            "fax": store.FAX,
-                            "openedDate": openedDate,
-                            "closedDate": closedDate,
-                            "storeArea": store.keterangan,
-                            "storeWide": store.luas_toko,
-                            "online-offline": store.online_offline,
-                            "storeCategory": store.jenis_toko,
-                            "monthlyTotalCost": store.total_cost_bulanan,
-                            "status": status,
-                            "address": [(store.Alm_Cbg || '').trim().toString(), (store.Kota_Cbg || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
-                            "phone": [(store.Kontak || '').trim().toString(), (store.Telp || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
-                            "salesCapital": 0
+                            "size": item.Size,
+                            "domesticCOGS": item.Harga,
+                            "domesticWholesale": 0,
+                            "domesticRetail": 0,
+                            "domesticSale": item.Harga1,
+                            "internationalCOGS": 0,
+                            "internationalWholesale": 0,
+                            "internationalRetail": 0,
+                            "internationalSale": 0,
+                            "notMongo": true
                         }
-                    if (update.phone == '') {
-                        update.phone = "-";
-                    }
                     this.collection.update(update, { ordered: false })
                         .then((result) => {
                             resolve(result);
                         })
-                    //update
+
                 } else {
-                    //insert
-                    var StoreMap =
+                    var ItemMap =
                         {
-                            "_id": _id,
-                            "_stamp": _stamp,
-                            "_type": "store",
+                            "_id": _idItems,
+                            "_stamp": _stampItems,
+                            "_type": "finished-goods",
                             "_version": "1.0.0",
-                            "_active": _active,
+                            "_active": true,
                             "_deleted": false,
                             "_createdBy": "router",
                             "_createdDate": new Date(),
@@ -244,53 +174,29 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "_updatedBy": "router",
                             "_updatedDate": new Date(),
                             "_updateAgent": "manager",
-                            "code": store.Kd_Cbg,
-                            "name": store.Nm_Cbg,
+                            "code": item.Barcode,
+                            "name": item.Nm_Product,
                             "description": "",
-                            "salesTarget": store.target_omset_bulan,
-                            "storageId": _idStorage,
-                            "storage": {
-                                "_id": _idStorage,
-                                "_stamp": _stampStorage,
-                                "_type": "storage",
-                                "_version": "1.0.0",
-                                "_active": _active,
-                                "_deleted": false,
-                                "_createdBy": "router",
-                                "_createdDate": new Date(),
-                                "_createAgent": "manager",
-                                "_updatedBy": "router",
-                                "_updatedDate": new Date(),
-                                "_updateAgent": "manager",
-                                "code": store.Kd_Cbg,
-                                "name": store.Nm_Cbg,
-                                "description": "",
-                                "address": [(store.Alm_Cbg || '').trim().toString(), (store.Kota_Cbg || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
-                                "phone": [(store.Kontak || '').trim().toString(), (store.Telp || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
+                            "uom": "PCS",
+                            "components": [],
+                            "tags": "",
+                            "articleId": {},
+                            "article": {
+                                "realizationOrder": ro
                             },
-
-                            "salesCategoryId": {},
-                            "salesCategory": store.jenis_penjualan,
-                            "shift": shift,
-                            "city": store.Kota_Cbg,
-                            "pic": store.Kontak,
-                            "fax": store.FAX,
-                            "openedDate": openedDate,
-                            "closedDate": closedDate,
-                            "storeArea": store.keterangan,
-                            "storeWide": store.luas_toko,
-                            "online-offline": store.online_offline,
-                            "storeCategory": store.jenis_toko,
-                            "monthlyTotalCost": store.total_cost_bulanan,
-                            "status": status,
-                            "address": [(store.Alm_Cbg || '').trim().toString(), (store.Kota_Cbg || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
-                            "phone": [(store.Kontak || '').trim().toString(), (store.Telp || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
-                            "salesCapital": 0
+                            "size": item.Size,
+                            "domesticCOGS": item.Harga,
+                            "domesticWholesale": 0,
+                            "domesticRetail": 0,
+                            "domesticSale": item.Harga1,
+                            "internationalCOGS": 0,
+                            "internationalWholesale": 0,
+                            "internationalRetail": 0,
+                            "internationalSale": 0,
+                            "notMongo": true
                         }
-                    if (StoreMap.phone == '') {
-                        StoreMap.phone = "-";
-                    }
-                    this.collection.insert(StoreMap, { ordered: false }).then((result) => {
+
+                    this.collection.insert(ItemMap, { ordered: false }).then((result) => {
                         resolve(result);
                     });
                 }
