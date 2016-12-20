@@ -134,11 +134,11 @@ module.exports = class StorageDataEtl extends BaseManager {
 
                             var update =
                                 {
-                                    "_id": item2._id,
-                                    "_stamp": item2._stamp,
+                                    "_id": item.storage._id,
+                                    "_stamp": item.storage._stamp,
                                     "_type": "storage",
                                     "_version": "1.0.0",
-                                    "_active": true,
+                                    "_active": item._active,
                                     "_deleted": false,
                                     "_createdBy": "router",
                                     "_createdDate": item2._createdDate,
@@ -153,7 +153,7 @@ module.exports = class StorageDataEtl extends BaseManager {
                                     "phone": item.phone,
                                 }
 
-                            tasks.push(this.collectionStorages.update({ _id: item2._id }, update, { ordered: false }));
+                            tasks.push(this.collectionStorages.update(update, { ordered: false }));
 
                             break;
                         }
@@ -168,7 +168,7 @@ module.exports = class StorageDataEtl extends BaseManager {
                                 "_stamp": item.storage._stamp,
                                 "_type": "storage",
                                 "_version": "1.0.0",
-                                "_active": true,
+                                "_active": item._active,
                                 "_deleted": false,
                                 "_createdBy": "router",
                                 "_createdDate": item.storage._createdDate,
@@ -196,7 +196,7 @@ module.exports = class StorageDataEtl extends BaseManager {
                     })
 
                     .catch((e) => {
-                        done();
+                        reject(e);
                     })
 
             });

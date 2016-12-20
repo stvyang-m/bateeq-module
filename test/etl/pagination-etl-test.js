@@ -1,7 +1,7 @@
 var helper = require("../helper");
 var should = require("should");
 var connect = require("../../src/etl/sqlConnect");
-var StoresMigration = require("../../src/etl/stores-migration-etl");
+var StoresMigration = require("../../src/etl/testPaging");
 var instanceMigration = null;
 
 before("#00. connect db", function (done) {
@@ -76,9 +76,9 @@ before("#00. connect db", function (done) {
 // });
 
 it("#05. should success when migrate all data Stores ", function (done) {
-    instanceMigration.migrateDataStores()
+    instanceMigration.getDataStores()
         .then((result) => {
-            // console.log(data);
+            // console.log(result);
             done();
         })
 

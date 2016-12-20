@@ -1,7 +1,7 @@
 var helper = require("../helper");
 var should = require("should");
 var connect = require("../../src/etl/sqlConnect");
-var StoresMigration = require("../../src/etl/stores-migration-etl");
+var ItemsMigration = require("../../src/etl/itemPaging");
 var instanceMigration = null;
 
 before("#00. connect db", function (done) {
@@ -9,7 +9,7 @@ before("#00. connect db", function (done) {
         .then((db) => {
             connect.getConnect()
                 .then((connect) => {
-                    instanceMigration = new StoresMigration(db, {
+                    instanceMigration = new ItemsMigration(db, {
                         username: "unit-test"
                     });
                     done();
@@ -75,10 +75,10 @@ before("#00. connect db", function (done) {
 //         })
 // });
 
-it("#05. should success when migrate all data Stores ", function (done) {
-    instanceMigration.migrateDataStores()
+it("#01. should success when migrate all data Stores ", function (done) {
+    instanceMigration.getDataItems()
         .then((result) => {
-            // console.log(data);
+            // console.log(result);
             done();
         })
 

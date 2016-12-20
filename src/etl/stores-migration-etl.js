@@ -56,14 +56,14 @@ module.exports = class StoreDataEtl extends BaseManager {
 
                 shift = [
                     {
-                        "shift": 1.0,
-                        "dateFrom": "2000-01-01T00:00:00.000Z",
-                        "dateTo": "2000-01-01T11:59:59.000Z",
+                        "shift": 1,
+                        "dateFrom": new Date("2000-01-01T00:00:00.000Z"),
+                        "dateTo": new Date("2000-01-01T11:59:59.000Z"),
                     },
                     {
-                        "shift": 2.0,
-                        "dateFrom": "2000-01-01T12:00:00.000Z",
-                        "dateTo": "2000-01-01T23:59:59.000Z",
+                        "shift": 2,
+                        "dateFrom": new Date("2000-01-01T12:00:00.000Z"),
+                        "dateTo": new Date("2000-01-01T23:59:59.000Z"),
                     }
                 ];
 
@@ -91,10 +91,16 @@ module.exports = class StoreDataEtl extends BaseManager {
                     };
 
                     var status = "";
-                    if (item.status == null) {
+                    var _active = false;
+                    if (!item.status) {
                         status = "";
+                        _active = false;
+                    } else if (item.status.trim() == "CLOSE") {
+                        status = item.status;
+                        _active = false;
                     } else {
                         status = item.status;
+                        _active = true;
                     };
 
                     var isfound = false;
@@ -110,7 +116,7 @@ module.exports = class StoreDataEtl extends BaseManager {
                                     "_stamp": item2._stamp,
                                     "_type": "store",
                                     "_version": "1.0.0",
-                                    "_active": true,
+                                    "_active": _active,
                                     "_deleted": false,
                                     "_createdBy": "router",
                                     "_createdDate": new Date(),
@@ -122,13 +128,13 @@ module.exports = class StoreDataEtl extends BaseManager {
                                     "name": item.Nm_Cbg,
                                     "description": "",
                                     "salesTarget": item.target_omset_bulan,
-                                    "storageId": item2._idStorage,
+                                    "storageId": item2.storage._id,
                                     "storage": {
                                         "_id": item2.storage._id,
                                         "_stamp": item2.storage._stamp,
                                         "_type": "storage",
                                         "_version": "1.0.0",
-                                        "_active": true,
+                                        "_active": _active,
                                         "_deleted": false,
                                         "_createdBy": "router",
                                         "_createdDate": new Date(),
@@ -145,24 +151,26 @@ module.exports = class StoreDataEtl extends BaseManager {
 
                                     "salesCategoryId": {},
                                     "salesCategory": item.jenis_penjualan,
-                                    "shift": item2.shift,
+                                    // "shift": shift,
                                     "city": item.Kota_Cbg,
                                     "pic": item.Kontak,
                                     "fax": item.FAX,
                                     "openedDate": openedDate,
                                     "closedDate": closedDate,
                                     "storeArea": item.keterangan,
-                                    "storeWIde": item.luas_toko,
+                                    "storeWide": item.luas_toko,
                                     "online-offline": item.online_offline,
                                     "storeCategory": item.jenis_toko,
                                     "monthlyTotalCost": item.total_cost_bulanan,
                                     "status": status,
                                     "address": [(item.Alm_Cbg || '').trim().toString(), (item.Kota_Cbg || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
                                     "phone": [(item.Kontak || '').trim().toString(), (item.Telp || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
-                                    "salesCapital": 0
+                                    // "salesCapital": 0
                                 }
-
-                            tasks.push(this.collection.update({ _id: item2._id }, update, { ordered: false }));
+                            if (update.phone == '') {
+                                update.phone = "-";
+                            }
+                            tasks.push(this.collection.update( update, { ordered: false }));
 
                             break;
                         }
@@ -177,7 +185,7 @@ module.exports = class StoreDataEtl extends BaseManager {
                                 "_stamp": _stamp,
                                 "_type": "store",
                                 "_version": "1.0.0",
-                                "_active": true,
+                                "_active": _active,
                                 "_deleted": false,
                                 "_createdBy": "router",
                                 "_createdDate": new Date(),
@@ -196,7 +204,7 @@ module.exports = class StoreDataEtl extends BaseManager {
                                     "_stamp": _stampStorage,
                                     "_type": "storage",
                                     "_version": "1.0.0",
-                                    "_active": true,
+                                    "_active": _active,
                                     "_deleted": false,
                                     "_createdBy": "router",
                                     "_createdDate": new Date(),
@@ -220,17 +228,19 @@ module.exports = class StoreDataEtl extends BaseManager {
                                 "openedDate": openedDate,
                                 "closedDate": closedDate,
                                 "storeArea": item.keterangan,
-                                "storeWIde": item.luas_toko,
+                                "storeWide": item.luas_toko,
                                 "online-offline": item.online_offline,
                                 "storeCategory": item.jenis_toko,
                                 "monthlyTotalCost": item.total_cost_bulanan,
                                 "status": status,
                                 "address": [(item.Alm_Cbg || '').trim().toString(), (item.Kota_Cbg || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
                                 "phone": [(item.Kontak || '').trim().toString(), (item.Telp || '').trim().toString()].filter(r => r && r.toString().trim().length > 0).join(" - "),
-                                "salesCapital": 0
+                                "salesCapital": 0,
                             }
                         // insertArr.push(insert)
-
+                        if (insert.phone == '') {
+                            insert.phone = "-";
+                        }
                         tasks.push(this.collection.insert(insert, { ordered: false }));
                     }
 
@@ -244,7 +254,7 @@ module.exports = class StoreDataEtl extends BaseManager {
                     })
 
                     .catch((e) => {
-                        done();
+                        reject(e);
                     })
 
             });

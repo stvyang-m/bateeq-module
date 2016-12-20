@@ -72,7 +72,7 @@ before("#00. connect db", function (done) {
 it("#05. should success when migrate all data Storages ", function (done) {
     instanceMigration.migrateDataItems()
         .then((result) => {
-            // console.log(data);
+            // console.log(result);
             done();
         })
 
