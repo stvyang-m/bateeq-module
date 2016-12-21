@@ -1,7 +1,9 @@
 var helper = require("../helper");
 var should = require("should");
 var connect = require("../../src/etl/sqlConnect");
-var ItemsMigration = require("../../src/etl/items-etl");
+var Sales = require("../../src/etl/sales-etl");
+// var SalesMigration = require("../../src/etl/sales-migration-etl");
+var instanceManager = null;
 var instanceMigration = null;
 
 before("#00. connect db", function (done) {
@@ -9,9 +11,10 @@ before("#00. connect db", function (done) {
         .then((db) => {
             connect.getConnect()
                 .then((connect) => {
-                    instanceMigration = new ItemsMigration(db, {
+                    instanceManager = new Sales(db, {
                         username: "unit-test"
                     });
+
                     done();
                 })
                 .catch((e) => {
@@ -20,16 +23,17 @@ before("#00. connect db", function (done) {
         })
 });
 
-it("#01. should success when migrate all data items ", function (done) {
-    instanceMigration.getDataItems()
-        .then((result) => {
-            // console.log(result);
-            done();
-        })
+it("#01. should success insert all data ", function (done) {
+    instanceManager.getDataSales()
+        .then((sales) =>{
 
+                    done();
+
+        })
         .catch((e) => {
             done(e);
         })
-});
 
+
+});
 

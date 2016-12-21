@@ -36,22 +36,25 @@ module.exports = class ItemDataEtl extends BaseManager {
                         }
                         else {
 
-                            var testPage=3;
+                            // var testPage=100;
                             var DataRows = 100;
-                            // var numberOfPage = [];
+                           
                             var numberOfPage = Math.ceil(ProdukLength[0].MaxLength / DataRows);
 
                             var process = [];
-                            for (var i = 1; i <= testPage; i++) {
+                            for (var i = 1; i <= numberOfPage; i++) {
                                 process.push(self.migrateDataItems(request, i, DataRows))
                             }
 
                             Promise.all(process).then(results => {
-                                var items = [];
-                                for (var result of results) {
-                                    items.push(result);
-                                }
-                                resolve(items);
+                                // var items = [];
+                                // for (var result of results) {
+                                //     items.push(result);
+                                // }
+                                // resolve(items);
+
+                                resolve(results);
+
                             }).catch(error => {
                                 reject(error);
                             });
@@ -94,7 +97,7 @@ module.exports = class ItemDataEtl extends BaseManager {
 
                 Promise.all(tasks)
                     .then((task) => {
-                        console.log(task);
+                        // console.log(task);
                         resolve(task);
                     }).catch(error => {
                         reject(error);
