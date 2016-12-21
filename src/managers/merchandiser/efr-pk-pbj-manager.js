@@ -109,23 +109,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                 });
         });
     }
-
-    getSingleByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQueryOrDefault(query)
-                .then(spkDoc => {
-                    resolve(spkDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
+    
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.SPKDocCollection
@@ -138,20 +122,6 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                 });
         })
     }
-
-    getSingleByQueryOrDefault(query) {
-        return new Promise((resolve, reject) => {
-            this.SPKDocCollection
-                .singleOrDefault(query)
-                .then(spkDoc => {
-                    resolve(spkDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
 
     create(spkDoc) {
         return new Promise((resolve, reject) => {
@@ -325,7 +295,6 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
 
                     if (valid.items && valid.items.length > 0) {
                         for (var item of valid.items) {
-                            // getItems.push(this.itemManager.getSingleByIdOrDefault(item.articleVariantId));
                             getItem.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(valid.sourceId, item.articleVariantId))
                         }
                     }
@@ -436,68 +405,66 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
     }
 
     insert(dataFile, sourceId, destinationId, dateForm) {
-        var errors = {};
         return new Promise((resolve, reject) => {
-            var idDestination, idSource;
             var data = [];
             if (dataFile != "") {
                 for (var i = 1; i < dataFile.length; i++) {
-                    data.push({ "PackingList": dataFile[i][0], "Password": dataFile[i][1], "Barcode": dataFile[i][2], "Nama": dataFile[i][3], "Size": dataFile[i][4], "Harga": dataFile[i][5], "UOM": dataFile[i][6], "QTY": dataFile[i][7], "RO": dataFile[i][8] });
-                }
-
-            }
-            else
-                errors["File"] = "data tidak ada";
-
-            if (sourceId != "")
-                idSource = sourceId;
-            else
-                errors["source"] = "source tidak boleh kosong";
-
-            if (destinationId != "")
-                idDestination = destinationId;
-            else
-                errors["destination"] = "destination tidak boleh kosong";
-
-            for (var i = 0; i < data; i++) {
-                if (data[i][PackingList] == "") {
-                    errors["PackingList"] = "Packing List tidak boleh kosong";
-                }
-
-                if (data[i][Password] == "") {
-                    errors["Password"] = "Password tidak boleh kosong";
-                }
-                if (data[i][Barcode] == "") {
-                    errors["Barcode"] = "Barcode tidak boleh kosong";
-                }
-                if (data[i][Nama] == "") {
-                    errors["Nama"] = "Nama tidak boleh kosong";
-                }
-                if (data[i][Size] == "") {
-                    errors["Size"] = "Size tidak boleh kosong";
-                }
-                if (data[i][Harga] == "") {
-                    errors["Harga"] = "Harga tidak boleh kosong";
-                }
-                if (data[i][UOM] == "") {
-                    errors["UOM"] = "UOM tidak boleh kosong";
-                }
-                if (data[i][QTY] == "") {
-                    errors["QTY"] = "QTY tidak boleh kosong";
-                }
-                if (data[i][RO] == "") {
-                    errors["RO"] = "RO tidak boleh kosong";
+                    data.push({ "PackingList": dataFile[i][0], "Password": dataFile[i][1], "Barcode": dataFile[i][2], "Name": dataFile[i][3], "Size": dataFile[i][4], "Price": dataFile[i][5], "UOM": dataFile[i][6], "QTY": dataFile[i][7], "RO": dataFile[i][8] });
                 }
             }
-            if (Object.getOwnPropertyNames(errors).length == 0) {
+            var dataError = [], errorMessage;
+            for (var i = 0; i < data.length; i++) {
+                errorMessage = "";
+                if (data[i]["PackingList"] === "") {
+                    errorMessage = errorMessage + "Packing List tidak boleh kosong,";
+                }
+                if (data[i]["Password"] === "") {
+                    errorMessage = errorMessage + "Password tidak boleh kosong,";
+                }
+                if (data[i]["Barcode"] === "") {
+                    errorMessage = errorMessage + "Barcode tidak boleh kosong,";
+                }
+                if (data[i]["Name"] === "") {
+                    errorMessage = errorMessage + "Name tidak boleh kosong,";
+                }
+                if (data[i]["Size"] === "") {
+                    errorMessage = errorMessage + "Size tidak boleh kosong,";
+                }
+                if (data[i]["Price"] === "") {
+                    errorMessage = errorMessage + "Price tidak boleh kosong,";
+                }
+                if (data[i]["UOM"] === "") {
+                    errorMessage = errorMessage + "UOM tidak boleh kosong,";
+                }
+                if (data[i]["QTY"] === "") {
+                    errorMessage = errorMessage + "QTY tidak boleh kosong,";
+                } else if (isNaN(data[i]["QTY"])) {
+                    errorMessage = errorMessage + "QTY harus numerik,";
+                }
 
-                // var items = rows.map(row => {
-                //     return { code: row.barcode, name: row.nama };
-                // });
+                for (var j = 0; j < data.length; j++) {
+                    if (i !== j) {
+                        if (data[i]["PackingList"] === data[j]["PackingList"]) {
+                            if (data[i]["Password"] !== data[j]["Password"]) {
+                                errorMessage = errorMessage + "Password berbeda di packing list yang sama,";
+                            }
+                            if (data[i]["Barcode"] === data[j]["Barcode"]) {
+                                errorMessage = errorMessage + "Barcode sudah ada di packing list yang sama,";
+                            }
+                        }
+                    }
+
+                }
+
+                if (errorMessage !== "") {
+                    dataError.push({ "PackingList": data[i]["PackingList"], "Password": data[i]["Password"], "Barcode": data[i]["Barcode"], "Name": data[i]["Name"], "Size": data[i]["Size"], "Price": data[i]["Price"], "UOM": data[i]["UOM"], "QTY": data[i]["QTY"], "RO": data[i]["RO"], "Error": errorMessage });
+                }
+            }
+            if (dataError.length === 0) {
 
                 var fg = [];
                 for (var i = 0; i < data.length; i++) {
-                    fg.push({ "code": data[i]["Barcode"], "name": data[i]["Nama"], "uom": data[i]["UOM"], "realizationOrder": data[i]["RO"], "size": data[i]["Size"], "domesticSale": data[i]["Harga"] });
+                    fg.push({ "code": data[i]["Barcode"], "name": data[i]["Name"], "uom": data[i]["UOM"], "realizationOrder": data[i]["RO"], "size": data[i]["Size"], "domesticSale": data[i]["Price"] });
                 }
 
                 var flags = [], distinctFg = [];
@@ -513,8 +480,26 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                         var item = fg;
                         this.itemManager.getByCode(item.code)
                             .then(resultItem => {
-                                if (resultItem)
-                                    resolve(resultItem);
+                                if (resultItem) {
+                                    resultItem.name = item.name;
+                                    resultItem.uom = item.uom;
+                                    resultItem.article.realizationOrder = item.realizationOrder;
+                                    resultItem.size = item.size;
+                                    resultItem.domesticSale = item.domesticSale;
+                                    this.finishedGoodsManager.update(resultItem)
+                                        .then(id => {
+                                            this.itemManager.getSingleById(id)
+                                                .then(resultItem => {
+                                                    resolve(resultItem);
+                                                })
+                                                .catch(e => {
+                                                    reject(e);
+                                                });
+                                        })
+                                        .catch(e => {
+                                            reject(e);
+                                        });
+                                }
                                 else {
                                     var finishGood = new FinishedGoods();
                                     finishGood.code = item.code;
@@ -592,9 +577,17 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                         for (var spkDocument of spks.values()) {
                             var spkDocs = new Promise((resolve, reject) => {
                                 var spkDoc = spkDocument;
-                                this.pkManager.getByPackingList(spkDoc.packingList)
+                                this.pkManager.getByPL(spkDoc.packingList)
                                     .then(resultItem => {
-                                        if (resultItem)
+                                        if (resultItem) {
+                                            resultItem.source = spkDoc.source;
+                                            resultItem.sourceId = new ObjectId(spkDoc.source._id);
+                                            resultItem.destination = spkDoc.destination;
+                                            resultItem.destinationId = new ObjectId(spkDoc.destination._id);
+                                            resultItem.reference = spkDoc.PackingList;
+                                            resultItem.date = spkDoc.dateForm;
+                                            resultItem.password = spkDoc.Password;
+                                            resultItem.items = spkDoc.items;
                                             this.SPKDocCollection.update(resultItem)
                                                 .then(resultItem => {
                                                     resolve(resultItem);
@@ -602,8 +595,10 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                                 .catch(e => {
                                                     reject(e);
                                                 });
+                                        }
                                         else {
                                             var spkResult = new SPKDoc(spkDoc);
+                                            spkResult.stamp(this.user.username, 'manager');
                                             this.SPKDocCollection.insert(spkResult)
                                                 .then(id => {
                                                     this.pkManager.getSingleById(id)
@@ -639,6 +634,8 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                     .catch(e => {
                         reject(e);
                     });
+            } else {
+                resolve(dataError);
             }
 
         });

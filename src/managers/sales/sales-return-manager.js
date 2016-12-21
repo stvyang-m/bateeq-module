@@ -141,6 +141,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                             salesReturn.returnItems.push(salesReturnItem);
                                         }
                                     }
+                                    salesReturn.stamp(this.user.username, 'manager');
 
                                     this.collection.insert(salesReturn)
                                         .then(result => {
@@ -162,6 +163,25 @@ module.exports = class SalesReturnManager extends BaseManager {
                     reject(e);
                 })
         });
+    }
+
+    _void(salesDoc) {
+        return new Promise((resolve, reject) => {
+            this.collection.singleOrDefault({ "salesDocReturn._id": new ObjectId(salesDoc._id), _deleted: false, isVoid: false })
+                .then(result => {
+                    // update sales
+                    result.isVoid = true;
+                    var valid = new SalesReturn(result);
+                    valid.stamp(this.user.username, 'manager');
+                    this.collection.update(valid)
+                        .then(id => {
+                            resolve(id);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+                });
+        })
     }
 
     _validate(salesVM) {
@@ -190,8 +210,8 @@ module.exports = class SalesReturnManager extends BaseManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                    code: valid.code
-                }]
+                        code: valid.code
+                    }]
             });
             var getSales;
             var getStore;
@@ -511,8 +531,8 @@ module.exports = class SalesReturnManager extends BaseManager {
                                                         if (isGetPromo)
                                                             returnItemError["itemId"] = "Barang baru harus berada di paket yang sama";
                                                         else {
-                                                            if (returnItem.quantity != item.quantity) {
-                                                                returnItemError["quantity"] = "Barang baru harus memiliki quantity yang sama";
+                                                            if (returnItem.quantity > item.quantity) {
+                                                                returnItemError["quantity"] = "Barang baru tidak boleh lebih besar dari barang diretur";
                                                             }
                                                         }
                                                     }
@@ -631,7 +651,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                             }
 
                             for (var prop in errors) {
-                                var ValidationError = require('../../validation-error');
+                                var ValidationError = require('module-toolkit').ValidationError;
                                 reject(new ValidationError('data does not pass validation', errors));
                             }
 
@@ -655,11 +675,11 @@ module.exports = class SalesReturnManager extends BaseManager {
 
                                             if (stock) {
                                                 if (returnItem.quantity > stock.quantity) {
-                                                    returnItemError["quantity"] = "Quantity is bigger than Stock";
+                                                    returnItemError["quantity"] = "Stok Tidak Tersedia";
                                                 }
                                             }
                                             else {
-                                                returnItemError["quantity"] = "Quantity is bigger than Stock";
+                                                returnItemError["quantity"] = "Stok Tidak Tersedia";
                                             }
                                             stockIndex += 1;
                                             returnItemErrors.push(returnItemError);
@@ -686,7 +706,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                             break;
                                     }
                                     for (var prop in errors) {
-                                        var ValidationError = require('../../validation-error');
+                                        var ValidationError = require('module-toolkit').ValidationError;
                                         reject(new ValidationError('data does not pass validation', errors));
                                     }
 
