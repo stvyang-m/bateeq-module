@@ -47,11 +47,11 @@ module.exports = class SalesDataEtl extends BaseManager {
                             reject(err);
                         }
                         else {
-                            var MaxLength = salesResult[0].MaxLength;
+                            // var MaxLength = salesResult[0].MaxLength;
                             // var testPage = 5;
 
                             var dataRows = 100;
-                            var numberOfPage = Math.ceil(MaxLength / dataRows);
+                            var numberOfPage = Math.ceil(salesResult[0].MaxLength / dataRows);
 
                             var process = [];
                             for (var i = 1; i <= numberOfPage; i++) {
