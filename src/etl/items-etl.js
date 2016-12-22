@@ -35,11 +35,11 @@ module.exports = class ItemDataEtl extends BaseManager {
                             reject(err);
                         }
                         else {
-
+                            var MaxLength = ProdukLength[0].MaxLength;
                             // var testPage=100;
                             var DataRows = 100;
-                           
-                            var numberOfPage = Math.ceil(ProdukLength[0].MaxLength / DataRows);
+
+                            var numberOfPage = Math.ceil(MaxLength / DataRows);
 
                             var process = [];
                             for (var i = 1; i <= numberOfPage; i++) {
@@ -155,7 +155,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "internationalWholesale": 0,
                             "internationalRetail": 0,
                             "internationalSale": 0,
-                            "notMongo": true
+
                         }
                     this.collection.update(update, { ordered: false })
                         .then((result) => {
@@ -196,7 +196,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "internationalWholesale": 0,
                             "internationalRetail": 0,
                             "internationalSale": 0,
-                            "notMongo": true
+
                         }
 
                     this.collection.insert(ItemMap, { ordered: false }).then((result) => {
