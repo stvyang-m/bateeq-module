@@ -151,7 +151,7 @@ module.exports = class StoreDataEtl extends BaseManager {
 
                                     "salesCategoryId": {},
                                     "salesCategory": item.jenis_penjualan,
-                                    // "shift": shift,
+                                    "shifts": shift,
                                     "city": item.Kota_Cbg,
                                     "pic": item.Kontak,
                                     "fax": item.FAX,
@@ -221,7 +221,7 @@ module.exports = class StoreDataEtl extends BaseManager {
 
                                 "salesCategoryId": {},
                                 "salesCategory": item.jenis_penjualan,
-                                "shift": shift,
+                                "shifts": shift,
                                 "city": item.Kota_Cbg,
                                 "pic": item.Kontak,
                                 "fax": item.FAX,
