@@ -30,6 +30,7 @@ module.exports = class SalesDataEtl extends BaseManager {
         this.collectionCardType = this.CardTypeManager.collection;
         this.collectionSalesManager = this.SalesManager.collection;
         this.collection = this.db.collection("sales-docs.temp");
+        this.collectionLog = this.db.collection("migration.log");
 
     }
 
@@ -58,10 +59,15 @@ module.exports = class SalesDataEtl extends BaseManager {
                             reject(err);
                         }
                         else {
+                            var start = new Date().getTime();
+
+                            self.collectionLog.insert({ "_start": start });
+
+
                             var MaxLength = salesResult[0].MaxLength;
                             // var testPage = 5;
                             // self.collection.find({});
-                            var dataRows = 100;
+                            var dataRows = 1000;
                             var numberOfPage = Math.ceil(MaxLength / dataRows);
 
                             var process = [];
@@ -76,6 +82,25 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 // }
 
                                 // console.log(arr);
+
+
+                                // var end = new Date().getTime();
+
+                                // var log = {
+                                //     "migration": "sql to sales-docs.temp",
+                                //     "_start": start,
+                                //     "_end": end,
+                                //     "Execution time": (end - start) + ' ms',
+                                // };
+                                var end = new Date().getTime();
+                                var time = end - start;
+                                var log = {
+                                    "migration": "sales-docs.temp to sales-docs",
+                                    "_start": start,
+                                    "_end": end,
+                                    "Execution time": time + ' ms',
+                                };
+                                self.collectionLog.updateOne({ "_start": start }, log);
                                 resolve(results);
 
 
