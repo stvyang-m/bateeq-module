@@ -67,7 +67,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                             var MaxLength = salesResult[0].MaxLength;
                             // var testPage = 5;
                             // self.collection.find({});
-                            var dataRows = 1000;
+                            var dataRows = 4000;
                             var numberOfPage = Math.ceil(MaxLength / dataRows);
 
                             var process = [];
