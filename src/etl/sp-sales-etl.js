@@ -95,7 +95,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 var end = new Date().getTime();
                                 var time = end - start;
                                 var log = {
-                                    "migration": "sales-docs.temp to sales-docs",
+                                    "migration": "sql to sales-docs.temp ",
                                     "_start": start,
                                     "_end": end,
                                     "Execution time": time + ' ms',
