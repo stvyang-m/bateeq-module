@@ -50,7 +50,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                 .then((request) => {
                     var self = this;
 
-                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a";
+                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a WHERE branch= 'SLO.02'";
 
                     request.query(CountRows, function (err, salesResult) {
                         // var a = [];
@@ -61,13 +61,13 @@ module.exports = class SalesDataEtl extends BaseManager {
                         else {
                             var start = new Date().getTime();
 
-                            self.collectionLog.insert({ "_start": start });
+                            self.collectionLog.insert({ "migration": "sql to sales-docs.temp ","_start": start });
 
 
                             var MaxLength = salesResult[0].MaxLength;
                             // var testPage = 5;
                             // self.collection.find({});
-                            var dataRows = 10000;
+                            var dataRows = 4000;
                             var numberOfPage = Math.ceil(MaxLength / dataRows);
 
                             var process = [];
