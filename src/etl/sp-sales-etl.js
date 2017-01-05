@@ -12,9 +12,6 @@ var CardTypeManager = require('../../src/managers/master/card-type-manager');
 var StoreManager = require('../../src/managers/master/store-manager');
 var SalesManager = require('../../src/managers/sales/sales-manager');
 
-
-// var request=sqlConnect.getConnect();
-
 module.exports = class SalesDataEtl extends BaseManager {
     constructor(db, user) {
         super(db, user);
@@ -50,7 +47,11 @@ module.exports = class SalesDataEtl extends BaseManager {
                 .then((request) => {
                     var self = this;
 
-                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a";
+
+                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a WHERE branch= 'SLO.02' OR branch='SLO.03'";
+
+                    // var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where nomor like '%201305%' and branch ='SLO.01'";
+
 
                     request.query(CountRows, function (err, salesResult) {
                         // var a = [];
@@ -59,48 +60,36 @@ module.exports = class SalesDataEtl extends BaseManager {
                             reject(err);
                         }
                         else {
-                            var start = new Date().getTime();
+                            var _start = new Date().getTime();
+                            var date = new Date();
 
-                            self.collectionLog.insert({ "_start": start });
-
-
+                            self.collectionLog.insert({ "migration": "sql to sales-docs.temp ", "_createdDate": date, "_start": date });
                             var MaxLength = salesResult[0].MaxLength;
                             // var testPage = 5;
                             // self.collection.find({});
-                            var dataRows = 10000;
+
+                            var dataRows = 7000;
+
                             var numberOfPage = Math.ceil(MaxLength / dataRows);
 
                             var process = [];
-                            for (var i = 1; i <= numberOfPage; i++) {
+                            for (var i = 1; i <= 1; i++) {
                                 process.push(self.migrateDataSales(request, i, dataRows))
                             }
 
                             Promise.all(process).then(results => {
-                                // var arr = [];
-                                // for (var i = 0; i <= results.length; i++) {
-                                //     arr.push(results[i]);
-                                // }
 
-                                // console.log(arr);
-
-
-                                // var end = new Date().getTime();
-
-                                // var log = {
-                                //     "migration": "sql to sales-docs.temp",
-                                //     "_start": start,
-                                //     "_end": end,
-                                //     "Execution time": (end - start) + ' ms',
-                                // };
-                                var end = new Date().getTime();
-                                var time = end - start;
+                                var end = new Date();
+                                var _end = new Date().getTime();
+                                var time = _end - _start;
                                 var log = {
                                     "migration": "sql to sales-docs.temp ",
-                                    "_start": start,
+                                    "_createdDate": date,
+                                    "_start": date,
                                     "_end": end,
                                     "Execution time": time + ' ms',
                                 };
-                                self.collectionLog.updateOne({ "_start": start }, log);
+                                self.collectionLog.updateOne({ "_start": date }, log);
                                 resolve(results);
 
 
@@ -172,7 +161,9 @@ module.exports = class SalesDataEtl extends BaseManager {
                             // self.collection.insertMany(task);
                             console.log(task);
                             resolve(task);
-                        }).catch(error => {
+                        })
+                        .catch(error => {
+
                             console.log("Error : " + error);
                             reject(error);
                         });
@@ -231,9 +222,19 @@ module.exports = class SalesDataEtl extends BaseManager {
 
             var _stamp = new ObjectId();
 
+
+            // var kartu = sales.kartu.trim();
+            // if (kartu.indexOf("/") != -1) {
+            //     kartu = kartu.substring(0, kartu.indexOf("/"));
+            // } else {
+            //     kartu = sales.kartu.trim();
+            // }
+
+
             var store = this.getStore(sales.branch);
-            var items = this.getItems(request, sales.branch, sales.nomor);
+            var items = this.getItems(request, sales.branch, sales.nomor, sales.pos.trim());
             var banks = this.getBanks(sales.kartu);
+            // var banks = this.getBanks(kartu);
             var cards = this.getCards(CardType);
             var cardBanks = this.getBanks("-");
 
@@ -248,8 +249,9 @@ module.exports = class SalesDataEtl extends BaseManager {
                     "_version": "1.0.0",
                     "_active": true,
                     "_deleted": false,
-                    "_createdBy": sales.userin,
+                    "_createdBy": sales.userin.trim(),
                     "_createdDate": sales.tglin,
+                    // "_createdDate": new Date(),
                     "_createAgent": "manager",
                     "_updatedBy": "router",
                     "_updatedDate": new Date(),
@@ -262,7 +264,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                     "grandTotal": parseInt(sales.grandTotal),
                     "reference": sales.reference,
                     "shift": parseInt(sales.shift),
-                    "pos": sales.pos,
+                    "pos": sales.pos.trim(),
 
                     "storeId": data[0]._id,
                     "store": data[0],
@@ -298,7 +300,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                         "bankCardId": (paymentType == "Cash") ? {} : ((data[4]) ? data[4]._id : {}),
                         "bankCard": (paymentType == "Cash") ? {} : ((data[4]) ? data[4] : {}),
                         "card": cardTemp,
-                        "cardNumber": sales.no_krt,
+                        "cardNumber": sales.no_krt.trim(),
                         "cardName": "",
                         "cashAmount": parseInt(sales.cash),
                         "cardAmount": parseInt(sales.debit) + parseInt(sales.credit),
@@ -307,22 +309,10 @@ module.exports = class SalesDataEtl extends BaseManager {
                     "isReturn": false,
                     "isVoid": false,
                 }
-
-                // this.collectionSalesManager.insert(salesData, { ordered: false })
-                //     .then((result) => {
-                //         resolve(result);
-                //     })
-                //     .catch((error) => {
-                //         console.log("Error(CreateData) : " + error);
-                //         reject(error);
-                //     })
                 salesArr.push(salesData);
-
-
                 resolve(this.collection.insertMany(salesArr));
-
-
             })
+
         })
     }
 
@@ -356,13 +346,16 @@ module.exports = class SalesDataEtl extends BaseManager {
         });
     }
 
-    getItems(request, branch, nomor) {
+    getItems(request, branch, nomor, pos) {
         var self = this;
         return new Promise((resolve, reject) => {
-            var queryfilter = 'select * from penjualan where nomor= \'' + nomor + '\' and branch= \'' + branch + '\'';
+            var queryfilter = 'select * from penjualan where nomor= \'' + nomor + '\' and branch= \'' + branch + '\' and pos=\'' + pos + '\'';
+            // var queryfilter = 'select * from penjualan where nomor= \'' + nomor + '\' and branch= \'' + branch + '\'';
             request.query(queryfilter, function (err, sales) {
-                if (err)
+                if (err) {
+                    console.log(err);
                     reject(err);
+                }
                 else {
                     var barcodes = [];
                     for (var i = 0; i < sales.length; i++) {
@@ -385,6 +378,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                                             "_createdDate": new Date(),
                                             "_createAgent": "manager",
                                             "_updatedBy": "router",
+                                            "_updatedDate": new Date(),
                                             "_updateAgent": "manager",
                                             "itemId": listItem[j]._id,
                                             "item": listItem[j],
@@ -426,4 +420,5 @@ module.exports = class SalesDataEtl extends BaseManager {
             });
         });
     }
+
 }
