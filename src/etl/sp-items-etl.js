@@ -17,7 +17,10 @@ module.exports = class ItemDataEtl extends BaseManager {
 
         this.ItemManager = new ItemManager(db, user);
 
-        this.collection = this.ItemManager.collection;
+        // this.collection = this.ItemManager.collection;
+
+        this.collection = this.db.collection("items.temp");
+        this.collectionLog = this.db.collection("migration.log");
         // this.adas=1;
     }
 
@@ -35,6 +38,11 @@ module.exports = class ItemDataEtl extends BaseManager {
                             reject(err);
                         }
                         else {
+                            var _start = new Date().getTime();
+                            var date = new Date();
+
+                            self.collectionLog.insert({ "migration": "items to items.temp ", "_createdDate": date, "_start": date });
+
                             var MaxLength = ProdukLength[0].MaxLength;
                             // var testPage=100;
                             var DataRows = MaxLength;
@@ -49,7 +57,17 @@ module.exports = class ItemDataEtl extends BaseManager {
                             }
 
                             Promise.all(process).then(results => {
-
+                                var end = new Date();
+                                var _end = new Date().getTime();
+                                var time = _end - _start;
+                                var log = {
+                                    "migration": "items to items.temp ",
+                                    "_createdDate": date,
+                                    "_start": date,
+                                    "_end": end,
+                                    "Execution time": time + ' ms',
+                                };
+                                self.collectionLog.updateOne({ "_start": date }, log);
                                 resolve(results);
 
                             }).catch(error => {
@@ -99,7 +117,7 @@ module.exports = class ItemDataEtl extends BaseManager {
     insert(item) {
         return new Promise((resolve, reject) => {
 
-            var itemArr=[];
+            var itemArr = [];
 
             var _idItems = new ObjectId();
             var _stampItems = new ObjectId();
@@ -147,8 +165,8 @@ module.exports = class ItemDataEtl extends BaseManager {
 
                 }
 
-                itemArr.push(ItemMap);
-                resolve(this.collection.insertMany(itemArr));
+            itemArr.push(ItemMap);
+            resolve(this.collection.insertMany(itemArr));
 
             // this.collection.insert(ItemMap, { ordered: false }).then((result) => {
             //     resolve(result);

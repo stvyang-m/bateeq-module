@@ -68,12 +68,12 @@ module.exports = class SalesDataEtl extends BaseManager {
                             // var testPage = 5;
                             // self.collection.find({});
 
-                            var dataRows = 7000;
+                            var dataRows = MaxLength;
 
                             var numberOfPage = Math.ceil(MaxLength / dataRows);
 
                             var process = [];
-                            for (var i = 1; i <= 1; i++) {
+                            for (var i = 1; i <= numberOfPage; i++) {
                                 process.push(self.migrateDataSales(request, i, dataRows))
                             }
 

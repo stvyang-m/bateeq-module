@@ -1,7 +1,7 @@
 var helper = require("../helper");
 var should = require("should");
 var connect = require("../../src/etl/sqlConnect");
-var ItemsMigration = require("../../src/etl/items-etl");
+var ItemsMigration = require("../../src/etl/sp-items-etl");
 var instanceMigration = null;
 
 before("#00. connect db", function (done) {
