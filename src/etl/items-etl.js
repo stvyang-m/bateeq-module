@@ -35,23 +35,26 @@ module.exports = class ItemDataEtl extends BaseManager {
                             reject(err);
                         }
                         else {
-
-                            var testPage=3;
+                            var MaxLength = ProdukLength[0].MaxLength;
+                            // var testPage=100;
                             var DataRows = 100;
-                            // var numberOfPage = [];
-                            var numberOfPage = Math.ceil(ProdukLength[0].MaxLength / DataRows);
+
+                            var numberOfPage = Math.ceil(MaxLength / DataRows);
 
                             var process = [];
-                            for (var i = 1; i <= testPage; i++) {
+                            for (var i = 1; i <= numberOfPage; i++) {
                                 process.push(self.migrateDataItems(request, i, DataRows))
                             }
 
                             Promise.all(process).then(results => {
-                                var items = [];
-                                for (var result of results) {
-                                    items.push(result);
-                                }
-                                resolve(items);
+                                // var items = [];
+                                // for (var result of results) {
+                                //     items.push(result);
+                                // }
+                                // resolve(items);
+
+                                resolve(results);
+
                             }).catch(error => {
                                 reject(error);
                             });
@@ -94,7 +97,7 @@ module.exports = class ItemDataEtl extends BaseManager {
 
                 Promise.all(tasks)
                     .then((task) => {
-                        console.log(task);
+                        // console.log(task);
                         resolve(task);
                     }).catch(error => {
                         reject(error);
@@ -113,7 +116,7 @@ module.exports = class ItemDataEtl extends BaseManager {
             if ((!item.ro) || (item.ro.trim() == "-")) {
                 ro = "";
             } else {
-                ro = item.ro;
+                ro = item.ro.trim();
             };
 
             this.getDataMongo(item.Barcode).then((results) => {
@@ -134,7 +137,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "_updatedDate": new Date(),
                             "_updateAgent": "manager",
                             "code": result.code,
-                            "name": item.Nm_Product,
+                            "name": item.Nm_Product.trim(),
                             "description": "",
                             "uom": "PCS",
                             "components": [],
@@ -143,7 +146,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "article": {
                                 "realizationOrder": ro
                             },
-                            "size": item.Size,
+                            "size": item.Size.trim(),
                             "domesticCOGS": item.Harga,
                             "domesticWholesale": 0,
                             "domesticRetail": 0,
@@ -152,7 +155,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "internationalWholesale": 0,
                             "internationalRetail": 0,
                             "internationalSale": 0,
-                            "notMongo": true
+
                         }
                     this.collection.update(update, { ordered: false })
                         .then((result) => {
@@ -175,7 +178,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "_updatedDate": new Date(),
                             "_updateAgent": "manager",
                             "code": item.Barcode,
-                            "name": item.Nm_Product,
+                            "name": item.Nm_Product.trim(),
                             "description": "",
                             "uom": "PCS",
                             "components": [],
@@ -184,7 +187,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "article": {
                                 "realizationOrder": ro
                             },
-                            "size": item.Size,
+                            "size": item.Size.trim(),
                             "domesticCOGS": item.Harga,
                             "domesticWholesale": 0,
                             "domesticRetail": 0,
@@ -193,7 +196,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "internationalWholesale": 0,
                             "internationalRetail": 0,
                             "internationalSale": 0,
-                            "notMongo": true
+
                         }
 
                     this.collection.insert(ItemMap, { ordered: false }).then((result) => {

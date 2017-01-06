@@ -82,10 +82,22 @@ module.exports = {
         SalesReturnManager: require('./src/managers/sales/sales-return-manager'),
         PromoManager: require('./src/managers/sales/promo-manager')
     },
-    etl: { 
-        itemsMigration:require('./src/etl/items-migration-etl'),
-        storesMigration:require('./src/etl/stores-migration-etl'),
-        storagesMigration:require('./src/etl/storages-migration-etl'),
-        salesMigration:require('./src/etl/sales-migration-etl'),
-    } 
+
+
+    etl: {
+        itemsMigration: require('./src/etl/items-etl'),
+        itemsSpMigration: require('./src/etl/sp-items-etl'),
+        storesMigration: require('./src/etl/stores-migration-etl'),
+        storagesMigration: require('./src/etl/storages-migration-etl'),
+
+        salesMigration: require('./src/etl/sales-etl'),
+        salesSpMigration: require('./src/etl/sp-sales-etl'),
+
+
+
+
+
+    }
+
 }
+

@@ -141,7 +141,7 @@ module.exports = class StorageDataEtl extends BaseManager {
                                     "_active": item._active,
                                     "_deleted": false,
                                     "_createdBy": "router",
-                                    "_createdDate": item2._createdDate,
+                                    "_createdDate": item._createdDate,
                                     "_createAgent": "manager",
                                     "_updatedBy": "router",
                                     "_updatedDate": item.storage._createdDate,
@@ -188,7 +188,6 @@ module.exports = class StorageDataEtl extends BaseManager {
 
                 }
 
-                // return (tasks);
                 Promise.all(tasks)
                     .then((result) => {
                         resolve(tasks);

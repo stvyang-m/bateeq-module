@@ -6,10 +6,10 @@ function test(name, path) {
 
 
 describe('#bateeq-module', function (done) {
-    this.timeout(1000 * 60000);
+    this.timeout(10000 * 60000);
     // //auth
     // test('@auth/account-manager', './auth/account-manager-test');
-    
+
     // test('@auth/role-manager', './auth/role-manager-test'); 
     // test('@manager/master/item-manager', './managers/master/item-manager-test');
     // test('@manager/master/material-manager', './managers/master/material-manager-test');
@@ -90,15 +90,17 @@ describe('#bateeq-module', function (done) {
     // test("@etl/stores-data-etl-test", "./etl/stores-data-etl-test");
 
 
-    test("@etl/sales-migration-etl", "./etl/sales-data-etl-test");
+    // test("@etl/sales-migration-etl", "./etl/sales-data-etl-test");
     // test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
     //2nd
     // test("@etl/storages-migration-etl", "./etl/storages-migration-etl-test");
     //1st
     // test("@etl/stores-migration-etl", "./etl/stores-migration-etl-test");
     // test("@etl/testPaging-etl", "./etl/pagination-etl-test");
-        // test("@etl/itemPaging-etl", "./etl/items-etl-pagination-test");
 
+    // test("@etl/sp-item-etl", "./etl/items-etl-pagination-test");
+    // test("@etl/sales-etl", "./etl/sales-etl-pagination-test");
+    test("@etl/sp-sales-etl", "./etl/pagination-etl-test");
 
 
 })

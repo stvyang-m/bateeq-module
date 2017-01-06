@@ -3,7 +3,7 @@ var sql = require("mssql");
 
 var config = {
 
-    user: 'adminbateeq',
+    user: 'Adminbateeq',
     password: 'Standar123.',
     server: 'efrata.database.windows.net',
     database: 'efrata.pos',
@@ -11,8 +11,8 @@ var config = {
     options: {
         encrypt: true
     },
-    connectionTimeout: 100000,
-    requestTimeout: 100000
+    connectionTimeout: 300*60*1000,
+    requestTimeout: 1000000
 
 };
 
