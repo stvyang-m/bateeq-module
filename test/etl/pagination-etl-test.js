@@ -1,7 +1,7 @@
 var helper = require("../helper");
 var should = require("should");
 var connect = require("../../src/etl/sqlConnect");
-var Sales = require("../../src/etl/sp-sales-etl");
+var Sales = require("../../src/etl/sp-sales-etl-test");
 // var SalesMigration = require("../../src/etl/sales-migration-etl");
 var instanceManager = null;
 var instanceMigration = null;

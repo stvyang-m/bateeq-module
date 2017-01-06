@@ -11,15 +11,15 @@ var ItemManager = require('../../src/managers/master/item-manager');
 
 
 
-module.exports = class ItemDataEtl extends BaseManager {
+module.exports = class ItemDataEtltest extends BaseManager {
     constructor(db, user) {
         super(db, user);
 
         this.ItemManager = new ItemManager(db, user);
 
-        // this.collection = this.ItemManager.collection;
+        this.collection = this.ItemManager.collection;
 
-        this.collection = this.db.collection("items");
+        // this.collection = this.db.collection("items");
         this.collectionLog = this.db.collection("migration.log");
         // this.adas=1;
     }
