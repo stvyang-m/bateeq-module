@@ -98,9 +98,9 @@ describe('#bateeq-module', function (done) {
     // test("@etl/stores-migration-etl", "./etl/stores-migration-etl-test");
     // test("@etl/testPaging-etl", "./etl/pagination-etl-test");
 
-    test("@etl/sp-item-etl", "./etl/items-etl-pagination-test");
+    // test("@etl/sp-item-etl", "./etl/items-etl-pagination-test");
     // test("@etl/sales-etl", "./etl/sales-etl-pagination-test");
-    // test("@etl/sp-sales-etl", "./etl/pagination-etl-test");
+    test("@etl/sp-sales-etl", "./etl/pagination-etl-test");
 
 
 })

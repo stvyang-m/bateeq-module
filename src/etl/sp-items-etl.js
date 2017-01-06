@@ -41,7 +41,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             var _start = new Date().getTime();
                             var date = new Date();
 
-                            self.collectionLog.insert({ "migration": "items to items.temp ", "_createdDate": date, "_start": date });
+                            self.collectionLog.insert({ "migration": "sql to items.temp ", "_createdDate": date, "_start": date });
 
                             var MaxLength = ProdukLength[0].MaxLength;
                             // var testPage=100;
@@ -61,7 +61,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                                 var _end = new Date().getTime();
                                 var time = _end - _start;
                                 var log = {
-                                    "migration": "items to items.temp ",
+                                    "migration": "sql to items.temp ",
                                     "_createdDate": date,
                                     "_start": date,
                                     "_end": end,
