@@ -19,7 +19,7 @@ module.exports = class ItemDataEtl extends BaseManager {
 
         // this.collection = this.ItemManager.collection;
 
-        this.collection = this.db.collection("items.temp");
+        this.collection = this.db.collection("items");
         this.collectionLog = this.db.collection("migration.log");
         // this.adas=1;
     }

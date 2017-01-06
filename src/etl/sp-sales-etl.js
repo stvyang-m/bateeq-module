@@ -26,7 +26,7 @@ module.exports = class SalesDataEtl extends BaseManager {
         this.collectionStore = this.StoreManager.collection;
         this.collectionCardType = this.CardTypeManager.collection;
         // this.collectionSalesManager = this.SalesManager.collection;
-        this.collection = this.db.collection("sales-docs.temp");
+        this.collection = this.db.collection("sales-docs");
         this.collectionLog = this.db.collection("migration.log");
 
     }
