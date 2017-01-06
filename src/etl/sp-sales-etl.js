@@ -254,7 +254,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                     "_updatedBy": "router",
                     "_updatedDate": new Date(),
                     "_updateAgent": "manager",
-                    "code": sales.nomor,
+                    "code": sales.nomor.trim() + "-" + sales.branch.trim() + "-" + sales.pos.trim(),
                     "date": sales.tanggal,
                     "totalProduct": sales.totalProduct,
                     "subTotal": sales.subTotal,
