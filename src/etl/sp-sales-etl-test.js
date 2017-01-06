@@ -12,7 +12,7 @@ var CardTypeManager = require('../../src/managers/master/card-type-manager');
 var StoreManager = require('../../src/managers/master/store-manager');
 var SalesManager = require('../../src/managers/sales/sales-manager');
 
-module.exports = class SalesDataEtl extends BaseManager {
+module.exports = class SalesDataEtltest extends BaseManager {
     constructor(db, user) {
         super(db, user);
         this.ItemManager = new ItemManager(db, user);
@@ -25,8 +25,8 @@ module.exports = class SalesDataEtl extends BaseManager {
         this.collectionBank = this.BankManager.collection;
         this.collectionStore = this.StoreManager.collection;
         this.collectionCardType = this.CardTypeManager.collection;
-        // this.collectionSalesManager = this.SalesManager.collection;
-        this.collection = this.db.collection("sales-docs");
+        this.collectionSalesManager = this.SalesManager.collection;
+        // this.collection = this.db.collection("sales-docs");
         this.collectionLog = this.db.collection("migration.log");
 
     }
