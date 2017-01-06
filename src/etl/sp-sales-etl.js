@@ -19,13 +19,13 @@ module.exports = class SalesDataEtl extends BaseManager {
         this.BankManager = new BankManager(db, user);
         this.CardTypeManager = new CardTypeManager(db, user);
         this.StoreManager = new StoreManager(db, user);
-        this.SalesManager = new SalesManager(db, user);
+        // this.SalesManager = new SalesManager(db, user);
 
         this.collectionItem = this.ItemManager.collection;
         this.collectionBank = this.BankManager.collection;
         this.collectionStore = this.StoreManager.collection;
         this.collectionCardType = this.CardTypeManager.collection;
-        this.collectionSalesManager = this.SalesManager.collection;
+        // this.collectionSalesManager = this.SalesManager.collection;
         this.collection = this.db.collection("sales-docs.temp");
         this.collectionLog = this.db.collection("migration.log");
 
@@ -48,7 +48,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                     var self = this;
 
 
-                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a WHERE branch= 'SLO.02' OR branch='SLO.03'";
+                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where (nomor ='201612.00144' and branch ='SLO.01') OR branch='SLO.02' OR branch='SLO.03'";
 
                     // var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where nomor like '%201305%' and branch ='SLO.01'";
 
@@ -91,8 +91,6 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 };
                                 self.collectionLog.updateOne({ "_start": date }, log);
                                 resolve(results);
-
-
                             }).catch(error => {
                                 console.log(error);
                                 reject(error);
