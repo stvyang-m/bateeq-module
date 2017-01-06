@@ -3,7 +3,7 @@ var sql = require("mssql");
 
 var config = {
 
-    user: 'adminbateeq',
+    user: 'Adminbateeq',
     password: 'Standar123.',
     server: 'efrata.database.windows.net',
     database: 'efrata.pos',

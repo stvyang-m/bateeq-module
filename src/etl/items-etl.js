@@ -116,7 +116,7 @@ module.exports = class ItemDataEtl extends BaseManager {
             if ((!item.ro) || (item.ro.trim() == "-")) {
                 ro = "";
             } else {
-                ro = item.ro;
+                ro = item.ro.trim();
             };
 
             this.getDataMongo(item.Barcode).then((results) => {
@@ -137,7 +137,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "_updatedDate": new Date(),
                             "_updateAgent": "manager",
                             "code": result.code,
-                            "name": item.Nm_Product,
+                            "name": item.Nm_Product.trim(),
                             "description": "",
                             "uom": "PCS",
                             "components": [],
@@ -146,7 +146,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "article": {
                                 "realizationOrder": ro
                             },
-                            "size": item.Size,
+                            "size": item.Size.trim(),
                             "domesticCOGS": item.Harga,
                             "domesticWholesale": 0,
                             "domesticRetail": 0,
@@ -178,7 +178,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "_updatedDate": new Date(),
                             "_updateAgent": "manager",
                             "code": item.Barcode,
-                            "name": item.Nm_Product,
+                            "name": item.Nm_Product.trim(),
                             "description": "",
                             "uom": "PCS",
                             "components": [],
@@ -187,7 +187,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                             "article": {
                                 "realizationOrder": ro
                             },
-                            "size": item.Size,
+                            "size": item.Size.trim(),
                             "domesticCOGS": item.Harga,
                             "domesticWholesale": 0,
                             "domesticRetail": 0,
