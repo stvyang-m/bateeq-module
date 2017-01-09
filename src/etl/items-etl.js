@@ -37,7 +37,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                         else {
                             var MaxLength = ProdukLength[0].MaxLength;
                             // var testPage=100;
-                            var DataRows = 100;
+                            var DataRows = MaxLength;
 
                             var numberOfPage = Math.ceil(MaxLength / DataRows);
 
