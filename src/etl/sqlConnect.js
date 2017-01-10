@@ -11,7 +11,7 @@ var config = {
     options: {
         encrypt: true
     },
-    connectionTimeout: 120*60*1000,
+    connectionTimeout: 300*60*1000,
     requestTimeout: 1000000
 
 };

@@ -45,7 +45,7 @@
                 "NODE_ENV": "development",
 
 
-                //"DB_CONNECTIONSTRING": "mongodb://bateeq:Standar123@sl-us-dal-9-portal.0.dblayer.com:16425/bateeq-dev?authSource=bateeq-dev&ssl=true"
+                // "DB_CONNECTIONSTRING": "mongodb://bateeq:Standar123@sl-us-dal-9-portal.0.dblayer.com:16425/bateeq-dev?authSource=bateeq-dev&ssl=true"
                     "DB_CONNECTIONSTRING":"mongodb://bateeq:Standar123@sl-us-dal-9-portal.0.dblayer.com:16425/bateeq-uat?ssl=true"
                 //    "DB_CONNECTIONSTRING": "mongodb://testing:testing@ds015953.mlab.com:15953/unit-testing"
 
