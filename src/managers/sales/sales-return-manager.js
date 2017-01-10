@@ -46,6 +46,26 @@ module.exports = class SalesReturnManager extends BaseManager {
         this.promoManager = new PromoManager(db, user);
     }
 
+    readAll(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: {},
+            filter: {},
+            select: []
+        }, paging);
+        // var start = process.hrtime();
+
+        return this._createIndexes()
+            .then((createIndexResults) => {
+                var query = this._getQuery(_paging);
+                return this.collection
+                    .where(query)
+                    .orderBy(_paging.order, _paging.asc)
+                    .execute();
+            });
+    }
+
     _createIndexes() {
         var dateIndex = {
             name: `ix_${map.sales.SalesReturnDoc}__updatedDate`,
@@ -210,8 +230,8 @@ module.exports = class SalesReturnManager extends BaseManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: valid.code
+                }]
             });
             var getSales;
             var getStore;
