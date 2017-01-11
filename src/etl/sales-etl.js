@@ -33,13 +33,13 @@ module.exports = class SalesDataEtl extends BaseManager {
 
     }
 
-    getDataSales() {
+    getDataSales(branch, start, end) {
         return new Promise((resolve, reject) => {
             sqlConnect.getConnect()
                 .then((request) => {
                     var self = this;
 
-                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a WHERE branch= 'SLO.02'";
+                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, (max(debit)+max(credit)+max(voucher)+max(cash)) as subTotal,(max(debit)+max(credit)+max(voucher)+max(cash)) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where branch='" + branch + "' and (tanggal between '" + start + "' and '" + end + "')";
 
                     request.query(CountRows, function (err, salesResult) {
                         // var a = [];
@@ -208,7 +208,7 @@ module.exports = class SalesDataEtl extends BaseManager {
             var _stamp = new ObjectId();
 
             var store = this.getStore(sales.branch);
-            var items = this.getItems(request, sales.branch, sales.nomor);
+            var items = this.getItems(request, sales.branch, sales.nomor,sales.pos.trim());
             var banks = this.getBanks(sales.kartu);
             var cards = this.getCards(CardType);
             var cardBanks = this.getBanks("-");
@@ -235,9 +235,9 @@ module.exports = class SalesDataEtl extends BaseManager {
                             "code": result.code,
                             "date": sales.tanggal,
                             "totalProduct": sales.totalProduct,
-                            "subTotal": sales.subTotal,
+                            "subTotal": sales.credit + sales.cash + sales.debit + sales.voucher,
                             "discount": sales.discount,
-                            "grandTotal": parseInt(sales.grandTotal),
+                            "grandTotal": sales.credit + sales.cash + sales.debit + sales.voucher,
                             "reference": sales.reference,
                             "shift": parseInt(sales.shift),
                             "pos": sales.pos.trim(),
@@ -314,9 +314,9 @@ module.exports = class SalesDataEtl extends BaseManager {
                             "code": sales.nomor.trim() + "-" + sales.branch.trim() + "-" + sales.pos.trim(),
                             "date": sales.tanggal,
                             "totalProduct": sales.totalProduct,
-                            "subTotal": sales.subTotal,
+                            "subTotal": sales.credit + sales.cash + sales.debit + sales.voucher,
                             "discount": sales.discount,
-                            "grandTotal": parseInt(sales.grandTotal),
+                            "grandTotal": sales.credit + sales.cash + sales.debit + sales.voucher,
                             "reference": sales.reference,
                             "shift": parseInt(sales.shift),
                             "pos": sales.pos.trim(),
@@ -409,7 +409,7 @@ module.exports = class SalesDataEtl extends BaseManager {
         });
     }
 
-    getItems(request, branch, nomor) {
+    getItems(request, branch, nomor,pos) {
         var self = this;
         return new Promise((resolve, reject) => {
             var queryfilter = 'select * from penjualan where nomor= \'' + nomor + '\' and branch= \'' + branch + '\' and pos=\'' + pos + '\'';

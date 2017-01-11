@@ -47,12 +47,12 @@ module.exports = class ItemDataEtl extends BaseManager {
                             // var testPage=100;
                             var DataRows = MaxLength;
 
-                            // var DataRows=10;
+                            var DataRows = 10;
 
                             var numberOfPage = Math.ceil(MaxLength / DataRows);
 
                             var process = [];
-                            for (var i = 1; i <= numberOfPage; i++) {
+                            for (var i = 1; i <= 1; i++) {
                                 process.push(self.migrateDataItems(request, i, DataRows))
                             }
 
@@ -68,6 +68,7 @@ module.exports = class ItemDataEtl extends BaseManager {
                                     "Execution time": time + ' ms',
                                 };
                                 self.collectionLog.updateOne({ "_start": date }, log);
+                                request.close();
                                 resolve(results);
 
                             }).catch(error => {
