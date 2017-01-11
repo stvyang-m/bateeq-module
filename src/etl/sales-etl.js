@@ -23,6 +23,7 @@ module.exports = class SalesDataEtl extends BaseManager {
         this.CardTypeManager = new CardTypeManager(db, user);
         this.StoreManager = new StoreManager(db, user);
         this.SalesManager = new SalesManager(db, user);
+        this.collectionLog = this.db.collection("migration.log");
 
         this.collectionItem = this.ItemManager.collection;
         this.collectionBank = this.BankManager.collection;
@@ -47,10 +48,14 @@ module.exports = class SalesDataEtl extends BaseManager {
                             reject(err);
                         }
                         else {
+                            var _start = new Date().getTime();
+                            var date = new Date();
+
+                            self.collectionLog.insert({ "migration": "sql to sales ", "_createdDate": date, "_start": date });
                             var MaxLength = salesResult[0].MaxLength;
                             // var testPage = 5;
 
-                            var dataRows = 100;
+                            var dataRows = MaxLength;
                             var numberOfPage = Math.ceil(MaxLength / dataRows);
 
                             var process = [];
@@ -59,7 +64,17 @@ module.exports = class SalesDataEtl extends BaseManager {
                             }
 
                             Promise.all(process).then(results => {
-                                console.log(results);
+                                var end = new Date();
+                                var _end = new Date().getTime();
+                                var time = _end - _start;
+                                var log = {
+                                    "migration": "sql to sales-docs ",
+                                    "_createdDate": date,
+                                    "_start": date,
+                                    "_end": end,
+                                    "Execution time": time + ' ms',
+                                };
+                                self.collectionLog.updateOne({ "_start": date }, log);
                                 resolve(results);
                             }).catch(error => {
                                 console.log(error);
@@ -225,11 +240,12 @@ module.exports = class SalesDataEtl extends BaseManager {
                             "grandTotal": parseInt(sales.grandTotal),
                             "reference": sales.reference,
                             "shift": parseInt(sales.shift),
-                            "pos": sales.pos,
+                            "pos": sales.pos.trim(),
 
                             "storeId": data[0]._id,
                             "store": data[0],
                             "items": data[1],
+
 
                             "salesDetail":
                             {
@@ -240,7 +256,6 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 "deleted": false,
                                 "_createdBy": "router",
                                 "_createdDate": result.salesDetail._createdDate,
-                                "_createAgent": "manager",
                                 "_updatedBy": "router",
                                 "_updatedDate": new Date(),
                                 "_updateAgent": "manager",
@@ -254,13 +269,14 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 "cardTypeId": (cardTemp == "Debit") ? {} : ((data[3]) ? data[3]._id : {}),
                                 "cardType": (cardTemp == "Debit") ? {} : ((data[3]) ? data[3] : {}),
 
+
                                 // "cardTypeId": (_card) ? _card._id : {},
                                 // "cardType": (_card) ? _card : {},
 
                                 "bankCardId": (paymentType == "Cash") ? {} : ((data[4]) ? data[4]._id : {}),
                                 "bankCard": (paymentType == "Cash") ? {} : ((data[4]) ? data[4] : {}),
                                 "card": cardTemp,
-                                "cardNumber": sales.no_krt,
+                                "cardNumber": sales.no_krt.trim(),
                                 "cardName": "",
                                 "cashAmount": parseInt(sales.cash),
                                 "cardAmount": parseInt(sales.debit) + parseInt(sales.credit),
@@ -288,13 +304,14 @@ module.exports = class SalesDataEtl extends BaseManager {
                             "_version": "1.0.0",
                             "_active": true,
                             "_deleted": false,
-                            "_createdBy": sales.userin,
+                            "_createdBy": sales.userin.trim(),
                             "_createdDate": sales.tglin,
+                            // "_createdDate": new Date(),
                             "_createAgent": "manager",
                             "_updatedBy": "router",
                             "_updatedDate": new Date(),
                             "_updateAgent": "manager",
-                            "code": sales.nomor,
+                            "code": sales.nomor.trim() + "-" + sales.branch.trim() + "-" + sales.pos.trim(),
                             "date": sales.tanggal,
                             "totalProduct": sales.totalProduct,
                             "subTotal": sales.subTotal,
@@ -302,7 +319,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                             "grandTotal": parseInt(sales.grandTotal),
                             "reference": sales.reference,
                             "shift": parseInt(sales.shift),
-                            "pos": sales.pos,
+                            "pos": sales.pos.trim(),
 
                             "storeId": data[0]._id,
                             "store": data[0],
@@ -338,7 +355,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 "bankCardId": (paymentType == "Cash") ? {} : ((data[4]) ? data[4]._id : {}),
                                 "bankCard": (paymentType == "Cash") ? {} : ((data[4]) ? data[4] : {}),
                                 "card": cardTemp,
-                                "cardNumber": sales.no_krt,
+                                "cardNumber": sales.no_krt.trim(),
                                 "cardName": "",
                                 "cashAmount": parseInt(sales.cash),
                                 "cardAmount": parseInt(sales.debit) + parseInt(sales.credit),
@@ -395,7 +412,7 @@ module.exports = class SalesDataEtl extends BaseManager {
     getItems(request, branch, nomor) {
         var self = this;
         return new Promise((resolve, reject) => {
-            var queryfilter = 'select * from penjualan where nomor= \'' + nomor + '\' and branch= \'' + branch + '\'';
+            var queryfilter = 'select * from penjualan where nomor= \'' + nomor + '\' and branch= \'' + branch + '\' and pos=\'' + pos + '\'';
             request.query(queryfilter, function (err, sales) {
                 if (err)
                     reject(err);
