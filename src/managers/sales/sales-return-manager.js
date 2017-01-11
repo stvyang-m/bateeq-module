@@ -408,7 +408,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                     else {
                                         if (_sales) {
                                             for (var salesItem of _sales.items) {
-                                                if (salesItem.itemId.toString() == item.itemId.toString()) {
+                                                if (!salesItem.isReturn && salesItem.itemId.toString() == item.itemId.toString()) {
                                                     if (parseInt(item.quantity) > parseInt(salesItem.quantity)) {
                                                         itemError["quantity"] = "quantity must not be greater than " + salesItem.quantity;
                                                     }
