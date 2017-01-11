@@ -41,16 +41,16 @@ module.exports = class SalesDataEtl extends BaseManager {
         });
     }
 
-    getDataSales() {
+    getDataSales(branch) {
         return new Promise((resolve, reject) => {
             sqlConnect.getConnect()
                 .then((request) => {
                     var self = this;
 
 
-                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where branch='SLO.03' and (tanggal between '2012-01-01 00:00:00.000' and '2017-01-08 00:00:00.000')";
+                    // var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, (max(debit)+max(credit)+max(voucher)+max(cash)) as subTotal,(max(debit)+max(credit)+max(voucher)+max(cash)) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where branch='SLO.03' and (tanggal between '2012-01-01 00:00:00.000' and '2017-01-08 00:00:00.000')";
 
-                    // var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where nomor like '%201305%' and branch ='SLO.01'";
+                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, (max(debit)+max(credit)+max(voucher)+max(cash)) as subTotal,(max(debit)+max(credit)+max(voucher)+max(cash)) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where branch='" + branch + "'";
 
 
                     request.query(CountRows, function (err, salesResult) {
@@ -90,6 +90,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                                     "Execution time": time + ' ms',
                                 };
                                 self.collectionLog.updateOne({ "_start": date }, log);
+                                // request.end();
                                 resolve(results);
                             }).catch(error => {
                                 console.log(error);
@@ -257,9 +258,9 @@ module.exports = class SalesDataEtl extends BaseManager {
                     "code": sales.nomor.trim() + "-" + sales.branch.trim() + "-" + sales.pos.trim(),
                     "date": sales.tanggal,
                     "totalProduct": sales.totalProduct,
-                    "subTotal": sales.subTotal,
+                    "subTotal": sales.credit + sales.cash + sales.debit + sales.voucher,
                     "discount": sales.discount,
-                    "grandTotal": parseInt(sales.grandTotal),
+                    "grandTotal": sales.credit + sales.cash + sales.debit + sales.voucher,
                     "reference": sales.reference,
                     "shift": parseInt(sales.shift),
                     "pos": sales.pos.trim(),

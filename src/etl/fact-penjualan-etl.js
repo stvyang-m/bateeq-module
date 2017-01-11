@@ -6,14 +6,18 @@ var BaseManager = require('module-toolkit').BaseManager;
 var moment = require("moment");
 var sqlConnect = require('./sqlConnect');
 
+var ItemManager = require('../../src/managers/master/item-manager');
+var BankManager = require('../../src/managers/master/bank-manager');
+var CardTypeManager = require('../../src/managers/master/card-type-manager');
+var StoreManager = require('../../src/managers/master/store-manager');
+var SalesManager = require('../../src/managers/sales/sales-manager');
+
 // internal deps 
 require('mongodb-toolkit');
 
-var CategoryManager = require('../managers/master/category-manager');
-
 module.exports = class DimCategoryEtlManager {
     constructor(db, user) {
-        this.categoryManager = new CategoryManager(db, user);
+        this.SalesManager = new SalesManager(db, user);
     }
     run() {
         return this.extract()
@@ -27,7 +31,7 @@ module.exports = class DimCategoryEtlManager {
 
     extract() {
         var timestamp = new Date(1970, 1, 1);
-        return this.categoryManager.collection.find({
+        return this.SalesManager.collection.find({
             _deleted: false
         }).toArray();
     }
@@ -45,32 +49,6 @@ module.exports = class DimCategoryEtlManager {
     }
 
     load(data) {
-        return sqlConnect.getConnect()
-            .then((request) => {
-
-                console.log(request);
-                // var sqlQuery = '';
-
-                // var count = 1;
-                // for (var item of data) {
-                //     sqlQuery = sqlQuery.concat("insert into DimKategori([ID Dim Kategori], [Kode Kategori] ,[Nama Kategori], [Jenis Kategori]) values(" + count + ", '" + item.categoryCode + "', '" + item.categoryName + "', '" + item.categoryType + "'); ");
-
-                //     count = count + 1;
-                // }
-
-                // request.multiple = true;
-
-                // // return request.query(sqlQuery)
-                // // return request.query('select count(*) from DimKategori')
-                // return request.query('select top 1 * from DimKategori')
-                //     .then((results) => {
-                //         console.log(results);
-                //         return Promise.resolve();
-                //     })
-            })
-            .catch((err) => {
-                console.log(err);
-                return Promise.reject(err);
-            });
+        return Promise.resolve(console.log(data));
     }
 }
