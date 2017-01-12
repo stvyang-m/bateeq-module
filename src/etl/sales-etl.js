@@ -23,6 +23,7 @@ module.exports = class SalesDataEtl extends BaseManager {
         this.CardTypeManager = new CardTypeManager(db, user);
         this.StoreManager = new StoreManager(db, user);
         this.SalesManager = new SalesManager(db, user);
+        this.collectionLog = this.db.collection("migration.log");
 
         this.collectionItem = this.ItemManager.collection;
         this.collectionBank = this.BankManager.collection;
@@ -32,13 +33,13 @@ module.exports = class SalesDataEtl extends BaseManager {
 
     }
 
-    getDataSales() {
+    getDataSales(branch, tglin, tglend) {
         return new Promise((resolve, reject) => {
             sqlConnect.getConnect()
                 .then((request) => {
                     var self = this;
 
-                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, max(TOTAL) as subTotal,max(TOTAL) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a WHERE branch= 'SLO.02'";
+                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, (max(debit)+max(credit)+max(voucher)+max(cash)) as subTotal,(max(debit)+max(credit)+max(voucher)+max(cash)) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where branch='" + branch + "' and (tanggal between '" + tglin + "' and '" + tglend + "')";
 
                     request.query(CountRows, function (err, salesResult) {
                         // var a = [];
@@ -47,10 +48,14 @@ module.exports = class SalesDataEtl extends BaseManager {
                             reject(err);
                         }
                         else {
+                            var _start = new Date().getTime();
+                            var date = new Date();
+
+                            self.collectionLog.insert({ "migration": "sql to sales ", "_createdDate": date, "_start": date });
                             var MaxLength = salesResult[0].MaxLength;
                             // var testPage = 5;
 
-                            var dataRows = 100;
+                            var dataRows = MaxLength;
                             var numberOfPage = Math.ceil(MaxLength / dataRows);
 
                             var process = [];
@@ -59,7 +64,17 @@ module.exports = class SalesDataEtl extends BaseManager {
                             }
 
                             Promise.all(process).then(results => {
-                                console.log(results);
+                                var end = new Date();
+                                var _end = new Date().getTime();
+                                var time = _end - _start;
+                                var log = {
+                                    "migration": "sql to sales-docs ",
+                                    "_createdDate": date,
+                                    "_start": date,
+                                    "_end": end,
+                                    "Execution time": time + ' ms',
+                                };
+                                self.collectionLog.updateOne({ "_start": date }, log);
                                 resolve(results);
                             }).catch(error => {
                                 console.log(error);
@@ -193,14 +208,14 @@ module.exports = class SalesDataEtl extends BaseManager {
             var _stamp = new ObjectId();
 
             var store = this.getStore(sales.branch);
-            var items = this.getItems(request, sales.branch, sales.nomor);
+            var items = this.getItems(request, sales.branch, sales.nomor, sales.pos.trim());
             var banks = this.getBanks(sales.kartu);
             var cards = this.getCards(CardType);
             var cardBanks = this.getBanks("-");
 
             Promise.all([store, items, banks, cards, cardBanks]).then(data => {
 
-                this.getDataMongo(sales.nomor).then((results) => {
+                this.getDataMongo(sales.nomor.trim() + "-" + sales.branch.trim() + "-" + sales.pos.trim()).then((results) => {
                     if (results && results.length > 0) {
                         var result = results[0];
 
@@ -220,16 +235,17 @@ module.exports = class SalesDataEtl extends BaseManager {
                             "code": result.code,
                             "date": sales.tanggal,
                             "totalProduct": sales.totalProduct,
-                            "subTotal": sales.subTotal,
+                            "subTotal": sales.credit + sales.cash + sales.debit + sales.voucher,
                             "discount": sales.discount,
-                            "grandTotal": parseInt(sales.grandTotal),
+                            "grandTotal": sales.credit + sales.cash + sales.debit + sales.voucher,
                             "reference": sales.reference,
                             "shift": parseInt(sales.shift),
-                            "pos": sales.pos,
+                            "pos": sales.pos.trim(),
 
                             "storeId": data[0]._id,
                             "store": data[0],
                             "items": data[1],
+
 
                             "salesDetail":
                             {
@@ -240,7 +256,6 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 "deleted": false,
                                 "_createdBy": "router",
                                 "_createdDate": result.salesDetail._createdDate,
-                                "_createAgent": "manager",
                                 "_updatedBy": "router",
                                 "_updatedDate": new Date(),
                                 "_updateAgent": "manager",
@@ -254,13 +269,14 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 "cardTypeId": (cardTemp == "Debit") ? {} : ((data[3]) ? data[3]._id : {}),
                                 "cardType": (cardTemp == "Debit") ? {} : ((data[3]) ? data[3] : {}),
 
+
                                 // "cardTypeId": (_card) ? _card._id : {},
                                 // "cardType": (_card) ? _card : {},
 
                                 "bankCardId": (paymentType == "Cash") ? {} : ((data[4]) ? data[4]._id : {}),
                                 "bankCard": (paymentType == "Cash") ? {} : ((data[4]) ? data[4] : {}),
                                 "card": cardTemp,
-                                "cardNumber": sales.no_krt,
+                                "cardNumber": sales.no_krt.trim(),
                                 "cardName": "",
                                 "cashAmount": parseInt(sales.cash),
                                 "cardAmount": parseInt(sales.debit) + parseInt(sales.credit),
@@ -288,21 +304,22 @@ module.exports = class SalesDataEtl extends BaseManager {
                             "_version": "1.0.0",
                             "_active": true,
                             "_deleted": false,
-                            "_createdBy": sales.userin,
+                            "_createdBy": sales.userin.trim(),
                             "_createdDate": sales.tglin,
+                            // "_createdDate": new Date(),
                             "_createAgent": "manager",
                             "_updatedBy": "router",
                             "_updatedDate": new Date(),
                             "_updateAgent": "manager",
-                            "code": sales.nomor,
+                            "code": sales.nomor.trim() + "-" + sales.branch.trim() + "-" + sales.pos.trim(),
                             "date": sales.tanggal,
                             "totalProduct": sales.totalProduct,
-                            "subTotal": sales.subTotal,
+                            "subTotal": sales.credit + sales.cash + sales.debit + sales.voucher,
                             "discount": sales.discount,
-                            "grandTotal": parseInt(sales.grandTotal),
+                            "grandTotal": sales.credit + sales.cash + sales.debit + sales.voucher,
                             "reference": sales.reference,
                             "shift": parseInt(sales.shift),
-                            "pos": sales.pos,
+                            "pos": sales.pos.trim(),
 
                             "storeId": data[0]._id,
                             "store": data[0],
@@ -338,7 +355,7 @@ module.exports = class SalesDataEtl extends BaseManager {
                                 "bankCardId": (paymentType == "Cash") ? {} : ((data[4]) ? data[4]._id : {}),
                                 "bankCard": (paymentType == "Cash") ? {} : ((data[4]) ? data[4] : {}),
                                 "card": cardTemp,
-                                "cardNumber": sales.no_krt,
+                                "cardNumber": sales.no_krt.trim(),
                                 "cardName": "",
                                 "cashAmount": parseInt(sales.cash),
                                 "cardAmount": parseInt(sales.debit) + parseInt(sales.credit),
@@ -392,10 +409,10 @@ module.exports = class SalesDataEtl extends BaseManager {
         });
     }
 
-    getItems(request, branch, nomor) {
+    getItems(request, branch, nomor, pos) {
         var self = this;
         return new Promise((resolve, reject) => {
-            var queryfilter = 'select * from penjualan where nomor= \'' + nomor + '\' and branch= \'' + branch + '\'';
+            var queryfilter = 'select * from penjualan where nomor= \'' + nomor + '\' and branch= \'' + branch + '\' and pos=\'' + pos + '\'';
             request.query(queryfilter, function (err, sales) {
                 if (err)
                     reject(err);
