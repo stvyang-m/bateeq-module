@@ -24,7 +24,7 @@ before("#00. connect db", function (done) {
 });
 
 it("#01. should success insert all data ", function (done) {
-    instanceManager.getDataSales()
+    instanceManager.getDataSales("SLO.03","2012-01-01","2017-01-08")
         .then((sales) =>{
 
                     done();

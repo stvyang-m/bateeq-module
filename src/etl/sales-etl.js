@@ -33,13 +33,13 @@ module.exports = class SalesDataEtl extends BaseManager {
 
     }
 
-    getDataSales(branch, start, end) {
+    getDataSales(branch, tglin, tglend) {
         return new Promise((resolve, reject) => {
             sqlConnect.getConnect()
                 .then((request) => {
                     var self = this;
 
-                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, (max(debit)+max(credit)+max(voucher)+max(cash)) as subTotal,(max(debit)+max(credit)+max(voucher)+max(cash)) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where branch='" + branch + "' and (tanggal between '" + start + "' and '" + end + "')";
+                    var CountRows = "select count(*) as MaxLength from (select ROW_NUMBER() OVER(ORDER BY branch, nomor) AS number,branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin,sum(qty)as totalProduct, (max(debit)+max(credit)+max(voucher)+max(cash)) as subTotal,(max(debit)+max(credit)+max(voucher)+max(cash)) as grandTotal,0 as discount,'' as reference , max(voucher) as voucher, max(cash) as cash, max(debit) as debit,max(credit) as credit from penjualan group by branch,nomor,tanggal,shift,pos,kartu,no_krt,payment,userin,tglin)a where branch='" + branch + "' and (tanggal between '" + tglin + "' and '" + tglend + "')";
 
                     request.query(CountRows, function (err, salesResult) {
                         // var a = [];
@@ -208,14 +208,14 @@ module.exports = class SalesDataEtl extends BaseManager {
             var _stamp = new ObjectId();
 
             var store = this.getStore(sales.branch);
-            var items = this.getItems(request, sales.branch, sales.nomor,sales.pos.trim());
+            var items = this.getItems(request, sales.branch, sales.nomor, sales.pos.trim());
             var banks = this.getBanks(sales.kartu);
             var cards = this.getCards(CardType);
             var cardBanks = this.getBanks("-");
 
             Promise.all([store, items, banks, cards, cardBanks]).then(data => {
 
-                this.getDataMongo(sales.nomor).then((results) => {
+                this.getDataMongo(sales.nomor.trim() + "-" + sales.branch.trim() + "-" + sales.pos.trim()).then((results) => {
                     if (results && results.length > 0) {
                         var result = results[0];
 
@@ -409,7 +409,7 @@ module.exports = class SalesDataEtl extends BaseManager {
         });
     }
 
-    getItems(request, branch, nomor,pos) {
+    getItems(request, branch, nomor, pos) {
         var self = this;
         return new Promise((resolve, reject) => {
             var queryfilter = 'select * from penjualan where nomor= \'' + nomor + '\' and branch= \'' + branch + '\' and pos=\'' + pos + '\'';
