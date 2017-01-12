@@ -123,7 +123,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                         item.isReturn = true;
                         for (var newItem of item.returnItems) {
                             var newSalesItem = new SalesItem(newItem);
-                            newSalesItem.isRetur = false;
+                            newSalesItem.isReturn = false;
                             newSalesItem.returnItems = [];
                             newItems.push(newSalesItem);
                         }
