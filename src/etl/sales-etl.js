@@ -196,11 +196,18 @@ module.exports = class SalesDataEtl extends BaseManager {
                 CardType = "";
             };
 
-            var BankName = "-"
-            if ((sales.kartu.trim() == "") && (sales.payment.toLowerCase() != "cash")) {
-                BankName = "-";
+            // var BankName = "-"
+            // if ((sales.kartu.trim() == "") && (sales.payment.toLowerCase() != "cash")) {
+            //     BankName = "-";
+            // } else {
+            //     BankName = sales.kartu.trim();
+            // }
+
+            var kartu = "-"
+            if ((sales.kartu.trim() == "")) {
+                kartu = "-";
             } else {
-                BankName = sales.kartu.trim();
+                kartu = sales.kartu.trim();
             }
 
             var _id = new ObjectId();
@@ -209,7 +216,7 @@ module.exports = class SalesDataEtl extends BaseManager {
 
             var store = this.getStore(sales.branch);
             var items = this.getItems(request, sales.branch, sales.nomor, sales.pos.trim());
-            var banks = this.getBanks(sales.kartu);
+            var banks = this.getBanks(kartu);
             var cards = this.getCards(CardType);
             var cardBanks = this.getBanks("-");
 
