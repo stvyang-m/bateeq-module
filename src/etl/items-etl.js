@@ -18,6 +18,7 @@ module.exports = class ItemDataEtl extends BaseManager {
         this.ItemManager = new ItemManager(db, user);
 
         this.collection = this.ItemManager.collection;
+        this.collectionLog = this.db.collection("migration.log");
         // this.adas=1;
     }
 
@@ -35,24 +36,34 @@ module.exports = class ItemDataEtl extends BaseManager {
                             reject(err);
                         }
                         else {
+                            var _start = new Date().getTime();
+                            var date = new Date();
+
+                            self.collectionLog.insert({ "migration": "sql to items ", "_createdDate": date, "_start": date });
+
                             var MaxLength = ProdukLength[0].MaxLength;
                             // var testPage=100;
-                            var DataRows = MaxLength;
+                            var DataRows = 10;
 
                             var numberOfPage = Math.ceil(MaxLength / DataRows);
 
                             var process = [];
-                            for (var i = 1; i <= numberOfPage; i++) {
+                            for (var i = 1; i <= 1; i++) {
                                 process.push(self.migrateDataItems(request, i, DataRows))
                             }
 
                             Promise.all(process).then(results => {
-                                // var items = [];
-                                // for (var result of results) {
-                                //     items.push(result);
-                                // }
-                                // resolve(items);
-
+                                var end = new Date();
+                                var _end = new Date().getTime();
+                                var time = _end - _start;
+                                var log = {
+                                    "migration": "sql to items ",
+                                    "_createdDate": date,
+                                    "_start": date,
+                                    "_end": end,
+                                    "Execution time": time + ' ms',
+                                };
+                                self.collectionLog.updateOne({ "_start": date }, log);
                                 resolve(results);
 
                             }).catch(error => {
