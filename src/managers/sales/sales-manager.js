@@ -171,6 +171,7 @@ module.exports = class SalesManager extends BaseManager {
 
                     var funcSales = (sales, manager) => {
                         return () => {
+                            sales._createdDate = new Date();
                             return manager.insert(sales);
                         }
                     };
@@ -778,7 +779,6 @@ module.exports = class SalesManager extends BaseManager {
                 })
         });
     }
-
 
     getStringDate(date) {
         var dd = date.getDate();
