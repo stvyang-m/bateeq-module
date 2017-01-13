@@ -70,10 +70,16 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                         '$regex': regex
                     }
                 };
-                var $or = {
-                    '$or': [filterCode]
+                 var filterPackingList = {
+                    'packingList':
+                    {
+                        '$regex': regex
+                    }
                 };
-
+                var $or = {
+                    '$or': [filterCode, filterPackingList]
+                };
+                 
                 query['$and'].push($or);
             }
 
