@@ -241,7 +241,7 @@ module.exports = class InventoryManager {
         return new Promise((resolve, reject) => {
             this._validate(inventory)
                 .then(validInventory => {
-
+                    validInventory._createdDate = new Date();
                     this.inventoryCollection.insert(validInventory)
                         .then(id => {
                             resolve(id);

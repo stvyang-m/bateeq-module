@@ -162,7 +162,7 @@ module.exports = class SalesReturnManager extends BaseManager {
                                         }
                                     }
                                     salesReturn.stamp(this.user.username, 'manager');
-
+                                    salesReturn._createdDate = new Date();
                                     this.collection.insert(salesReturn)
                                         .then(result => {
                                             resolve(result);
