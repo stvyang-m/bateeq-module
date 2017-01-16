@@ -124,9 +124,7 @@ module.exports = class InventoryManager {
 
 
             this.inventoryCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
+                .where(query) 
                 .execute()
                 .then(inventorys => {
                     resolve(inventorys);
@@ -241,7 +239,7 @@ module.exports = class InventoryManager {
         return new Promise((resolve, reject) => {
             this._validate(inventory)
                 .then(validInventory => {
-
+                    validInventory._createdDate = new Date();
                     this.inventoryCollection.insert(validInventory)
                         .then(id => {
                             resolve(id);
