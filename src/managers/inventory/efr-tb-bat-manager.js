@@ -18,7 +18,7 @@ const moduleId = "EFR-TB/BAT";
 module.exports = class TokoTerimaAksesorisManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
-        this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
+        this.collection = this.db.use(map.inventory.TransferInDoc);
         this.spkDocCollection = this.db.use(map.merchandiser.SPKDoc);
 
         var StorageManager = require('../master/storage-manager');
@@ -38,56 +38,6 @@ module.exports = class TokoTerimaAksesorisManager extends BaseManager {
 
         var SPKManager = require('../merchandiser/efr-pk-manager');
         this.spkManager = new SPKManager(db, user);
-    }
-
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
-
-        return new Promise((resolve, reject) => {
-            // var batRegex = { 'code': {
-            //             '$regex': new RegExp("^[0-9]+\/[A-Z\-]+\/BAT\/[0-9]{2}\/[0-9]{4}$","i")}};
-
-            var deleted = {
-                _deleted: false,
-                code: {
-                    '$regex': new RegExp("^[A-Z0-9]+\/" + moduleId + "\/[0-9]{2}\/[0-9]{4}$", "i")
-                }
-            };
-            var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode]
-                };
-                query['$and'].push($or);
-            }
-
-
-            this.transferInDocCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(transferInDocs => {
-                    resolve(transferInDocs);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
     }
 
     readPendingSPK(paging) {
@@ -137,82 +87,26 @@ module.exports = class TokoTerimaAksesorisManager extends BaseManager {
         });
     }
 
+    _getQuery(paging) {
+        var deletedFilter = {
+            _deleted: false
+        }, keywordFilter = {};
 
-    getSingleById(id) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+        var query = {};
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
+
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
             };
-            this.getSingleByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            keywordFilter = {
+                '$or': [filterCode]
             };
-            this.getSingleByQueryOrDefault(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.transferInDocCollection
-                .single(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    getSingleByQueryOrDefault(query) {
-        return new Promise((resolve, reject) => {
-            this.transferInDocCollection
-                .singleOrDefault(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    getPendingSPKById(id) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false,
-                isReceived: false
-            };
-            this.spkDocCollection.singleOrDefault(query)
-                .then(SPKDoc => {
-                    SPKDoc.password = '';
-                    SPKDoc._id = undefined;
-                    resolve(SPKDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
+        }
+        query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
+        return query;
     }
 
     create(transferInDoc) {
@@ -220,10 +114,10 @@ module.exports = class TokoTerimaAksesorisManager extends BaseManager {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
                     validTransferInDoc.code = generateCode(moduleId)
-                    
+
                     //kaga transfer in yang qty 0
                     var length = validTransferInDoc.items.length;
-                    for(var i = 0; i < length; ) {
+                    for (var i = 0; i < length;) {
                         var item = validTransferInDoc.items[i];
                         if (item.quantity == 0) {
                             validTransferInDoc.items.splice(i, 1);
@@ -232,8 +126,8 @@ module.exports = class TokoTerimaAksesorisManager extends BaseManager {
                             i++
                         }
                         length = validTransferInDoc.items.length;
-                    } 
-                    
+                    }
+
                     this.transferInDocManager.create(validTransferInDoc)
                         .then(id => {
                             var reference = transferInDoc.reference;
