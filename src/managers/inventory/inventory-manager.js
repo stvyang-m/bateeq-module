@@ -117,7 +117,7 @@ module.exports = class InventoryManager extends BaseManager{
         });
     }
 
-     getById(id) {
+     getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -135,7 +135,7 @@ module.exports = class InventoryManager extends BaseManager{
         });
     }
     
-    getByIdOrDefault(id) {
+    getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -143,7 +143,7 @@ module.exports = class InventoryManager extends BaseManager{
                 _id: new ObjectId(id),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(inventory => {
                     resolve(inventory);
                 })
@@ -153,13 +153,13 @@ module.exports = class InventoryManager extends BaseManager{
         });
     }
 
-    getByStorageIdAndArticleVarianId(storageId, articleVariantId) {
+    getByStorageIdAndItemId(storageId, itemId) {
         return new Promise((resolve, reject) => {
-            if (storageId === '' || articleVariantId ==='')
+            if (storageId === '' || itemId ==='')
                 resolve(null);
             var query = {
                 storageId: new ObjectId(storageId),
-                articleVariantId: new ObjectId(articleVariantId),
+                itemId: new ObjectId(itemId),
                 _deleted: false
             };
             this.getSingleByQuery(query)
@@ -172,16 +172,16 @@ module.exports = class InventoryManager extends BaseManager{
         });
     }
 
-    getByStorageIdAndArticleVarianIdOrDefault(storageId, articleVariantId) {
+    getByStorageIdAndItemIdOrDefault(storageId, itemId) {
         return new Promise((resolve, reject) => {
-            if (storageId === '' || articleVariantId ==='')
+            if (storageId === '' || itemId ==='')
                 resolve(null);
             var query = {
                 storageId: new ObjectId(storageId),
-                articleVariantId: new ObjectId(articleVariantId),
+                itemId: new ObjectId(itemId),
                 _deleted: false
             };
-            this.getSingleOrDefaultByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(inventory => {
                     resolve(inventory);
                 })
@@ -193,7 +193,7 @@ module.exports = class InventoryManager extends BaseManager{
     
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.collection
+            this.inventoryCollection
                 .single(query)
                 .then(inventory => {
                     resolve(inventory);
@@ -204,9 +204,9 @@ module.exports = class InventoryManager extends BaseManager{
         })
     }
      
-    getSingleOrDefaultByQuery(query) {
+    getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.collection
+            this.inventoryCollection
                 .singleOrDefault(query)
                 .then(inventory => {
                     resolve(inventory);
