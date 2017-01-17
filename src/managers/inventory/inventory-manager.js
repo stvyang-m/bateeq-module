@@ -12,7 +12,7 @@ var Inventory = BateeqModels.inventory.Inventory;
 var InventoryMovement = BateeqModels.inventory.InventoryMovement;
 
 
-module.exports = class InventoryManager extends BaseManager{
+module.exports = class InventoryManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
         this.collection = this.db.use(map.inventory.Inventory);
@@ -82,22 +82,26 @@ module.exports = class InventoryManager extends BaseManager{
             };
 
             if (_paging.keyword) {
-                _paging.keyword= (_paging.keyword.replace('(', '\\(')).replace(')', '\\)');
-                var regex = new RegExp(_paging.keyword, "i");  
-
+                _paging.keyword = (_paging.keyword.replace('(', '\\(')).replace(')', '\\)');
+                var regex = new RegExp(_paging.keyword, "i");
+                var filterCode = {
+                    'item.code': {
+                        '$regex': regex
+                    }
+                };
                 var filterName = {
                     'item.name': {
                         '$regex': regex
                     }
                 };
                 var $or = {
-                    '$or': [filterName]
+                    '$or': [filterCode, filterName]
                 };
 
                 query['$and'].push($or);
             }
 
-            var _select = ["storageId","itemId","item.code", "item.name", "quantity"];
+            var _select = ["storageId", "itemId", "item.code", "item.name", "quantity"];
 
 
             this.collection
@@ -114,7 +118,7 @@ module.exports = class InventoryManager extends BaseManager{
         });
     }
 
-     getSingleById(id) {
+    getSingleById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -131,7 +135,7 @@ module.exports = class InventoryManager extends BaseManager{
                 });
         });
     }
-    
+
     getSingleByIdOrDefault(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
@@ -152,7 +156,7 @@ module.exports = class InventoryManager extends BaseManager{
 
     getByStorageIdAndItemId(storageId, itemId) {
         return new Promise((resolve, reject) => {
-            if (storageId === '' || itemId ==='')
+            if (storageId === '' || itemId === '')
                 resolve(null);
             var query = {
                 storageId: new ObjectId(storageId),
@@ -168,11 +172,11 @@ module.exports = class InventoryManager extends BaseManager{
                 });
         });
     }
-    
+
 
     getByStorageIdAndItemIdOrDefault(storageId, itemId) {
         return new Promise((resolve, reject) => {
-            if (storageId === '' || itemId ==='')
+            if (storageId === '' || itemId === '')
                 resolve(null);
             var query = {
                 storageId: new ObjectId(storageId),
@@ -188,7 +192,7 @@ module.exports = class InventoryManager extends BaseManager{
                 });
         });
     }
-    
+
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
             this.collection
@@ -201,7 +205,7 @@ module.exports = class InventoryManager extends BaseManager{
                 });
         })
     }
-     
+
     getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
             this.collection
