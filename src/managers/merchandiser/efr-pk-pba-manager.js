@@ -72,6 +72,54 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
         return query;
     } 
 
+     getById(id) {
+        return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getByIdOrDefault(id) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getSingleByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.collection
+                .single(query)
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+
+
     create(spkDoc) {
         return new Promise((resolve, reject) => {
             this._validate(spkDoc)
@@ -548,6 +596,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                                         else {
                                             var spkResult = new SPKDoc(spkDoc);
                                             spkResult.stamp(this.user.username, 'manager');
+                                            spkResult._createdDate = new Date();
                                             this.collection.insert(spkResult)
                                                 .then(id => {
                                                     this.pkManager.getSingleById(id)
