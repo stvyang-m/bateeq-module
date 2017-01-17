@@ -107,6 +107,83 @@ module.exports = class TokoTerimaAksesorisManager extends BaseManager {
         }
         query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
         return query;
+    } 
+
+   getById(id) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getByIdOrDefault(id) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getSingleByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.collection
+                .single(query)
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.collection
+                .singleOrDefault(query)
+                .then(transferInDoc => {
+                    resolve(transferInDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+
+    getPendingSPKById(id) {
+        return new Promise((resolve, reject) => {
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false,
+                isReceived: false
+            };
+            this.spkDocCollection.singleOrDefault(query)
+                .then(SPKDoc => {
+                    SPKDoc.password = '';
+                    SPKDoc._id = undefined;
+                    resolve(SPKDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
     }
 
     create(transferInDoc) {

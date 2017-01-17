@@ -117,13 +117,49 @@ module.exports = class InventoryManager extends BaseManager{
         });
     }
 
-    getByStorageIdAndItemId(storageId, itemId) {
+     getById(id) {
         return new Promise((resolve, reject) => {
-            if (storageId === '' || itemId === '')
+            if (id === '')
+                resolve(null);
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleByQuery(query)
+                .then(inventory => {
+                    resolve(inventory);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+    
+    getByIdOrDefault(id) {
+        return new Promise((resolve, reject) => {
+            if (id === '')
+                resolve(null);
+            var query = {
+                _id: new ObjectId(id),
+                _deleted: false
+            };
+            this.getSingleOrDefaultByQuery(query)
+                .then(inventory => {
+                    resolve(inventory);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    getByStorageIdAndArticleVarianId(storageId, articleVariantId) {
+        return new Promise((resolve, reject) => {
+            if (storageId === '' || articleVariantId ==='')
                 resolve(null);
             var query = {
                 storageId: new ObjectId(storageId),
-                itemId: new ObjectId(itemId),
+                articleVariantId: new ObjectId(articleVariantId),
                 _deleted: false
             };
             this.getSingleByQuery(query)
@@ -136,16 +172,16 @@ module.exports = class InventoryManager extends BaseManager{
         });
     }
 
-    getByStorageIdAndItemIdOrDefault(storageId, itemId) {
+    getByStorageIdAndArticleVarianIdOrDefault(storageId, articleVariantId) {
         return new Promise((resolve, reject) => {
-            if (storageId === '' || itemId === '')
+            if (storageId === '' || articleVariantId ==='')
                 resolve(null);
             var query = {
                 storageId: new ObjectId(storageId),
-                itemId: new ObjectId(itemId),
+                articleVariantId: new ObjectId(articleVariantId),
                 _deleted: false
             };
-            this.getSingleByQueryOrDefault(query)
+            this.getSingleOrDefaultByQuery(query)
                 .then(inventory => {
                     resolve(inventory);
                 })
@@ -153,6 +189,32 @@ module.exports = class InventoryManager extends BaseManager{
                     reject(e);
                 });
         });
+    }
+    
+    getSingleByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.collection
+                .single(query)
+                .then(inventory => {
+                    resolve(inventory);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+     
+    getSingleOrDefaultByQuery(query) {
+        return new Promise((resolve, reject) => {
+            this.collection
+                .singleOrDefault(query)
+                .then(inventory => {
+                    resolve(inventory);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
     }
 
     create(inventory) {
