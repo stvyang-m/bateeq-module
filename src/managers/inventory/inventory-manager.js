@@ -82,25 +82,22 @@ module.exports = class InventoryManager extends BaseManager{
             };
 
             if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'item.code': {
-                        '$regex': regex
-                    }
-                };
+                _paging.keyword= (_paging.keyword.replace('(', '\\(')).replace(')', '\\)');
+                var regex = new RegExp(_paging.keyword, "i");  
+
                 var filterName = {
                     'item.name': {
                         '$regex': regex
                     }
                 };
                 var $or = {
-                    '$or': [filterCode, filterName]
+                    '$or': [filterName]
                 };
 
                 query['$and'].push($or);
             }
 
-            var _select = ["item.code", "item.name", "quantity"];
+            var _select = ["storageId","itemId","item.code", "item.name", "quantity"];
 
 
             this.collection
@@ -162,7 +159,7 @@ module.exports = class InventoryManager extends BaseManager{
                 itemId: new ObjectId(itemId),
                 _deleted: false
             };
-            this.getSingleByQuery(query)
+            this.getSingleByQueryOrDefault(query)
                 .then(inventory => {
                     resolve(inventory);
                 })
@@ -171,6 +168,7 @@ module.exports = class InventoryManager extends BaseManager{
                 });
         });
     }
+    
 
     getByStorageIdAndItemIdOrDefault(storageId, itemId) {
         return new Promise((resolve, reject) => {
