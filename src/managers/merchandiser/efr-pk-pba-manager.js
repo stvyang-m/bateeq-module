@@ -19,7 +19,7 @@ var moduleId = "EFR-PK/PBA";
 module.exports = class SPKBarangEmbalaseManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
-        this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
+        this.collection = this.db.use(map.merchandiser.SPKDoc);
         var StorageManager = require('../master/storage-manager');
         this.storageManager = new StorageManager(db, user);
 
@@ -40,88 +40,37 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
 
     }
 
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
+    _getQuery(paging) {
+        var regexModuleId = new RegExp(moduleId, "i");
+        var deletedFilter = {
+            _deleted: false,
+            'code': {
+                '$regex': regexModuleId
+            }
+        }, keywordFilter = {};
 
-        return new Promise((resolve, reject) => {
-            var regexModuleId = new RegExp(moduleId, "i");
-            var filter = {
-                _deleted: false,
+        var query = {};
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
+
+            var filterCode = {
                 'code': {
-                    '$regex': regexModuleId
+                    '$regex': regex
                 }
             };
-            var query = _paging.keyword ? {
-                '$and': [filter]
-            } : filter;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var filterPackingList = {
-                    'packingList': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode, filterPackingList]
-                };
-
-                query['$and'].push($or);
-            }
-            this.SPKDocCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(spkDoc => {
-                    resolve(spkDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleById(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            var filterPackingList = {
+                'packingList':
+                {
+                    '$regex': regex
+                }
             };
-            this.getSingleByQuery(query)
-                .then(spkDoc => {
-                    resolve(spkDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.SPKDocCollection
-                .single(query)
-                .then(spkDoc => {
-                    resolve(spkDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
+            keywordFilter = {
+                '$or': [filterCode, filterPackingList]
+            };
+        }
+        query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
+        return query;
+    } 
 
     create(spkDoc) {
         return new Promise((resolve, reject) => {
@@ -132,7 +81,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                     var date = new Date();
                     var password = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
                     validSpkDoc.password = password;
-                    this.SPKDocCollection.insert(validSpkDoc)
+                    this.collection.insert(validSpkDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -163,7 +112,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
         return new Promise((resolve, reject) => {
             this._validate(spkDoc)
                 .then(validSpkDoc => {
-                    this.SPKDocCollection.update(validSpkDoc)
+                    this.collection.update(validSpkDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -210,7 +159,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
             this._validate(spkDoc)
                 .then(validSpkDoc => {
                     validSpkDoc._deleted = true;
-                    this.SPKDocCollection.update(validSpkDoc)
+                    this.collection.update(validSpkDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -231,7 +180,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
             this.moduleManager.getByCode(moduleId)
                 .then(module => {
                     // 1. begin: Declare promises.
-                    var getSPKDoc = this.SPKDocCollection.singleOrDefault({
+                    var getSPKDoc = this.collection.singleOrDefault({
                         "$and": [{
                             _id: {
                                 '$ne': new ObjectId(valid._id)
@@ -324,7 +273,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                             }
 
                             if (valid._id == '') {
-                                var getSPKDoc = this.SPKDocCollection.where(valid._id);
+                                var getSPKDoc = this.collection.where(valid._id);
                                 if (getSPKDoc.isDraft == false) {
                                     errors["isDraft"] = "this doc can not update because status not draft";
                                 }
@@ -580,26 +529,26 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                                 this.pkManager.getByPL(spkDoc.packingList)
                                     .then(resultItem => {
                                         if (resultItem) {
-                                            resultItem.source = spkDoc.source;
-                                            resultItem.sourceId = new ObjectId(spkDoc.source._id);
-                                            resultItem.destination = spkDoc.destination;
-                                            resultItem.destinationId = new ObjectId(spkDoc.destination._id);
-                                            resultItem.reference = spkDoc.PackingList;
-                                            resultItem.date = spkDoc.dateForm;
-                                            resultItem.password = spkDoc.Password;
-                                            resultItem.items = spkDoc.items;
-                                            this.SPKDocCollection.update(resultItem)
-                                                .then(resultItem => {
+                                            // resultItem.source = spkDoc.source;
+                                            // resultItem.sourceId = new ObjectId(spkDoc.source._id);
+                                            // resultItem.destination = spkDoc.destination;
+                                            // resultItem.destinationId = new ObjectId(spkDoc.destination._id);
+                                            // resultItem.reference = spkDoc.PackingList;
+                                            // resultItem.date = spkDoc.dateForm;
+                                            // resultItem.password = spkDoc.Password;
+                                            // resultItem.items = spkDoc.items;
+                                            // this.collection.update(resultItem)
+                                            //     .then(resultItem => {
                                                     resolve(resultItem);
-                                                })
-                                                .catch(e => {
-                                                    reject(e);
-                                                });
+                                                // })
+                                                // .catch(e => {
+                                                //     reject(e);
+                                                // });
                                         }
                                         else {
                                             var spkResult = new SPKDoc(spkDoc);
                                             spkResult.stamp(this.user.username, 'manager');
-                                            this.SPKDocCollection.insert(spkResult)
+                                            this.collection.insert(spkResult)
                                                 .then(id => {
                                                     this.pkManager.getSingleById(id)
                                                         .then(resultItem => {
