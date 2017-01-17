@@ -193,7 +193,7 @@ module.exports = class InventoryManager extends BaseManager{
     
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.inventoryCollection
+            this.collection
                 .single(query)
                 .then(inventory => {
                     resolve(inventory);
@@ -206,7 +206,7 @@ module.exports = class InventoryManager extends BaseManager{
      
     getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.inventoryCollection
+            this.collection
                 .singleOrDefault(query)
                 .then(inventory => {
                     resolve(inventory);
