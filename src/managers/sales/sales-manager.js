@@ -739,13 +739,15 @@ module.exports = class SalesManager extends BaseManager {
                                 var index = resultStocks.indexOf(stock);
                                 var item = valid.items[index];
                                 var itemError = {};
-                                if (stock) {
-                                    if (!item.isReturn && item.quantity > stock.quantity) {
+                                 if (!item.isReturn) {
+                                    if (stock) {
+                                        if (item.quantity > stock.quantity) {
+                                            itemError["quantity"] = "Stok Tidak Tersedia";
+                                        }
+                                    }
+                                    else {
                                         itemError["quantity"] = "Stok Tidak Tersedia";
                                     }
-                                }
-                                else {
-                                    itemError["quantity"] = "Stok Tidak Tersedia";
                                 }
                                 itemErrors.push(itemError);
                             }
