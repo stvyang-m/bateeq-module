@@ -155,6 +155,7 @@ it('#07. should error when create new data with same username', function(done) {
         })
 });
 
+
 // it('#08. should error with property username, password, and profile ', function(done) {
 //     instanceManager.create({})
 //         .then(id => {
@@ -193,3 +194,4 @@ it('#07. should error when create new data with same username', function(done) {
 //             }
 //         })
 // });
+
