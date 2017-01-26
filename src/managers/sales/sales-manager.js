@@ -63,7 +63,56 @@ module.exports = class SalesManager extends BaseManager {
             });
     }
 
+    omsetReportStore(dateFrom, dateTo) {
+        var aggregate = [
+            {
+                "$match": {
+                    date: {
+                        $gte: new Date(dateFrom),
+                        $lte: new Date(dateTo)
+                    },
+                    'isVoid': false
+                }
+            },
+            {
+                "$group": {
+                    _id: { "storeId": "$store._id" },
+                    store: { "$min": "$store" },
+                    grandTotal: { $sum: "$grandTotal" },
+                    count: { $sum: "$totalProduct" }
+                }
+            }, {
+                "$sort": { "grandTotal": -1, }
+            }
+        ]
 
+        return this.collection.aggregate(aggregate);
+    }
+
+    omsetReportPos(dateFrom, dateTo) {
+        var aggregate = [
+            {
+                "$match": {
+                    date: {
+                        $gte: new Date(dateFrom),
+                        $lte: new Date(dateTo)
+                    },
+                    'isVoid': false
+                }
+            },
+            {
+                "$group": {
+                    _id: { "salesCategory": "$store.salesCategory", "storeCategory": "$store.storeCategory", "onlineoffline": "$store.online-offline" },
+                    grandTotal: { $sum: "$grandTotal" },
+                    count: { $sum: "$totalProduct" }
+                }
+            }, {
+                "$sort": { "grandTotal": -1, }
+            }
+        ]
+
+        return this.collection.aggregate(aggregate);
+    }
     _createIndexes() {
         var dateIndex = {
             name: `ix_${map.sales.SalesDoc}__updatedDate`,
@@ -372,10 +421,10 @@ module.exports = class SalesManager extends BaseManager {
                         valid.shift = 0;
                         if (_store.shifts) {
                             for (var shift of _store.shifts) {
-                                
+
                                 var dateFrom = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateFrom)));
                                 var dateTo = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateTo)));
-                                
+
                                 if (dateFrom > dateTo) {
                                     dateFrom.setDate(dateFrom.getDate() - 1);
                                 }
@@ -739,13 +788,15 @@ module.exports = class SalesManager extends BaseManager {
                                 var index = resultStocks.indexOf(stock);
                                 var item = valid.items[index];
                                 var itemError = {};
-                                if (stock) {
-                                    if (!item.isReturn && item.quantity > stock.quantity) {
+                                if (!item.isReturn) {
+                                    if (stock) {
+                                        if (item.quantity > stock.quantity) {
+                                            itemError["quantity"] = "Stok Tidak Tersedia";
+                                        }
+                                    }
+                                    else {
                                         itemError["quantity"] = "Stok Tidak Tersedia";
                                     }
-                                }
-                                else {
-                                    itemError["quantity"] = "Stok Tidak Tersedia";
                                 }
                                 itemErrors.push(itemError);
                             }
