@@ -51,7 +51,7 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
         return new Promise((resolve, reject) => {
             var deleted = {
                 _deleted: false
-            };
+            }, keywordFilter = {};
 
             var regex = new RegExp("EFR\-PK/\PBJ|EFR\-PK/\PBR", "i");
             var filterCode = {
@@ -65,11 +65,25 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                 isReceived: false
             };
 
+            if (paging.keyword) {
+                var regex = new RegExp(paging.keyword, "i");
+
+                var filterPackingList = {
+                    'packingList': {
+                        '$regex': regex
+                    }
+                };
+                keywordFilter = {
+                    '$or': [filterPackingList]
+                };
+            }
+
             var query = {
                 $and: [
                     deleted,
                     filterCode,
-                    isReceived
+                    isReceived,
+                    keywordFilter
                 ]
             }
 
@@ -87,6 +101,7 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
         });
     }
 
+
     _getQuery(paging) {
         var deletedFilter = {
             _deleted: false
@@ -100,14 +115,14 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                 'code': {
                     '$regex': regex
                 }
-            }; 
+            };
             keywordFilter = {
                 '$or': [filterCode]
             };
         }
         query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
         return query;
-    } 
+    }
     getById(id) {
         return new Promise((resolve, reject) => {
             var query = {
@@ -164,8 +179,8 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                     reject(e);
                 });
         })
-    } 
-    
+    }
+
     getPendingSPKById(id) {
         return new Promise((resolve, reject) => {
             var query = {
