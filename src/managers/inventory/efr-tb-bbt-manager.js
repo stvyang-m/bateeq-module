@@ -60,6 +60,16 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                 },
                 // 'expeditionDocumentId': { "$ne": {} }
             };
+            var destination;
+            if (Object.getOwnPropertyNames(paging.filter).length != 0) {
+                destination =
+                    {
+                        "destination.code":
+                        {
+                            $in: paging.filter
+                        }
+                    }
+            }
 
             var isReceived = {
                 isReceived: false
@@ -83,6 +93,7 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                     deleted,
                     filterCode,
                     isReceived,
+                    destination,
                     keywordFilter
                 ]
             }
