@@ -1,5 +1,5 @@
 var helper = require("../../helper");
-var Manager = require("../../../src/etl/dim-category-etl-manager");
+var Manager = require("../../../src/etl/fact-penjualan");
 var instanceManager = null;
 var should = require("should");
 
@@ -16,7 +16,7 @@ before("#00. connect db", function(done) {
         });
 });
 
-it("#01. should success when create etl for dim-category", function(done) {
+it("#01. should success when run etl for fact penjualan", function(done) {
     instanceManager.run()
         .then(() => {
             done();
