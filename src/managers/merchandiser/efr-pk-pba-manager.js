@@ -70,9 +70,9 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
         }
         query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
         return query;
-    } 
+    }
 
-     getById(id) {
+    getById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
                 resolve(null);
@@ -400,13 +400,12 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                 });
         });
     }
-
     insert(dataFile, sourceId, destinationId, dateForm) {
         return new Promise((resolve, reject) => {
             var data = [];
             if (dataFile != "") {
                 for (var i = 1; i < dataFile.length; i++) {
-                    data.push({ "PackingList": dataFile[i][0], "Password": dataFile[i][1], "Barcode": dataFile[i][2], "Name": dataFile[i][3], "Size": dataFile[i][4], "Price": dataFile[i][5], "UOM": dataFile[i][6], "QTY": dataFile[i][7], "RO": dataFile[i][8] });
+                    data.push({ "PackingList": dataFile[i][0], "Password": dataFile[i][1], "Barcode": dataFile[i][2], "Name": dataFile[i][3], "Size": dataFile[i][4], "Price": dataFile[i][5], "UOM": dataFile[i][6], "QTY": dataFile[i][7], "RO": dataFile[i][8], "HPP": dataFile[i][9] });
                 }
             }
             var dataError = [], errorMessage;
@@ -439,6 +438,12 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                     errorMessage = errorMessage + "QTY harus numerik,";
                 }
 
+                if (data[i]["HPP"] !== "") {
+                    if (isNaN(data[i]["HPP"])) {
+                        errorMessage = errorMessage + "HPP harus numerik,";
+                    }
+                }
+
                 for (var j = 0; j < data.length; j++) {
                     if (i !== j) {
                         if (data[i]["PackingList"] === data[j]["PackingList"]) {
@@ -454,14 +459,14 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                 }
 
                 if (errorMessage !== "") {
-                    dataError.push({ "PackingList": data[i]["PackingList"], "Password": data[i]["Password"], "Barcode": data[i]["Barcode"], "Name": data[i]["Name"], "Size": data[i]["Size"], "Price": data[i]["Price"], "UOM": data[i]["UOM"], "QTY": data[i]["QTY"], "RO": data[i]["RO"], "Error": errorMessage });
+                    dataError.push({ "PackingList": data[i]["PackingList"], "Password": data[i]["Password"], "Barcode": data[i]["Barcode"], "Name": data[i]["Name"], "Size": data[i]["Size"], "Price": data[i]["Price"], "UOM": data[i]["UOM"], "QTY": data[i]["QTY"], "RO": data[i]["RO"], "HPP": data[i]["HPP"], "Error": errorMessage });
                 }
             }
             if (dataError.length === 0) {
 
                 var fg = [];
                 for (var i = 0; i < data.length; i++) {
-                    fg.push({ "code": data[i]["Barcode"], "name": data[i]["Name"], "uom": data[i]["UOM"], "realizationOrder": data[i]["RO"], "size": data[i]["Size"], "domesticSale": data[i]["Price"] });
+                    fg.push({ "code": data[i]["Barcode"], "name": data[i]["Name"], "uom": data[i]["UOM"], "realizationOrder": data[i]["RO"], "size": data[i]["Size"], "domesticSale": data[i]["Price"], "domesticCOGS": data[i]["HPP"] });
                 }
 
                 var flags = [], distinctFg = [];
@@ -483,6 +488,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                                     resultItem.article.realizationOrder = item.realizationOrder;
                                     resultItem.size = item.size;
                                     resultItem.domesticSale = item.domesticSale;
+                                    resultItem.domesticCOGS = item.domesticCOGS;
                                     this.finishedGoodsManager.update(resultItem)
                                         .then(id => {
                                             this.itemManager.getSingleById(id)
@@ -505,6 +511,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                                     finishGood.article.realizationOrder = item.realizationOrder;
                                     finishGood.size = item.size;
                                     finishGood.domesticSale = item.domesticSale;
+                                    finishGood.domesticCOGS = item.domesticCOGS;
                                     this.finishedGoodsManager.create(finishGood)
                                         .then(id => {
                                             this.itemManager.getSingleById(id)
@@ -587,11 +594,11 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                                             // resultItem.items = spkDoc.items;
                                             // this.collection.update(resultItem)
                                             //     .then(resultItem => {
-                                                    resolve(resultItem);
-                                                // })
-                                                // .catch(e => {
-                                                //     reject(e);
-                                                // });
+                                            resolve(resultItem);
+                                            // })
+                                            // .catch(e => {
+                                            //     reject(e);
+                                            // });
                                         }
                                         else {
                                             var spkResult = new SPKDoc(spkDoc);
