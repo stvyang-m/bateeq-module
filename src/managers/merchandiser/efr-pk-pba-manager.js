@@ -438,7 +438,7 @@ module.exports = class SPKBarangEmbalaseManager extends BaseManager {
                     errorMessage = errorMessage + "QTY harus numerik,";
                 }
 
-                if (data[i]["HPP"] !== "") {
+                if (data[i]["HPP"] !== "" || data[i]["HPP"] !== " ") {
                     if (isNaN(data[i]["HPP"])) {
                         errorMessage = errorMessage + "HPP harus numerik,";
                     }
