@@ -452,7 +452,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                 } else if (isNaN(data[i]["QTY"])) {
                     errorMessage = errorMessage + "QTY harus numerik,";
                 }
-                if (data[i]["HPP"] !== "") {
+                if (data[i]["HPP"] !== "" || data[i]["HPP"] !== " ") {
                     if (isNaN(data[i]["HPP"])) {
                         errorMessage = errorMessage + "HPP harus numerik,";
                     }
