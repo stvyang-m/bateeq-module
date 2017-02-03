@@ -93,7 +93,9 @@ module.exports = {
         salesMigration: require('./src/etl/sales-etl'),
         salesSpMigration: require('./src/etl/sp-sales-etl'),
 
-        
+        factPenjualan : require('./src/etl/fact-penjualan'),
+        factPenjualanSummary : require('./src/etl/fact-penjualan-summary'),
+        dimBranch : require('./src/etl/dim-branch')
 
 
 
