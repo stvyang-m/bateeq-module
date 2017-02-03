@@ -4,7 +4,6 @@
 var ObjectId = require("mongodb").ObjectId;
 var BaseManager = require('module-toolkit').BaseManager;
 var moment = require("moment");
-var sqlConnect = require('./sqlConnect');
 
 var StoreManager = require('../../src/managers/master/store-manager');
 
@@ -13,8 +12,9 @@ require('mongodb-toolkit');
 const migrationName = "ETL-DimBranch";
 
 module.exports = class DimBranch {
-    constructor(db, user) {
+    constructor(db, user,sql) {
         this.db = db;
+        this.sql = sql;
         this.StoreManager = new StoreManager(db, user);
         this.migrationLog = db.collection("migration.log");
     }
@@ -62,31 +62,52 @@ module.exports = class DimBranch {
                                     console.log(err);
                                     reject(err);
                                 });
-                        })
-                    })
+                        }).catch((err) => {
+                            var finishedDate = new Date();
+                            var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
+                            var updateLog = {
+                                migration: migrationName,
+                                _start: startedDate,
+                                _createdDate: startedDate,
+                                _end: finishedDate,
+                                executionTime: spentTime + " minutes",
+                                status: err
+                            };
+                            this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
+                            console.log(err);
+                            reject(err);
+                        });
+                    }).catch((err) => {
+                        var finishedDate = new Date();
+                        var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
+                        var updateLog = {
+                            migration: migrationName,
+                            _start: startedDate,
+                            _createdDate: startedDate,
+                            _end: finishedDate,
+                            executionTime: spentTime + " minutes",
+                            status: err
+                        };
+                        this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
+                        console.log(err);
+                        reject(err);
+                    });
             })
         });
     }
 
     lastETLDate() {
         return new Promise((resolve, reject) => {
-            var query = {
-                "migration": migrationName, status: "success"
-            }
-            var orderBy = {
-                "_createdDate": -1
-            }
-
-            this.migrationLog.findOne({
-                "$query": query,
-                "$orderBy": orderBy
-            }).then((result) => {
-                resolve(result || { _createdDate: new Date("1970-01-01") });
-            }).catch((err) => {
-                reject(err);
-            })
+            this.migrationLog.find({ "migration": migrationName, status: "success" }).sort({ "_createdDate": -1 }).limit(1).toArray()
+                .then((result) => {
+                    if (result[0])
+                        resolve(result[0] || { _createdDate: new Date("1970-01-01") });
+                }).catch((err) => {
+                    reject(err);
+                })
         })
     }
+
 
     extract(date) {
         var timestamp = date || new Date("1970-01-01");
@@ -154,14 +175,14 @@ module.exports = class DimBranch {
 
     load(data) {
         return new Promise((resolve, reject) => {
-            sqlConnect.startConnection()
+            this.sql.startConnection()
                 .then(() => {
 
-                    var transaction = sqlConnect.transaction();
+                    var transaction = this.sql.transaction();
 
                     transaction.begin((err) => {
 
-                        var request = sqlConnect.transactionRequest(transaction);
+                        var request = this.sql.transactionRequest(transaction);
 
                         var command = [];
 
@@ -185,7 +206,7 @@ module.exports = class DimBranch {
                         if (sqlQuery != "")
                             command.push(this.insertQuery(request, `${sqlQuery}`));
 
-                        sqlConnect.multiple = true;
+                        this.sql.multiple = true;
 
                         var fs = require("fs");
                         var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";

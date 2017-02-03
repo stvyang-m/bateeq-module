@@ -4,7 +4,6 @@
 var ObjectId = require("mongodb").ObjectId;
 var BaseManager = require('module-toolkit').BaseManager;
 var moment = require("moment");
-var sqlConnect = require('./sqlConnect');
 
 var ItemManager = require('../../src/managers/master/item-manager');
 var BankManager = require('../../src/managers/master/bank-manager');
@@ -17,8 +16,9 @@ require('mongodb-toolkit');
 const migrationName = "ETL-FactPenjualan-Summary";
 
 module.exports = class FactPenjualanSummary {
-    constructor(db, user) {
+    constructor(db, user, sql) {
         this.db = db;
+        this.sql = sql;
         this.SalesManager = new SalesManager(db, user);
         this.migrationLog = db.collection("migration.log");
     }
@@ -66,31 +66,52 @@ module.exports = class FactPenjualanSummary {
                                     console.log(err);
                                     reject(err);
                                 });
-                        })
-                    })
+                        }).catch((err) => {
+                            var finishedDate = new Date();
+                            var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
+                            var updateLog = {
+                                migration: migrationName,
+                                _start: startedDate,
+                                _createdDate: startedDate,
+                                _end: finishedDate,
+                                executionTime: spentTime + " minutes",
+                                status: err
+                            };
+                            this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
+                            console.log(err);
+                            reject(err);
+                        });
+                    }).catch((err) => {
+                        var finishedDate = new Date();
+                        var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
+                        var updateLog = {
+                            migration: migrationName,
+                            _start: startedDate,
+                            _createdDate: startedDate,
+                            _end: finishedDate,
+                            executionTime: spentTime + " minutes",
+                            status: err
+                        };
+                        this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
+                        console.log(err);
+                        reject(err);
+                    });
             })
         });
     }
 
-    lastETLDate() {
+   lastETLDate() {
         return new Promise((resolve, reject) => {
-            var query = {
-                "migration": migrationName, status: "success"
-            }
-            var orderBy = {
-                "_createdDate": -1
-            }
-
-            this.migrationLog.findOne({
-                "$query": query,
-                "$orderBy": orderBy
-            }).then((result) => {
-                resolve(result || { _createdDate: new Date("1970-01-01") });
-            }).catch((err) => {
-                reject(err);
-            })
+            this.migrationLog.find({ "migration": migrationName, status: "success" }).sort({ "_createdDate": -1 }).limit(1).toArray()
+                .then((result) => {
+                    if (result[0])
+                        resolve(result[0] || { _createdDate: new Date("1970-01-01") });
+                }).catch((err) => {
+                    reject(err);
+                })
         })
     }
+
 
     extract(date) {
         var timestamp = date || new Date("1970-01-01");
@@ -209,14 +230,14 @@ module.exports = class FactPenjualanSummary {
 
     load(data) {
         return new Promise((resolve, reject) => {
-            sqlConnect.startConnection()
+            this.sql.startConnection()
                 .then(() => {
 
-                    var transaction = sqlConnect.transaction();
+                    var transaction = this.sql.transaction();
 
                     transaction.begin((err) => {
 
-                        var request = sqlConnect.transactionRequest(transaction);
+                        var request = this.sql.transactionRequest(transaction);
 
                         var command = [];
 
@@ -240,7 +261,7 @@ module.exports = class FactPenjualanSummary {
                         if (sqlQuery != "")
                             command.push(this.insertQuery(request, `${sqlQuery}`));
 
-                        sqlConnect.multiple = true;
+                        this.sql.multiple = true;
 
                         // var fs = require("fs");
                         // var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";
