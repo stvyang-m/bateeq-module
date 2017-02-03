@@ -1,27 +1,27 @@
 var should = require('should');
 var helper = require('../helper');
-var validate = require('bateeq-models').validator.master.article;
+var validate = require('bateeq-models').validator.master;
 var generateCode = require('../../src/utils/code-generator');
 var manager;
 
 function getData() {
-    var ArticleMotif = require('bateeq-models').master.article.ArticleMotif;
-    var articleMotif = new ArticleMotif();
+    var Division = require('bateeq-models').master.Division;
+    var division = new Division();
 
     var code = generateCode('UnitTest');
 
-    articleMotif.code = code;
-    articleMotif.name = `name[${code}]`;
-    articleMotif.description = `description for ${code}`;
+    division.code = code;
+    division.name = `name[${code}]`;
+    division.description = `description for ${code}`; 
 
-    return articleMotif;
+    return division;
 }
 
 before('#00. connect db', function(done) {
     helper.getDb()
         .then(db => {
-            var ArticleMotifManager = require('../../src/managers/master/article/article-motif-manager');
-            manager = new ArticleMotifManager(db, {
+            var DivisionManager = require('../../src/managers/master/division-manager');
+            manager = new DivisionManager(db, {
                 username: 'unit-test'
             });
             done();
@@ -47,9 +47,11 @@ it('#01. should success when create new data', function(done) {
 
 var createdData;
 it(`#02. should success when get created data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
-            validate.articleMotif(data);
+            validate.cardType(data);
             createdData = data;
             done();
         })
@@ -62,7 +64,7 @@ it(`#03. should success when update created data`, function(done) {
 
     createdData.code += '[updated]';
     createdData.name += '[updated]';
-    createdData.description += '[updated]';
+    createdData.description += '[updated]'; 
 
     manager.update(createdData)
         .then(id => {
@@ -75,12 +77,14 @@ it(`#03. should success when update created data`, function(done) {
 });
 
 it(`#04. should success when get updated data with id`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
-            validate.articleMotif(data);
+            validate.cardType(data);
             data.code.should.equal(createdData.code);
             data.name.should.equal(createdData.name);
-            data.description.should.equal(createdData.description);
+            data.description.should.equal(createdData.description); 
             done();
         })
         .catch(e => {
@@ -88,7 +92,7 @@ it(`#04. should success when get updated data with id`, function(done) {
         })
 });
 
-it(`#05. should success when delete data`, function(done) { 
+it(`#05. should success when delete data`, function(done) {
     manager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -100,9 +104,11 @@ it(`#05. should success when delete data`, function(done) {
 });
 
 it(`#06. should _deleted=true`, function(done) {
-    manager.getSingleByQuery({_id:createdId})
+    manager.getSingleByQuery({
+            _id: createdId
+        })
         .then(data => {
-            validate.articleMotif(data);
+            validate.cardType(data);
             data._deleted.should.be.Boolean();
             data._deleted.should.equal(true);
             done();
@@ -130,22 +136,21 @@ it('#07. should error when create new data with same code', function(done) {
                 done(e);
             }
         })
-}); 
+});
 
-it('#08. should error with property code and name ', function(done) { 
+it('#08. should error with property code and name ', function(done) {
     manager.create({})
-        .then(id => { 
-            done("Should not be able error with property code and name");
+        .then(id => {
+            done("Should not be error with property code and name");
         })
-        .catch(e => { 
-           try
-           {
-               e.errors.should.have.property('code');
-               e.errors.should.have.property('name');  
-               done();
-           }catch(ex)
-           {
-               done(ex);
-           } 
+        .catch(e => {
+            try {
+                e.errors.should.have.property('code');
+                e.errors.should.have.property('name');
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
         })
 });

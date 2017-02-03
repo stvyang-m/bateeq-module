@@ -83,6 +83,7 @@ module.exports = {
         PromoManager: require('./src/managers/sales/promo-manager')
     },
 
+
     etl: {
         itemsMigration: require('./src/etl/items-etl'),
         itemsSpMigration: require('./src/etl/sp-items-etl'),
@@ -104,3 +105,4 @@ module.exports = {
     }
 
 }
+
