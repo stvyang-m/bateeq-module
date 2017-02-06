@@ -100,7 +100,7 @@ module.exports = class FactPenjualanSummary {
         });
     }
 
-   lastETLDate() {
+    lastETLDate() {
         return new Promise((resolve, reject) => {
             this.migrationLog.find({ "migration": migrationName, status: "success" }).sort({ "_createdDate": -1 }).limit(1).toArray()
                 .then((result) => {
@@ -117,6 +117,7 @@ module.exports = class FactPenjualanSummary {
         var timestamp = date || new Date("1970-01-01");
         return this.SalesManager.collection.find({
             _deleted: false,
+            isVoid: false,
             _updatedDate: {
                 "$gt": timestamp
             }
@@ -203,7 +204,7 @@ module.exports = class FactPenjualanSummary {
                     store_sales_category: `'${this.getDBValidString(sale.store.salesCategory)}'`,
                     store_monthly_total_cost: `'${this.getDBValidString(sale.store.monthlyTotalCost)}'`,
                     store_category: `'${this.getDBValidString(sale.store.storeCategory)}'`,
-                    store_montly_omzet_target: `'${this.getDBValidString(sale.store.monthlyTotalCost)}'`,
+                    store_montly_omzet_target: `'${this.getDBValidString(sale.store.salesTarget)}'`,
                     total_qty: `'${this.getDBValidString(sale.totalProduct)}'`,
                     hd_pos: `'${this.getDBValidString(sale.pos)}'`,
                     hd_bank_card: `'${this.getDBValidString((!sale.salesDetail.bankCard.name || sale.salesDetail.bankCard.name == "-") ? "" : sale.salesDetail.bankCard.name)}'`,
@@ -261,7 +262,7 @@ module.exports = class FactPenjualanSummary {
                         if (sqlQuery != "")
                             command.push(this.insertQuery(request, `${sqlQuery}`));
 
-                        this.sql.multiple = true;
+                        request.multiple = true;
 
                         // var fs = require("fs");
                         // var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";

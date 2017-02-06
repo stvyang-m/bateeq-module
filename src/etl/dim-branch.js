@@ -150,10 +150,10 @@ module.exports = class DimBranch {
                         store_status: `'${this.getDBValidString(store.status)}'`,
                         store_wide: `'${this.getDBValidString(store.storeWide)}'`,
                         store_offline_online: `'${this.getDBValidString(store['online-offline'])}'`,
-                        store_sales_category: `'${this.getDBValidString(store.storeCategory)}'`,
+                        store_sales_category: `'${this.getDBValidString(store.salesCategory)}'`,
                         store_monthly_total_cost: `'${this.getDBValidString(store.monthlyTotalCost)}'`,
                         store_category: `'${this.getDBValidString(store.storeCategory)}'`,
-                        store_montly_omzet_target: `'${this.getDBValidString(store.monthlyTotalCost)}'`,
+                        store_montly_omzet_target: `'${this.getDBValidString(store.salesTarget)}'`,
                     }
             });
             resolve(result);
@@ -206,7 +206,7 @@ module.exports = class DimBranch {
                         if (sqlQuery != "")
                             command.push(this.insertQuery(request, `${sqlQuery}`));
 
-                        this.sql.multiple = true;
+                        request.multiple = true;
 
                         var fs = require("fs");
                         var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";
