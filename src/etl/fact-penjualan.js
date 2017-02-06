@@ -116,6 +116,7 @@ module.exports = class FactPenjualan {
         var timestamp = date || new Date("1970-01-01");
         return this.SalesManager.collection.find({
             _deleted: false,
+            isVoid : false,
             _updatedDate: {
                 "$gt": timestamp
             }
@@ -236,7 +237,7 @@ module.exports = class FactPenjualan {
 
                         var result = data.map((sale) => {
                             var items = sale.items.map((item) => {
-                                if (embalaseBarcode.indexOf(item.item.code) == -1) {
+                                if (embalaseBarcode.indexOf(item.item.code) == -1 && !item.isReturn) {
                                     return {
                                         timekey: `'${moment(sale.date).format("L")}'`,
                                         countdays: `'${moment(sale.date).daysInMonth()}'`,
@@ -282,7 +283,7 @@ module.exports = class FactPenjualan {
                                         store_sales_category: `'${this.getDBValidString(sale.store.salesCategory)}'`,
                                         store_monthly_total_cost: `'${this.getDBValidString(sale.store.monthlyTotalCost)}'`,
                                         store_category: `'${this.getDBValidString(sale.store.storeCategory)}'`,
-                                        store_montly_omzet_target: `'${this.getDBValidString(sale.store.monthlyTotalCost)}'`,
+                                        store_montly_omzet_target: `'${this.getDBValidString(sale.store.salesTarget)}'`,
                                         hd_pos: `'${this.getDBValidString(sale.pos)}'`,
                                         hd_bank_card: `'${this.getDBValidString((!sale.salesDetail.bankCard.name || sale.salesDetail.bankCard.name == "-") ? "" : sale.salesDetail.bankCard.name)}'`
                                     }
@@ -347,7 +348,7 @@ module.exports = class FactPenjualan {
                         if (sqlQuery != "")
                             command.push(this.insertQuery(request, `${sqlQuery}`));
 
-                        this.sql.multiple = true;
+                        request.multiple = true;
 
                         // var fs = require("fs");
                         // var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";
