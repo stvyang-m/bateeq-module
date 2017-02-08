@@ -104,7 +104,7 @@ module.exports = class FactPenjualanSummary {
         return new Promise((resolve, reject) => {
             this.migrationLog.find({ "migration": migrationName, status: "success" }).sort({ "_createdDate": -1 }).limit(1).toArray()
                 .then((result) => {
-                        resolve(result[0] || { _createdDate: new Date("1970-01-01") });
+                    resolve(result[0] || { _createdDate: new Date("1970-01-01") });
                 }).catch((err) => {
                     reject(err);
                 })
@@ -169,7 +169,7 @@ module.exports = class FactPenjualanSummary {
     sumMainSalesPrice(sale) {
         var sum = 0;
         for (var item of sale.items) {
-            sum += item.item.domesticCOGS || 0;
+            sum += parseInt(item.item.domesticCOGS || 0);
         }
         return sum;
     }
@@ -220,9 +220,9 @@ module.exports = class FactPenjualanSummary {
         return new Promise((resolve, reject) => {
             sql.query(query, function (err, result) {
                 if (err) {
-                    reject(err);
+                    resolve({ "status": "error", "error": err });
                 } else {
-                    resolve(result);
+                    resolve({ "status": "success" });
                 }
             })
         })
@@ -266,7 +266,7 @@ module.exports = class FactPenjualanSummary {
                         // var fs = require("fs");
                         // var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";
 
-                        // fs.writeFile(path, sqlQuery, function (error) {
+                        // fs.writeFile(path, test, function (error) {
                         //     if (error) {
                         //         console.log("write error:  " + error.message);
                         //     } else {
@@ -276,25 +276,33 @@ module.exports = class FactPenjualanSummary {
 
                         return Promise.all(command)
                             .then((results) => {
-                                request.execute("BTQ_Upsert_FactPenjualanSummary").then((execResult) => {
-                                    transaction.commit((err) => {
-                                        if (err)
-                                            reject(err);
-                                        else
-                                            resolve(results);
-                                    });
-                                }).catch((error) => {
+                                if (results.find((o) => o.status == "error")) {
                                     transaction.rollback((err) => {
                                         if (err)
                                             reject(err)
                                         else
-                                            reject(error);
+                                            reject(results);
                                     });
-                                })
+                                } else {
+                                    request.execute("BTQ_Upsert_FactPenjualanSummary").then((execResult) => {
+                                        transaction.commit((err) => {
+                                            if (err)
+                                                reject(err);
+                                            else
+                                                resolve(results);
+                                        });
+                                    }).catch((error) => {
+                                        transaction.rollback((err) => {
+                                            if (err)
+                                                reject(err)
+                                            else
+                                                reject(error);
+                                        });
+                                    })
+                                }
                             })
                             .catch((error) => {
                                 transaction.rollback((err) => {
-                                    console.log("rollback");
                                     if (err)
                                         reject(err)
                                     else

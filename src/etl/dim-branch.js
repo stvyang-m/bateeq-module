@@ -164,9 +164,9 @@ module.exports = class DimBranch {
         return new Promise((resolve, reject) => {
             sql.query(query, function (err, result) {
                 if (err) {
-                    reject(err);
+                    resolve({ "status": "error", "error": err });
                 } else {
-                    resolve(result);
+                    resolve({ "status": "success" });
                 }
             })
         })
@@ -220,21 +220,30 @@ module.exports = class DimBranch {
 
                         return Promise.all(command)
                             .then((results) => {
-                                request.execute("BTQ_Upsert_DimBranch").then((execResult) => {
-                                    transaction.commit((err) => {
-                                        if (err)
-                                            reject(err);
-                                        else
-                                            resolve(results);
-                                    });
-                                }).catch((error) => {
+                                 if (results.find((o) => o.status == "error")) {
                                     transaction.rollback((err) => {
                                         if (err)
                                             reject(err)
                                         else
-                                            reject(error);
+                                            reject(results);
                                     });
-                                })
+                                } else {
+                                    request.execute("BTQ_Upsert_DimBranch").then((execResult) => {
+                                        transaction.commit((err) => {
+                                            if (err)
+                                                reject(err);
+                                            else
+                                                resolve(results);
+                                        });
+                                    }).catch((error) => {
+                                        transaction.rollback((err) => {
+                                            if (err)
+                                                reject(err)
+                                            else
+                                                reject(error);
+                                        });
+                                    })
+                                }
                             })
                             .catch((error) => {
                                 transaction.rollback((err) => {
