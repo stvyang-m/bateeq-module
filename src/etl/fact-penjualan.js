@@ -215,7 +215,7 @@ module.exports = class FactPenjualan {
         return "";
     }
 
-    getEmbalase() {
+    getExcludedItem() {
         return new Promise((resolve, reject) => {
             this.db.collection("migration-excluded-items").find({ _deleted: false }).toArray()
                 .then((result) => {
@@ -228,15 +228,15 @@ module.exports = class FactPenjualan {
 
     transform(data) {
         return new Promise((resolve, reject) => {
-            Promise.all([this.getArticles(), this.getEmbalase()]).then((x) => {
+            Promise.all([this.getArticles(), this.getExcludedItem()]).then((x) => {
                 if (x) {
                     if (x[0] && x[1]) {
-                        var embalaseBarcode = x[1].map((o) => o.code);
+                        var excludedBarcode = x[1].map((o) => o.code);
                         var count = 1;
 
                         var result = data.map((sale) => {
                             var items = sale.items.map((item) => {
-                                if (embalaseBarcode.indexOf(item.item.code) == -1 && !item.isReturn) {
+                                if (excludedBarcode.indexOf(item.item.code) == -1 && !item.isReturn) {
                                     return {
                                         timekey: `'${moment(sale.date).format("L")}'`,
                                         countdays: `'${moment(sale.date).daysInMonth()}'`,
@@ -262,7 +262,7 @@ module.exports = class FactPenjualan {
                                         dt_subcounter_name: `'${this.getDBValidString(this.getSubCounter(item.item.code))}'`,
                                         dt_material_name: `'${this.getDBValidString(this.getMaterial(item.item.code))}'`,
                                         dt_size_name: `'${this.getDBValidString(this.getSize(item.item.code))}'`,
-                                        dt_mainsalesprice: `'${this.getDBValidString(item.item.domesticCOGS)}'`,
+                                        dt_mainsalesprice: `'${this.getDBValidString(parseInt(item.item.domesticCOGS || 0) * parseInt(item.quantity || 0))}'`,
                                         dt_item_price: `'${this.getDBValidString(item.price)}'`,
                                         dt_is_discount_percentage: `'${(item.discountNominal > 0) ? '0' : '1'}'`,
                                         dt_fixed_discount_amount: `'${this.getDBValidString(item.discountNominal)}'`,
