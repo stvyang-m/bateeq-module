@@ -169,49 +169,68 @@ module.exports = class FactPenjualanSummary {
     sumMainSalesPrice(sale) {
         var sum = 0;
         for (var item of sale.items) {
-            sum += parseInt(item.item.domesticCOGS || 0);
+            sum += (parseInt(item.item.domesticCOGS || 0) * parseInt(item.quantity));
         }
         return sum;
     }
 
+    getExcludedItem() {
+        return new Promise((resolve, reject) => {
+            this.db.collection("migration-excluded-items").find({ _deleted: false }).toArray()
+                .then((result) => {
+                    resolve(result);
+                }).catch((error) => {
+                    reject(error);
+                })
+        });
+    }
+
+    isExcludedItemOnly(sale) {
+        var find = sale.items.find((x) => this.excludedItem.indexOf(x.item.code) == -1);
+        return !find;
+    }
+
     transform(data) {
         return new Promise((resolve, reject) => {
-            var result = data.map((sale) => {
-                return {
-                    timekey: `'${moment(sale.date).format("L")}'`,
-                    countdays: `'${moment(sale.date).daysInMonth()}'`,
-                    store_code: sale.store ? `'${this.getDBValidString(sale.store.code)}'` : null,
-                    hd_transaction_number: `'${this.getDBValidString(sale.code)}'`,
-                    hd_sales_discount_percentage: `'${this.getDBValidString(sale.discount)}'`,
-                    hd_grandtotal: `'${this.getDBValidString(sale.grandTotal)}'`,
-                    hd_payment_type: `'${this.getDBValidString(sale.salesDetail.paymentType)}'`,
-                    hd_card: `'${this.getDBValidString(sale.salesDetail.card)}'`,
-                    hd_card_type: `'${this.getDBValidString(sale.salesDetail.cardType.name)}'`,
-                    hd_bank_name: `'${this.getDBValidString((!sale.salesDetail.bank.name || sale.salesDetail.bank.name == "-") ? "" : sale.salesDetail.bank.name)}'`,
-                    hd_card_number: `'${this.getDBValidString(sale.salesDetail.cardNumber)}'`,
-                    hd_voucher_amount: sale.salesDetail.voucher ? `'${this.getDBValidString(sale.salesDetail.voucher.value)}'` : `'0'`,
-                    hd_cash_amount: sale.salesDetail.cashAmount ? `'${this.getDBValidString(sale.salesDetail.cashAmount)}'` : `'0'`,
-                    hd_card_amount: sale.salesDetail.cardAmount ? `'${this.getDBValidString(sale.salesDetail.cardAmount)}'` : `'0'`,
-                    store_name: `'${this.getDBValidString(sale.store.name)}'`,
-                    store_city: `'${this.getDBValidString(sale.store.city)}'`,
-                    store_open_date: sale.store.openedDate ? `'${moment(sale.store.openedDate).format("L")}'` : null,
-                    store_close_date: sale.store.closedDate ? `'${moment(sale.store.closedDate).format("L")}'` : null,
-                    store_area: `'${this.getDBValidString(sale.store.storeArea)}'`,
-                    store_status: `'${this.getDBValidString(sale.store.status)}'`,
-                    store_wide: `'${this.getDBValidString(sale.store.storeWide)}'`,
-                    store_offline_online: `'${this.getDBValidString(sale.store['online-offline'])}'`,
-                    store_sales_category: `'${this.getDBValidString(sale.store.salesCategory)}'`,
-                    store_monthly_total_cost: `'${this.getDBValidString(sale.store.monthlyTotalCost)}'`,
-                    store_category: `'${this.getDBValidString(sale.store.storeCategory)}'`,
-                    store_montly_omzet_target: `'${this.getDBValidString(sale.store.salesTarget)}'`,
-                    total_qty: `'${this.getDBValidString(sale.totalProduct)}'`,
-                    hd_pos: `'${this.getDBValidString(sale.pos)}'`,
-                    hd_bank_card: `'${this.getDBValidString((!sale.salesDetail.bankCard.name || sale.salesDetail.bankCard.name == "-") ? "" : sale.salesDetail.bankCard.name)}'`,
-                    mainsalesprice: `'${this.getDBValidString(this.sumMainSalesPrice(sale))}'`
-                }
-                return [].concat.apply([], items);
+            this.getExcludedItem().then((excluded) => {
+                this.excludedItem = (excluded) ? excluded.map((o) => o.code) : [];
+                var result = data.map((sale) => {
+                    if (!this.isExcludedItemOnly(sale))
+                        return {
+                            timekey: `'${moment(sale.date).format("L")}'`,
+                            countdays: `'${moment(sale.date).daysInMonth()}'`,
+                            store_code: sale.store ? `'${this.getDBValidString(sale.store.code)}'` : null,
+                            hd_transaction_number: `'${this.getDBValidString(sale.code)}'`,
+                            hd_sales_discount_percentage: `'${this.getDBValidString(sale.discount)}'`,
+                            hd_grandtotal: `'${this.getDBValidString(sale.grandTotal)}'`,
+                            hd_payment_type: `'${this.getDBValidString(sale.salesDetail.paymentType)}'`,
+                            hd_card: `'${this.getDBValidString(sale.salesDetail.card)}'`,
+                            hd_card_type: `'${this.getDBValidString(sale.salesDetail.cardType.name)}'`,
+                            hd_bank_name: `'${this.getDBValidString((!sale.salesDetail.bank.name || sale.salesDetail.bank.name == "-") ? "" : sale.salesDetail.bank.name)}'`,
+                            hd_card_number: `'${this.getDBValidString(sale.salesDetail.cardNumber)}'`,
+                            hd_voucher_amount: sale.salesDetail.voucher ? `'${this.getDBValidString(sale.salesDetail.voucher.value)}'` : `'0'`,
+                            hd_cash_amount: sale.salesDetail.cashAmount ? `'${this.getDBValidString(sale.salesDetail.cashAmount)}'` : `'0'`,
+                            hd_card_amount: sale.salesDetail.cardAmount ? `'${this.getDBValidString(sale.salesDetail.cardAmount)}'` : `'0'`,
+                            store_name: `'${this.getDBValidString(sale.store.name)}'`,
+                            store_city: `'${this.getDBValidString(sale.store.city)}'`,
+                            store_open_date: sale.store.openedDate ? `'${moment(sale.store.openedDate).format("L")}'` : null,
+                            store_close_date: sale.store.closedDate ? `'${moment(sale.store.closedDate).format("L")}'` : null,
+                            store_area: `'${this.getDBValidString(sale.store.storeArea)}'`,
+                            store_status: `'${this.getDBValidString(sale.store.status)}'`,
+                            store_wide: `'${this.getDBValidString(sale.store.storeWide)}'`,
+                            store_offline_online: `'${this.getDBValidString(sale.store['online-offline'])}'`,
+                            store_sales_category: `'${this.getDBValidString(sale.store.salesCategory)}'`,
+                            store_monthly_total_cost: `'${this.getDBValidString(sale.store.monthlyTotalCost)}'`,
+                            store_category: `'${this.getDBValidString(sale.store.storeCategory)}'`,
+                            store_montly_omzet_target: `'${this.getDBValidString(sale.store.salesTarget)}'`,
+                            total_qty: `'${this.getDBValidString(sale.totalProduct)}'`,
+                            hd_pos: `'${this.getDBValidString(sale.pos)}'`,
+                            hd_bank_card: `'${this.getDBValidString((!sale.salesDetail.bankCard.name || sale.salesDetail.bankCard.name == "-") ? "" : sale.salesDetail.bankCard.name)}'`,
+                            mainsalesprice: `'${this.getDBValidString(this.sumMainSalesPrice(sale))}'`
+                        }
+                });
+                resolve([].concat.apply([], result));
             });
-            resolve([].concat.apply([], result));
         });
     }
 
