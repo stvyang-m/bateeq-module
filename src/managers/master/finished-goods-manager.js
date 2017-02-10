@@ -12,15 +12,15 @@ var FinishedGoods = BateeqModels.master.FinishedGoods;
 
 module.exports = class FinishedGoodsManager extends ItemManager {
     constructor(db, user) {
-        super(db, user); 
+        super(db, user);
     }
-    
+
     _getQuery(paging) {
         var basicFilter = {
             _deleted: false,
             _type: 'finished-goods'
-        }, keywordFilter={};
-        
+        }, keywordFilter = {};
+
         var query = {};
 
         if (paging.keyword) {
@@ -35,10 +35,10 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                     '$regex': regex
                 }
             };
-            
+
             keywordFilter = {
                 '$or': [filterCode, filterName]
-            }; 
+            };
         }
         query = { '$and': [basicFilter, paging.filter, keywordFilter] };
         return query;
@@ -73,7 +73,7 @@ module.exports = class FinishedGoodsManager extends ItemManager {
 
         //             if (!data.name || data.name == '')
         //                 errors["name"] = "name is required";
-                        
+
 
         //             if (data.domesticCOGS == undefined || (data.domesticCOGS && data.domesticCOGS == '')) {
         //                 errors["domesticCOGS"] = "domesticCOGS is required";
@@ -138,5 +138,124 @@ module.exports = class FinishedGoodsManager extends ItemManager {
         //             reject(e);
         //         })
         // });
+    }
+
+    insert(dataFile) {
+        return new Promise((resolve, reject) => {
+            var data = [];
+            if (dataFile != "") {
+                for (var i = 1; i < dataFile.length; i++) {
+                    data.push({ "code": dataFile[i][0], "name": dataFile[i][1], "uom": dataFile[i][2], "size": dataFile[i][3], "domesticCOGS": dataFile[i][4], "domesticSale": dataFile[i][5], "internationalSale": dataFile[i][6], "realizationOrder": dataFile[i][7] });
+                }
+            }
+            var dataError = [], errorMessage;
+            for (var i = 0; i < data.length; i++) {
+                errorMessage = "";
+                if (data[i]["code"] === "") {
+                    errorMessage = errorMessage + "Barcode List tidak boleh kosong,";
+                }
+                if (data[i]["name"] === "") {
+                    errorMessage = errorMessage + "Nama tidak boleh kosong,";
+                }
+                if (data[i]["size"] === "") {
+                    errorMessage = errorMessage + "Size tidak boleh kosong,";
+                }
+                if (data[i]["domesticCOGS"] === "") {
+                    errorMessage = errorMessage + "HPP tidak boleh kosong,";
+                }
+                if (data[i]["domesticCOGS"] !== "" || data[i]["domesticCOGS"] !== " ") {
+                    if (isNaN(data[i]["domesticCOGS"])) {
+                        errorMessage = errorMessage + "HPP harus numerik,";
+                    }
+                }
+                if (data[i]["domesticSale"] === "") {
+                    errorMessage = errorMessage + "Harga Jual (Domestic) tidak boleh kosong,";
+                }
+                if (data[i]["domesticSale"] !== "" || data[i]["domesticSale"] !== " ") {
+                    if (isNaN(data[i]["domesticSale"])) {
+                        errorMessage = errorMessage + "Harga Jual (Domestic) harus numerik,";
+                    }
+                }
+                if (data[i]["internationalSale"] === "") {
+                    errorMessage = errorMessage + "Harga Jual (Internasional) tidak boleh kosong,";
+                }
+                if (data[i]["internationalSale"] !== "" || data[i]["internationalSale"] !== " ") {
+                    if (isNaN(data[i]["internationalSale"])) {
+                        errorMessage = errorMessage + "Harga Jual (Internasional) harus numerik,";
+                    }
+                }
+                if (data[i]["realizationOrder"] === "") {
+                    errorMessage = errorMessage + "RO tidak boleh kosong,";
+                }
+
+                if (errorMessage !== "") {
+                    dataError.push({ "Barcode": data[i]["code"], "Nama": data[i]["name"], "UOM": data[i]["uom"], "Size": data[i]["size"], "HPP": data[i]["domesticCOGS"], "Harga Jual (Domestic)": data[i]["domesticSale"], "Harga Jual (Internasional)": data[i]["internationalSale"], "RO": data[i]["realizationOrder"], "Error": errorMessage });
+                }
+            }
+            if (dataError.length === 0) {
+                var fgTemp = [];
+                for (var fg of data) {
+                    var item = fg;
+                    super.getByCode(item.code)
+                        .then(resultItem => {
+                            if (resultItem) {
+                                resultItem.name = item.name;
+                                resultItem.uom = item.uom;
+                                resultItem.size = item.size;
+                                resultItem.domesticCOGS = item.domesticCOGS;
+                                resultItem.domesticSale = item.domesticSale;
+                                resultItem.internationalSale = item.internationalSale;
+                                resultItem.article.realizationOrder = item.realizationOrder;
+                                this.update(resultItem)
+                                    .then(id => {
+                                        super.getSingleById(id)
+                                            .then(resultItem => {
+                                                fgTemp.push(resultItem)
+                                                resolve(fgTemp);
+                                            })
+                                            .catch(e => {
+                                                reject(e);
+                                            });
+                                    })
+                                    .catch(e => {
+                                        reject(e);
+                                    });
+                            }
+                            else {
+                                var finishGood = new FinishedGoods();
+                                finishGood.code = item.code;
+                                finishGood.name = item.name;
+                                finishGood.uom = item.uom;
+                                finishGood.size = item.size;
+                                finishGood.domesticCOGS = item.domesticCOGS;
+                                finishGood.internationalSale = item.internationalSale;
+                                finishGood.domesticSale = item.domesticSale;
+                                finishGood.article.realizationOrder = item.realizationOrder;
+                                this.create(finishGood)
+                                    .then(id => {
+                                        super.getSingleById(id)
+                                            .then(resultItem => {
+                                                fgTemp.push(resultItem)
+                                                resolve(fgTemp);
+                                            })
+                                            .catch(e => {
+                                                reject(e);
+                                            });
+                                    })
+                                    .catch(e => {
+                                        reject(e);
+                                    });
+                            }
+
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+                }
+            } else {
+                resolve(dataError);
+            }
+
+        });
     }
 };
