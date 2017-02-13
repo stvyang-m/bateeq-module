@@ -53,13 +53,17 @@ module.exports = class SalesManager extends BaseManager {
         }, paging);
         // var start = process.hrtime();
 
+        var sorting = {
+            "date": 1
+        };
+
         return this._createIndexes()
             .then((createIndexResults) => {
                 var query = this._getQuery(_paging);
                 return this.collection
                     .where(query)
-                    .orderBy(_paging.order, _paging.asc)
-                    .execute();
+                    .order(sorting)
+                    .execute()
             });
     }
 

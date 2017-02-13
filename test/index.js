@@ -60,6 +60,30 @@ describe('#bateeq-module', function (done) {
     // test('@manager/promo-manager', './managers/promo-manager-test');
 
 
+    test("@etl/dim-branch", "./etl/dim-branch");
+    test("@etl/fact-penjualan", "./etl/fact-penjualan");
+    test("@etl/fact-penjualan-summary", "./etl/fact-penjualan-summary");
+
+
+
+    // test("@etl/sales-migration-etl", "./etl/sales-data-etl-test");
+    // test("@etl/items-migration-etl", "./etl/items-migration-etl-test");
+    //2nd
+
+
+
+
+
+
+    // test("@etl/storages-migration-etl", "./etl/storages-migration-etl-test");
+    //1st
+    // test("@etl/stores-migration-etl", "./etl/stores-migration-etl-test");
+    // test("@etl/testPaging-etl", "./etl/pagination-etl-test");
+
+    // test("@etl/item-etl", "./etl/items-etl-pagination-test");
+    // test("@etl/sp-item-etl", "./etl/items-etl-pagination-test");
+    // test("@etl/sales-etl", "./etl/sales-etl-pagination-test");
+    // test("@etl/sp-sales-etl", "./etl/sp-sales-etl-test");
 
     //new unit test 
     //auth
@@ -86,6 +110,7 @@ describe('#bateeq-module', function (done) {
     // // test('@manager/efr-tb-bbt-manager', './managers/efr-tb-bbt-manager-test');
     // //test('@manager/efr-kb-rtp-manager', './managers/efr-kb-rtp-manager-test');
     // //  test("@etl/storages-migration-etl", "./etl/storages-migration-etl-test"); 
+
 
 
 })

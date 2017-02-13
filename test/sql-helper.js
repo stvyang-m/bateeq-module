@@ -16,16 +16,15 @@ var config = {
 
 };
 
-module.exports = {
-    getConnect: function () {
+module.exports = class SqlConnection { 
+    getConnect(){
         return new Promise((resolve, reject) => {
             sql.connect(config, function (err) {
                 resolve(new sql.Request());
             })
         });
     }
-    ,
-    startConnection: function () {
+    startConnection() {
         return new Promise((resolve, reject) => {
             sql.connect(config, function (err) {
                 if(err)
@@ -34,12 +33,12 @@ module.exports = {
             })
         });
     }
-    ,
-    transaction: function () {
+    
+    transaction() {
         return new sql.Transaction();
     }
-    ,
-    transactionRequest: function (transaction) {
+    
+    transactionRequest(transaction) {
         return new sql.Request(transaction);
     }
 }
