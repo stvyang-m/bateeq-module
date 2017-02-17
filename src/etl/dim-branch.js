@@ -100,7 +100,6 @@ module.exports = class DimBranch {
         return new Promise((resolve, reject) => {
             this.migrationLog.find({ "migration": migrationName, status: "success" }).sort({ "_createdDate": -1 }).limit(1).toArray()
                 .then((result) => {
-                    if (result[0])
                         resolve(result[0] || { _createdDate: new Date("1970-01-01") });
                 }).catch((err) => {
                     reject(err);
@@ -165,9 +164,9 @@ module.exports = class DimBranch {
         return new Promise((resolve, reject) => {
             sql.query(query, function (err, result) {
                 if (err) {
-                    reject(err);
+                    resolve({ "status": "error", "error": err });
                 } else {
-                    resolve(result);
+                    resolve({ "status": "success" });
                 }
             })
         })
@@ -208,34 +207,43 @@ module.exports = class DimBranch {
 
                         request.multiple = true;
 
-                        var fs = require("fs");
-                        var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";
+                        // var fs = require("fs");
+                        // var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";
 
-                        fs.writeFile(path, sqlQuery, function (error) {
-                            if (error) {
-                                console.log("write error:  " + error.message);
-                            } else {
-                                console.log("Successful Write to " + path);
-                            }
-                        });
+                        // fs.writeFile(path, sqlQuery, function (error) {
+                        //     if (error) {
+                        //         console.log("write error:  " + error.message);
+                        //     } else {
+                        //         console.log("Successful Write to " + path);
+                        //     }
+                        // });
 
                         return Promise.all(command)
                             .then((results) => {
-                                request.execute("BTQ_Upsert_DimBranch").then((execResult) => {
-                                    transaction.commit((err) => {
-                                        if (err)
-                                            reject(err);
-                                        else
-                                            resolve(results);
-                                    });
-                                }).catch((error) => {
+                                 if (results.find((o) => o.status == "error")) {
                                     transaction.rollback((err) => {
                                         if (err)
                                             reject(err)
                                         else
-                                            reject(error);
+                                            reject(results);
                                     });
-                                })
+                                } else {
+                                    request.execute("BTQ_Upsert_DimBranch").then((execResult) => {
+                                        transaction.commit((err) => {
+                                            if (err)
+                                                reject(err);
+                                            else
+                                                resolve(results);
+                                        });
+                                    }).catch((error) => {
+                                        transaction.rollback((err) => {
+                                            if (err)
+                                                reject(err)
+                                            else
+                                                reject(error);
+                                        });
+                                    })
+                                }
                             })
                             .catch((error) => {
                                 transaction.rollback((err) => {
