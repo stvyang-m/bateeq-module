@@ -6,8 +6,10 @@ var config = {
     user: 'Adminbateeq',
     password: 'Standar123.',
     server: 'efrata.database.windows.net',
+
      database: 'efrata.pos',
     //database: 'testefrata',
+
     options: {
         encrypt: true
     },
