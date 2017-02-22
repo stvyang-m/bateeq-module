@@ -118,7 +118,7 @@ module.exports = class FactPenjualan {
             _updatedDate: {
                 "$gt": timestamp
             }
-        }).toArray();
+        }).limit(100).toArray();
     }
 
     getDBValidString(str) {
