@@ -41,8 +41,6 @@ module.exports = class DimBranch {
                                 var finishedDate = new Date();
                                 var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
                                 console.log("load :" + spentTime + " minutes")
-                                var finishedDate = new Date();
-                                var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
                                 var updateLog = {
                                     migration: migrationName,
                                     _start: startedDate,
