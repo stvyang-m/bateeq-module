@@ -56,7 +56,7 @@ module.exports = class FactPenjualan {
                                     summary: {
                                         extract: moment(exctractDate).diff(moment(startedDate), "minutes") + " minutes",
                                         transform: moment(transformDate).diff(moment(exctractDate), "minutes") + " minutes",
-                                        load: spentTime + " minutes"
+                                        load: moment(finishedDate).diff(moment(transformDate), "minutes") + " minutes"
                                     }
                                 };
                                 this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
