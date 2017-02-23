@@ -36,17 +36,27 @@ module.exports = class FactPenjualanSummary {
 
                 this.extract(lastMigration._createdDate)
                     .then((data) => {
+                        var exctractDate = new Date();
+                        console.log("extract :" + moment(exctractDate).diff(moment(startedDate), "minutes") + " minutes")
                         this.transform(data).then((data) => {
+                            var transformDate = new Date();
+                            console.log("transform :" + moment(transformDate).diff(moment(exctractDate), "minutes") + " minutes")
                             this.load(data).then((result) => {
                                 var finishedDate = new Date();
                                 var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
+                                console.log("load :" + spentTime + " minutes")
                                 var updateLog = {
                                     migration: migrationName,
                                     _start: startedDate,
                                     _createdDate: startedDate,
                                     _end: finishedDate,
                                     executionTime: spentTime + " minutes",
-                                    status: "success"
+                                    status: "success",
+                                    summary: {
+                                        extract: moment(exctractDate).diff(moment(startedDate), "minutes") + " minutes",
+                                        transform: moment(transformDate).diff(moment(exctractDate), "minutes") + " minutes",
+                                        load: spentTime + " minutes"
+                                    }
                                 };
                                 this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
                                 resolve(result);
@@ -272,7 +282,7 @@ module.exports = class FactPenjualanSummary {
                                     command.push(this.insertQuery(request, sqlQuery));
                                     sqlQuery = "";
                                 }
-                                console.log(`add data to query  : ${count}`);
+                                // console.log(`add data to query  : ${count}`);
                                 count++;
                             }
                         }
