@@ -12,7 +12,7 @@ require('mongodb-toolkit');
 const migrationName = "ETL-DimBranch";
 
 module.exports = class DimBranch {
-    constructor(db, user,sql) {
+    constructor(db, user, sql) {
         this.db = db;
         this.sql = sql;
         this.StoreManager = new StoreManager(db, user);
@@ -32,8 +32,15 @@ module.exports = class DimBranch {
 
                 this.extract(lastMigration._createdDate)
                     .then((data) => {
+                        var exctractDate = new Date();
+                        console.log("extract :" + moment(exctractDate).diff(moment(startedDate), "minutes") + " minutes")
                         this.transform(data).then((data) => {
+                            var transformDate = new Date();
+                            console.log("transform :" + moment(transformDate).diff(moment(exctractDate), "minutes") + " minutes")
                             this.load(data).then((result) => {
+                                var finishedDate = new Date();
+                                var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
+                                console.log("load :" + spentTime + " minutes")
                                 var finishedDate = new Date();
                                 var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
                                 var updateLog = {
@@ -42,7 +49,12 @@ module.exports = class DimBranch {
                                     _createdDate: startedDate,
                                     _end: finishedDate,
                                     executionTime: spentTime + " minutes",
-                                    status: "success"
+                                    status: "success",
+                                    summary: {
+                                        extract: moment(exctractDate).diff(moment(startedDate), "minutes") + " minutes",
+                                        transform: moment(transformDate).diff(moment(exctractDate), "minutes") + " minutes",
+                                        load: spentTime + " minutes"
+                                    }
                                 };
                                 this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
                                 resolve(result);
@@ -100,7 +112,7 @@ module.exports = class DimBranch {
         return new Promise((resolve, reject) => {
             this.migrationLog.find({ "migration": migrationName, status: "success" }).sort({ "_createdDate": -1 }).limit(1).toArray()
                 .then((result) => {
-                        resolve(result[0] || { _createdDate: new Date("1970-01-01") });
+                    resolve(result[0] || { _createdDate: new Date("1970-01-01") });
                 }).catch((err) => {
                     reject(err);
                 })
@@ -220,7 +232,7 @@ module.exports = class DimBranch {
 
                         return Promise.all(command)
                             .then((results) => {
-                                 if (results.find((o) => o.status == "error")) {
+                                if (results.find((o) => o.status == "error")) {
                                     transaction.rollback((err) => {
                                         if (err)
                                             reject(err)
