@@ -96,7 +96,8 @@ module.exports = {
 
         factPenjualan : require('./src/etl/fact-penjualan'),
         factPenjualanSummary : require('./src/etl/fact-penjualan-summary'),
-        dimBranch : require('./src/etl/dim-branch')
+        dimBranch : require('./src/etl/dim-branch'),
+        dimTime : require('./src/etl/dim-time')
 
 
 

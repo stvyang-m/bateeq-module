@@ -55,7 +55,8 @@ module.exports = class FactPenjualanSummary {
                                     summary: {
                                         extract: moment(exctractDate).diff(moment(startedDate), "minutes") + " minutes",
                                         transform: moment(transformDate).diff(moment(exctractDate), "minutes") + " minutes",
-                                        load: spentTime + " minutes"
+                                        load: moment(finishedDate).diff(moment(transformDate), "minutes") + " minutes",
+                                        items : `${result.count} items`
                                     }
                                 };
                                 this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
@@ -128,7 +129,8 @@ module.exports = class FactPenjualanSummary {
             _deleted: false,
             _updatedDate: {
                 "$gt": timestamp
-            }
+            },
+            "code": { "$regex": new RegExp("/.*sales.*/") }
         }).toArray();
     }
 
@@ -272,10 +274,11 @@ module.exports = class FactPenjualanSummary {
 
                         var sqlQuery = '';
 
-                        var count = 1;
+                        var count = 0;
 
                         for (var item of data) {
                             if (item) {
+                                count++;
                                 var queryString = `INSERT INTO [BTQ_FactPenjualanSummary_Temp] ([timekey],[countdays],[store_code],[hd_transaction_number],[hd_sales_discount_percentage],[hd_grandtotal],[hd_payment_type],[hd_card],[hd_card_type],[hd_bank_name],[hd_card_number],[hd_voucher_amount],[hd_cash_amount],[hd_card_amount],[store_name],[store_city],[store_open_date],[store_close_date],[store_area],[store_status],[store_wide],[store_offline_online],[store_sales_category],[store_monthly_total_cost],[store_category],[store_montly_omzet_target],[total_qty],[hd_pos],[hd_bank_card],[mainsalesprice],[hd_is_void]) values(${item.timekey},${item.countdays},${item.store_code},${item.hd_transaction_number},${item.hd_sales_discount_percentage},${item.hd_grandtotal},${item.hd_payment_type},${item.hd_card},${item.hd_card_type},${item.hd_bank_name},${item.hd_card_number},${item.hd_voucher_amount},${item.hd_cash_amount},${item.hd_card_amount},${item.store_name},${item.store_city},${item.store_open_date},${item.store_close_date},${item.store_area},${item.store_status},${item.store_wide},${item.store_offline_online},${item.store_sales_category},${item.store_monthly_total_cost},${item.store_category},${item.store_montly_omzet_target},${item.total_qty},${item.hd_pos},${item.hd_bank_card},${item.mainsalesprice},${item.hd_is_void})\n`;
                                 sqlQuery = sqlQuery.concat(queryString);
                                 if (count % 1000 == 0) {
@@ -283,7 +286,6 @@ module.exports = class FactPenjualanSummary {
                                     sqlQuery = "";
                                 }
                                 // console.log(`add data to query  : ${count}`);
-                                count++;
                             }
                         }
 
@@ -318,7 +320,7 @@ module.exports = class FactPenjualanSummary {
                                             if (err)
                                                 reject(err);
                                             else
-                                                resolve(results);
+                                                resolve({"results" : results, "count" : count});
                                         });
                                     }).catch((error) => {
                                         transaction.rollback((err) => {
