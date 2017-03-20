@@ -116,7 +116,7 @@ module.exports = class TokoKirimBarangReturnManager extends BaseManager {
         });
     }
 
-    _validate(transferOutDoc) {
+   _validate(transferOutDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
             var valid = transferOutDoc;
@@ -125,7 +125,7 @@ module.exports = class TokoKirimBarangReturnManager extends BaseManager {
                 .then(module => {
                     var config = module.config;
                     if (!valid.sourceId || valid.sourceId == '')
-                        errors["sourceId"] = "sourceId is required"; 
+                        errors["sourceId"] = "sourceId is required";
 
                     if (!valid.destinationId || valid.destinationId == '')
                         errors["destinationId"] = "destinationId is required";
@@ -168,8 +168,6 @@ module.exports = class TokoKirimBarangReturnManager extends BaseManager {
                     Promise.all([getSpk].concat(getItem))
                         .then(results => {
                             var index = 0;
-                            var itemErrors = [];
-                            var itemError = {};
                             var inventoryQuantity = 0;
 
                             var dataSpk = results[0];
@@ -178,7 +176,9 @@ module.exports = class TokoKirimBarangReturnManager extends BaseManager {
                             }
                             var items = results.slice(1, results.length)
                             if (items.length > 0) {
+                                var itemErrors = [];
                                 for (var item of valid.items) {
+                                    var itemError = {};
                                     if (items[index] == null) {
                                         inventoryQuantity = 0;
                                     } else {
