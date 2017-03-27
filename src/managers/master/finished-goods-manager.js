@@ -9,6 +9,8 @@ var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 var ItemManager = require('./item-manager');
 var FinishedGoods = BateeqModels.master.FinishedGoods;
+var ArticleMotifManager = require('./article/article-motif-manager');
+var ArticleColorManager = require('./article/article-color-manager');
 
 module.exports = class FinishedGoodsManager extends ItemManager {
     constructor(db, user) {
@@ -138,6 +140,85 @@ module.exports = class FinishedGoodsManager extends ItemManager {
         //             reject(e);
         //         })
         // });
+    }
+
+    updateImage(colorCode, articleColor, products, imagePath, motifPath) {
+        return new Promise((resolve, reject) => {
+            var dataError = [], errorMessage;
+            if (colorCode === "") {
+                dataError["colorCode"] = "Kode warna harus diisi";
+            }
+
+            var articleMotifCode = "";
+
+            if (!products || products.length == 0) {
+                dataError["dataDestination"] = "Produk harus dipilih";
+            } else {
+                articleMotifCode = products[0].code.substring(9, 11);
+            }
+
+            var getItems = [];
+            for (var item of products) {
+                getItems.push(this.getByCode(item.code));
+            }
+
+            var motifManager = new ArticleMotifManager(this.db, this.user);
+            var getMotif = motifManager.getSingleByQuery({
+                "code": articleMotifCode
+            })
+
+            var colorManager = new ArticleColorManager(this.db, this.user);
+            var getColor = colorManager.getSingleByIdOrDefault(articleColor._id);
+
+
+            Promise.all([getMotif, getColor].concat(getItems))
+                .then(results => {
+                    if (results[0] && results[1] && results.length > 2) {
+
+                        var motif = results[0];
+                        var color = results[1];
+                        motif["filePath"] = motifPath;
+                        var updateMotif = motifManager.update(motif);
+
+
+                        var updateItem = [];
+                        for (var i = 2; i < results.length; i++) {
+                            var item = results[i];
+                            item["imagePath"] = imagePath;
+                            item["motifPath"] = imagePath;
+                            item["motifDoc"] = motif;
+                            item["colorCode"] = colorCode;
+                            item["colorDoc"] = color;
+                            updateItem.push(this.update(item));
+                        }
+
+                        Promise.all([updateMotif].concat(updateItem))
+                            .then(updateResults => {
+                                resolve(updateResults);
+                            })
+                            .catch(updateErrors => {
+                                reject(updateErrors);
+                            })
+                    } else {
+                        if (!results[2]) {
+                            dataError["dataDestination"] = "produk tidak ditemukan";
+                        }
+                        if (!results[0]) {
+                            dataError["motif"] = "article motif tidak ditemukan";
+                        }
+                        if (!results[1]) {
+                            dataError["color"] = "article color tidak ditemukan";
+                        }
+
+                        if (dataError.length > 0) {
+                            resolve(dataError);
+                        }
+                    }
+                })
+                .catch(errors => {
+                    reject(errors);
+                });
+        });
     }
 
     insert(dataFile) {
