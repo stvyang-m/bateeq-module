@@ -57,7 +57,7 @@ module.exports = class FactPenjualan {
                                         extract: moment(exctractDate).diff(moment(startedDate), "minutes") + " minutes",
                                         transform: moment(transformDate).diff(moment(exctractDate), "minutes") + " minutes",
                                         load: moment(finishedDate).diff(moment(transformDate), "minutes") + " minutes",
-                                        items : `${result.count} items`
+                                        items: `${result.count} items`
                                     }
                                 };
                                 this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
@@ -297,7 +297,11 @@ module.exports = class FactPenjualan {
                                         store_montly_omzet_target: `'${this.getDBValidString(sale.store.salesTarget)}'`,
                                         hd_pos: `'${this.getDBValidString(sale.pos)}'`,
                                         hd_bank_card: `'${this.getDBValidString((!sale.salesDetail.bankCard.name || sale.salesDetail.bankCard.name == "-") ? "" : sale.salesDetail.bankCard.name)}'`,
-                                        hd_is_void: `'${sale.isVoid ? 1 : 0}'`
+                                        hd_is_void: `'${sale.isVoid ? 1 : 0}'`,
+                                        hd_transaction_date: `'${moment(sale.date).format("YYYY-MM-DD HH:mm:ss")}'`,
+                                        hd_is_return_transaction: `'${(item.isReturn) ? '1' : '0'}'`,
+                                        hd_updated_date: `'${moment(sale._updatedDate).format("YYYY-MM-DD HH:mm:ss")}'`,
+                                        hd_updated_by: `'${this.getDBValidString(sale._updatedBy)}'`
                                     }
                                     // console.log(`Transform data : ${count}`)
                                     count++;
@@ -347,7 +351,7 @@ module.exports = class FactPenjualan {
                         for (var item of data) {
                             if (item) {
                                 count++;
-                                var queryString = `INSERT INTO [BTQ_FactPenjualan_Temp] ([timekey],[countdays],[store_code],[hd_transaction_number],[hd_shift],[hd_subtotal],[hd_sales_discount_percentage],[hd_grandtotal],[hd_payment_type],[hd_card],[hd_card_type],[hd_bank_name],[hd_card_number],[hd_voucher_amount],[hd_cash_amount],[hd_card_amount],[dt_item_name],[dt_item_quantity],[dt_barcode],[dt_motif_name],[dt_counter_name],[dt_subcounter_name],[dt_material_name],[dt_size_name],[dt_mainsalesprice],[dt_item_price],[dt_is_discount_percentage],[dt_fixed_discount_amount],[dt_discount_product_percentage],[dt_discount_product_percentage_additional],[dt_special_discount_product_percentage],[dt_margin_percentage],[dt_total_price_per_product],[store_name],[store_city],[store_open_date],[store_close_date],[store_area],[store_status],[store_wide],[store_offline_online],[store_sales_category],[store_monthly_total_cost],[store_category],[store_montly_omzet_target],[hd_pos],[hd_bank_card],[hd_is_void]) values(${item.timekey},${item.countdays},${item.store_code},${item.hd_transaction_number},${item.hd_shift},${item.hd_subtotal},${item.hd_sales_discount_percentage},${item.hd_grandtotal},${item.hd_payment_type},${item.hd_card},${item.hd_card_type},${item.hd_bank_name},${item.hd_card_number},${item.hd_voucher_amount},${item.hd_cash_amount},${item.hd_card_amount},${item.dt_item_name},${item.dt_item_quantity},${item.dt_barcode},${item.dt_motif_name},${item.dt_counter_name},${item.dt_subcounter_name},${item.dt_material_name},${item.dt_size_name},${item.dt_mainsalesprice},${item.dt_item_price},${item.dt_is_discount_percentage},${item.dt_fixed_discount_amount},${item.dt_discount_product_percentage},${item.dt_discount_product_percentage_additional},${item.dt_special_discount_product_percentage},${item.dt_margin_percentage},${item.dt_total_price_per_product},${item.store_name},${item.store_city},${item.store_open_date},${item.store_close_date},${item.store_area},${item.store_status},${item.store_wide},${item.store_offline_online},${item.store_sales_category},${item.store_monthly_total_cost},${item.store_category},${item.store_montly_omzet_target},${item.hd_pos},${item.hd_bank_card},${item.hd_is_void})\n`;
+                                var queryString = `INSERT INTO [BTQ_FactPenjualan_Temp] ([timekey],[countdays],[store_code],[hd_transaction_number],[hd_shift],[hd_subtotal],[hd_sales_discount_percentage],[hd_grandtotal],[hd_payment_type],[hd_card],[hd_card_type],[hd_bank_name],[hd_card_number],[hd_voucher_amount],[hd_cash_amount],[hd_card_amount],[dt_item_name],[dt_item_quantity],[dt_barcode],[dt_motif_name],[dt_counter_name],[dt_subcounter_name],[dt_material_name],[dt_size_name],[dt_mainsalesprice],[dt_item_price],[dt_is_discount_percentage],[dt_fixed_discount_amount],[dt_discount_product_percentage],[dt_discount_product_percentage_additional],[dt_special_discount_product_percentage],[dt_margin_percentage],[dt_total_price_per_product],[store_name],[store_city],[store_open_date],[store_close_date],[store_area],[store_status],[store_wide],[store_offline_online],[store_sales_category],[store_monthly_total_cost],[store_category],[store_montly_omzet_target],[hd_pos],[hd_bank_card],[hd_is_void],[hd_transaction_date],[hd_is_return_transaction],[hd_updated_date]		,[hd_updated_by]) values(${item.timekey},${item.countdays},${item.store_code},${item.hd_transaction_number},${item.hd_shift},${item.hd_subtotal},${item.hd_sales_discount_percentage},${item.hd_grandtotal},${item.hd_payment_type},${item.hd_card},${item.hd_card_type},${item.hd_bank_name},${item.hd_card_number},${item.hd_voucher_amount},${item.hd_cash_amount},${item.hd_card_amount},${item.dt_item_name},${item.dt_item_quantity},${item.dt_barcode},${item.dt_motif_name},${item.dt_counter_name},${item.dt_subcounter_name},${item.dt_material_name},${item.dt_size_name},${item.dt_mainsalesprice},${item.dt_item_price},${item.dt_is_discount_percentage},${item.dt_fixed_discount_amount},${item.dt_discount_product_percentage},${item.dt_discount_product_percentage_additional},${item.dt_special_discount_product_percentage},${item.dt_margin_percentage},${item.dt_total_price_per_product},${item.store_name},${item.store_city},${item.store_open_date},${item.store_close_date},${item.store_area},${item.store_status},${item.store_wide},${item.store_offline_online},${item.store_sales_category},${item.store_monthly_total_cost},${item.store_category},${item.store_montly_omzet_target},${item.hd_pos},${item.hd_bank_card},${item.hd_is_void},${item.hd_transaction_date},${item.hd_is_return_transaction},${item.hd_updated_date},${item.hd_updated_by})\n`;
                                 sqlQuery = sqlQuery.concat(queryString);
                                 // allSqlQuery = allSqlQuery.concat(queryString);
                                 if (count % 1000 == 0) {
@@ -389,7 +393,7 @@ module.exports = class FactPenjualan {
                                             if (err)
                                                 reject(err);
                                             else
-                                                resolve({"results" : results, "count" : count});
+                                                resolve({ "results": results, "count": count });
                                         });
                                     }).catch((error) => {
                                         transaction.rollback((err) => {
