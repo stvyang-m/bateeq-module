@@ -430,7 +430,8 @@ module.exports = class SalesManager extends BaseManager {
                                 var dateTo = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateTo)));
 
                                 if (dateFrom > dateTo) {
-                                    dateFrom.setDate(dateFrom.getDate() - 1);
+                                    // dateFrom.setDate(dateFrom.getDate() - 1);
+                                    dateTo.setDate(dateTo.getDate() + 1); // karena UTC berbeda 7 jam
                                 }
                                 if (dateFrom < today && today < dateTo) {
                                     valid.shift = parseInt(shift.shift);
