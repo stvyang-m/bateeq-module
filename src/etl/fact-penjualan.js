@@ -299,7 +299,7 @@ module.exports = class FactPenjualan {
                                         hd_bank_card: `'${this.getDBValidString((!sale.salesDetail.bankCard.name || sale.salesDetail.bankCard.name == "-") ? "" : sale.salesDetail.bankCard.name)}'`,
                                         hd_is_void: `'${sale.isVoid ? 1 : 0}'`,
                                         hd_transaction_date: `'${moment(sale.date).format("YYYY-MM-DD HH:mm:ss")}'`,
-                                        hd_is_return_transaction: `'${(item.isReturn) ? '1' : '0'}'`,
+                                        hd_is_return_transaction: `'${(sale.isReturn) ? '1' : '0'}'`,
                                         hd_updated_date: `'${moment(sale._updatedDate).format("YYYY-MM-DD HH:mm:ss")}'`,
                                         hd_updated_by: `'${this.getDBValidString(sale._updatedBy)}'`
                                     }
