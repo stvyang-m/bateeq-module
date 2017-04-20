@@ -8,6 +8,7 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var generateCode = require('../../utils/code-generator');
 var map = BateeqModels.map;
+var BaseManager = require('module-toolkit').BaseManager;
 var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
@@ -18,12 +19,11 @@ var SPKItem = BateeqModels.merchandiser.SPKItem;
 
 
 const moduleId = "EFR-KB/RTT";
-const modulePackingList = "EFR-KB/PBR";
-module.exports = class TokoTransferStokManager {
+const modulePackingList = "EFR-KB/PLR";
+module.exports = class TokoTransferStokManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
-        this.transferOutDocCollection = this.db.use(map.inventory.TransferOutDoc);
+        super(db, user);
+        this.collection = this.db.use(map.inventory.TransferOutDoc);
         this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);
         this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
 
@@ -57,111 +57,26 @@ module.exports = class TokoTransferStokManager {
 
     }
 
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
+    _getQuery(paging) {
+        var deletedFilter = {
+            _deleted: false
+        }, keywordFilter = {};
 
-        return new Promise((resolve, reject) => {
-            var regexModuleId = new RegExp(moduleId, "i");
-            var filter = {
-                _deleted: false,
+        var query = {};
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
+
+            var filterCode = {
                 'code': {
-                    '$regex': regexModuleId
+                    '$regex': regex
                 }
             };
-            var query = _paging.keyword ? {
-                '$and': [filter]
-            } : filter;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode]
-                };
-
-                query['$and'].push($or);
-            }
-
-
-            this.transferOutDocCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(transferOutDocs => {
-                    resolve(transferOutDocs);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleById(id) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            keywordFilter = {
+                '$or': [filterCode]
             };
-            this.getSingleByQuery(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQueryOrDefault(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.transferOutDocCollection
-                .single(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-
-    getSingleByQueryOrDefault(query) {
-        return new Promise((resolve, reject) => {
-            this.transferOutDocCollection
-                .singleOrDefault(query)
-                .then(transferOutDoc => {
-                    resolve(transferOutDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
+        }
+        query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
+        return query;
     }
 
     create(transferOutDoc) {
@@ -169,65 +84,115 @@ module.exports = class TokoTransferStokManager {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
                     validTransferOutDoc.code = generateCode(moduleId);
-                    // this.storageManager.getByCode("PST-3")
-                    this.storageManager.getByCode(validTransferOutDoc.destination.code)
+                    this.storageManager.getByCode("GDG.01")
                         .then(storage => {
-                            var transferinDoc = {};
-                            transferinDoc.code = generateCode("EFR-TB/BRT");
-                            transferinDoc.source = validTransferOutDoc.source;
-                            transferinDoc.sourceId = validTransferOutDoc.sourceId;
-                            transferinDoc.destination = storage;
-                            transferinDoc.destinationId = storage._id;
-                            transferinDoc.items = validTransferOutDoc.items;
-                            transferinDoc.reference = validTransferOutDoc.code;
-
-                            var spkDoc = {};
-                            var validspkDoc;
-                            spkDoc.code = generateCode("EFR-PK/PBR");
-                            spkDoc.source = storage;
-                            spkDoc.sourceId = storage._id;
-                            spkDoc.destination = validTransferOutDoc.destination;
-                            spkDoc.destinationId = validTransferOutDoc.destinationId;
-                            spkDoc.items = validTransferOutDoc.items;
-                            spkDoc.packingList = generateCode(modulePackingList);
-                            spkDoc.isDraft = false;
-                            spkDoc.isReceived = false;
-                            spkDoc.reference = validTransferOutDoc.code;
-                            var date = new Date();
-                            var password = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
-                            spkDoc.password = password;
-                            validspkDoc = spkDoc;
-                            validspkDoc = new SPKDoc(validspkDoc);
-                            validspkDoc.stamp(this.user.username, 'manager');
-
-                            var ekspedisiDoc = {};
-                            var validEkspedisiDoc;
-                            ekspedisiDoc.code = generateCode("EFR-KB/EXB");
-                            ekspedisiDoc.expedition = "Dikirim Sendiri"; 
-                            validEkspedisiDoc = ekspedisiDoc;
-                            validEkspedisiDoc = new ExpeditionDoc(validEkspedisiDoc); 
-                            validEkspedisiDoc.weight = 0; 
-                            // ekspedisiDoc.transferOutDocuments.destination = validTransferOutDoc.destination;
-                            // ekspedisiDoc.transferOutDocuments.destinationId = validTransferOutDoc.destinationId; 
-                            validEkspedisiDoc.stamp(this.user.username, 'manager');
-
-
-                            var transferOutDoc = {};
-                            transferOutDoc.code = generateCode("EFR-KB/EXB");
-                            transferOutDoc.destination = validTransferOutDoc.destination;
-                            transferOutDoc.destinationId = validTransferOutDoc.destinationId;
-                            transferOutDoc.items = validTransferOutDoc.items;
-                            transferOutDoc.reference = generateCode(modulePackingList);
-                            transferOutDoc.source = storage;
-                            transferOutDoc.sourceId = storage._id;
-
-                            this.transferOutDocManager.create(validTransferOutDoc)
+                            var transferOutDoc1 = {};
+                            transferOutDoc1.code = generateCode("EFR-KB/RTT");
+                            transferOutDoc1.destination = validTransferOutDoc.destination;
+                            transferOutDoc1.destinationId = validTransferOutDoc.destinationId;
+                            transferOutDoc1.items = validTransferOutDoc.items;
+                            transferOutDoc1.reference = validTransferOutDoc.reference;
+                            transferOutDoc1.source = validTransferOutDoc.source;
+                            transferOutDoc1.sourceId = validTransferOutDoc.source._id;
+                            this.transferOutDocManager.create(transferOutDoc1)
                                 .then(id => {
-                                    this.transferInDocManager.create(transferinDoc);
-                                    this.SPKDocCollection.insert(validspkDoc);
-                                    this.expeditionDocCollection.insert(validEkspedisiDoc);
-                                    this.transferOutDocManager.create(transferOutDoc);
-                                    resolve(id);
+                                    this.getSingleById(id)
+                                        .then(rtt => {
+                                            var spkDocGdg = {};
+                                            var validspkDocGdg;
+                                            spkDocGdg.code = generateCode("EFR-PK/PBJ");
+                                            spkDocGdg.source = validTransferOutDoc.source;
+                                            spkDocGdg.sourceId = validTransferOutDoc.source._id;
+                                            spkDocGdg.destination = storage[0];
+                                            spkDocGdg.destinationId = storage[0]._id;
+                                            spkDocGdg.items = validTransferOutDoc.items;
+                                            spkDocGdg.packingList = generateCode(modulePackingList);
+                                            spkDocGdg.isDraft = false;
+                                            spkDocGdg.isReceived = false;
+                                            spkDocGdg.reference = rtt.code;
+                                            var date = new Date();
+                                            var passwordGdg = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
+                                            spkDocGdg.password = passwordGdg;
+                                            validspkDocGdg = spkDocGdg;
+                                            validspkDocGdg = new SPKDoc(validspkDocGdg);
+                                            validspkDocGdg.stamp(this.user.profile.firstname, 'manager');
+
+                                            var transferinDoc = {};
+                                            transferinDoc.code = generateCode("EFR-TB/BRT");
+                                            transferinDoc.source = validTransferOutDoc.source;
+                                            transferinDoc.sourceId = validTransferOutDoc.source._id;
+                                            transferinDoc.destination = storage[0];
+                                            transferinDoc.destinationId = storage[0]._id;;
+                                            transferinDoc.items = validTransferOutDoc.items;
+                                            transferinDoc.reference = rtt.code;
+
+                                            var PlSPK;
+                                            var spkDoc = {};
+                                            var validspkDoc;
+                                            spkDoc.code = generateCode("EFR-PK/PBJ");
+                                            spkDoc.source = storage[0];
+                                            spkDoc.sourceId = storage[0]._id;
+                                            spkDoc.destination = validTransferOutDoc.destination;
+                                            spkDoc.destinationId = validTransferOutDoc.destination._id;
+                                            spkDoc.items = validTransferOutDoc.items;
+                                            spkDoc.packingList = generateCode(modulePackingList);
+                                            PlSPK = spkDoc.packingList;
+                                            spkDoc.isDraft = false;
+                                            spkDoc.isReceived = false;
+                                            spkDoc.reference = rtt.code;
+                                            var password = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
+                                            spkDoc.password = password;
+                                            validspkDoc = spkDoc;
+                                            validspkDoc = new SPKDoc(validspkDoc);
+                                            validspkDoc.stamp(this.user.username, 'manager');
+
+                                            var ekspedisiDoc = {};
+                                            var validEkspedisiDoc;
+                                            ekspedisiDoc.code = generateCode("EFR-KB/EXP");
+                                            ekspedisiDoc.expedition = "Dikirim Sendiri";
+                                            validEkspedisiDoc = ekspedisiDoc;
+                                            validEkspedisiDoc = new ExpeditionDoc(validEkspedisiDoc);
+                                            validEkspedisiDoc.weight = 1;
+                                            validEkspedisiDoc.stamp(this.user.username, 'manager');
+
+                                            var transferOutDoc = {};
+                                            transferOutDoc.code = generateCode("EFR-KB/EXP");
+                                            transferOutDoc.destination = validTransferOutDoc.destination;
+                                            transferOutDoc.destinationId = validTransferOutDoc.destinationId;
+                                            transferOutDoc.items = validTransferOutDoc.items;
+                                            transferOutDoc.reference = PlSPK;
+                                            transferOutDoc.source = storage[0];
+                                            transferOutDoc.sourceId = storage[0]._id; 
+                                            
+                                            var transferStok = [];
+                                            transferStok.push(this.SPKDocCollection.insert(validspkDocGdg));
+                                            transferStok.push(this.transferInDocManager.create(transferinDoc));
+                                            transferStok.push(this.SPKDocCollection.insert(validspkDoc));
+                                            Promise.all(transferStok)
+                                                .then(id => {
+
+                                                    this.expeditionDocCollection.insert(validEkspedisiDoc)
+                                                        .then(id => {
+
+                                                            this.transferOutDocManager.create(transferOutDoc)
+                                                                .then(id => {
+                                                                    resolve(id);
+                                                                })
+                                                                .catch(e => {
+                                                                    reject(e);
+                                                                })
+                                                        })
+                                                        .catch(e => {
+                                                            reject(e);
+                                                        })
+                                                })
+                                                .catch(e => {
+                                                    reject(e);
+                                                })
+                                        })
+                                        .catch(e => {
+                                            reject(e);
+                                        })
                                 })
                                 .catch(e => {
                                     reject(e);
@@ -336,8 +301,8 @@ module.exports = class TokoTransferStokManager {
                         }
                     }
 
-                    var getDestination = this.storageManager.getSingleByIdOrDefault(valid.destinationId);
-                    var getSource = this.storageManager.getSingleByIdOrDefault(valid.sourceId);
+                    // var getDestination = this.storageManager.getSingleByIdOrDefault(valid.destinationId);
+                    // var getSource = this.storageManager.getSingleByIdOrDefault(valid.sourceId);
 
                     var getItem = [];
                     if (valid.items && valid.items.length > 0) {
@@ -349,39 +314,37 @@ module.exports = class TokoTransferStokManager {
                         errors["items"] = "items is required";
                     }
 
-                    Promise.all([getDestination, getSource].concat(getItem))
+                    // Promise.all([getDestination, getSource].concat(getItem))
+                    Promise.all([].concat(getItem))
                         .then(results => {
-                            var itemErrors = [];
-                            var itemError = {};
+                            var index = 0;
+                            var inventoryQuantity = 0;
+                            // var destination = results[0];
+                            // var source = results[1];
 
-                            var destination = results[0];
-                            var source = results[1];
+                            // if (!destination) {
+                            //     errors["destinationId"] = "destinationId in storage is not found";
+                            // } else {
+                            //     valid.destinationId = destination._id;
+                            //     valid.destination = destination;
+                            // }
 
-                            if (!destination) {
-                                errors["destinationId"] = "destinationId in storage is not found";
-                            } else {
-                                valid.destinationId = destination._id;
-                                valid.destination = destination;
-                            }
-
-                            if (!source) {
-                                errors["sourceId"] = "sourceId in storage is not found";
-                            }
-                            else {
-                                valid.sourceId = source._id;
-                                valid.source = source;
-                            }
-                            var inventoryItems = results.slice(2, results.length);
-                            if (inventoryItems[0] != null) {
-                                for (var inventoryItem of inventoryItems) {
-                                    var index = inventoryItems.indexOf(inventoryItem);
-                                    var item = valid.items[index];
-                                    if (inventoryItems[index] == null) {
-                                        var inventoryQuantity = 0;
+                            // if (!source) {
+                            //     errors["sourceId"] = "sourceId in storage is not found";
+                            // }
+                            // else {
+                            //     valid.sourceId = source._id;
+                            //     valid.source = source;
+                            // }
+                            var items = results.slice(0, results.length);
+                            if (items.length > 0) {
+                                var itemErrors = [];
+                                for (var item of valid.items) {
+                                    var itemError = {};
+                                    if (items[index] == null) {
+                                        inventoryQuantity = 0;
                                     } else {
-                                        item.itemId = inventoryItem.itemId;
-                                        item.item = inventoryItem.item;
-                                        var inventoryQuantity = inventoryItems[index].quantity;
+                                        inventoryQuantity = items[index].quantity;
                                     }
                                     index++;
                                     if (item.quantity > inventoryQuantity) {
@@ -399,7 +362,7 @@ module.exports = class TokoTransferStokManager {
                                     break;
                             }
                             for (var prop in errors) {
-                                var ValidationError = require('../../validation-error');
+                                var ValidationError = require('module-toolkit').ValidationError;
                                 reject(new ValidationError('data does not pass validation', errors));
                             }
                             resolve(valid);
