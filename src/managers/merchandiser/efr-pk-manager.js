@@ -179,13 +179,32 @@ module.exports = class SPKBarangManager extends BaseManager {
         return new Promise((resolve, reject) => {
             var query = {
                 _deleted: false,
-                isReceived: false,
-                isDraft: false,
+                // isReceived: false,
+                // isDraft: false,
                 reference: filter.reference,
                 "source.code": "GDG.01"
             };
             var _select = ["code", "packingList",
                 "password"];
+            this.SPKDocCollection.where(query).select(_select).execute()
+                .then((results) => {
+                    resolve(results);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    readByReference(filter) {
+        return new Promise((resolve, reject) => {
+            var  query={
+                _deleted: false, 
+                reference: filter.reference,
+                 "source.code": "GDG.01" 
+            };             
+            var _select = ["code", "packingList",
+                "password", "isReceived"];
             this.SPKDocCollection.where(query).select(_select).execute()
                 .then((results) => {
                     resolve(results);

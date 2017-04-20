@@ -49,12 +49,35 @@ module.exports = class TokoTransferStokManager extends BaseManager {
         // var PusatReturTokoTerimaBarangReturManager = require('./efr-tb-brt-manager');
         // this.pusatReturTokoTerimaBarangReturManager = new PusatReturTokoTerimaBarangReturManager(db, user);
 
-        // var SPKBarangJadiReturManager = require('../merchandiser/efr-pk-pbr-manager');
-        // this.spkBarangJadiReturManager = new SPKBarangJadiReturManager(db, user);
+        var SPKManager = require('../merchandiser/efr-pk-manager');
+        this.spkManager = new SPKManager(db, user);
 
         // var PusatBarangBaruKirimBarangJadiAksesorisManager = require('./efr-kb-exb-manager');
         // this.pusatBarangBaruKirimBarangJadiAksesorisManager = new PusatBarangBaruKirimBarangJadiAksesorisManager(db, user);
 
+    }
+
+    readAll(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: {},
+            filter: {},
+            select: []
+        }, paging);
+
+        var sorting = {
+            "date": 1
+        };
+
+        return this._createIndexes()
+            .then((createIndexResults) => {
+                var query = this._getQuery(_paging);
+                return this.collection
+                    .where(query)
+                    .order(sorting)
+                    .execute()
+            });
     }
 
     _getQuery(paging) {
@@ -100,6 +123,7 @@ module.exports = class TokoTransferStokManager extends BaseManager {
                                         .then(rtt => {
                                             var spkDocGdg = {};
                                             var validspkDocGdg;
+                                            var packingList1;
                                             spkDocGdg.code = generateCode("EFR-PK/PBJ");
                                             spkDocGdg.source = validTransferOutDoc.source;
                                             spkDocGdg.sourceId = validTransferOutDoc.source._id;
@@ -107,13 +131,15 @@ module.exports = class TokoTransferStokManager extends BaseManager {
                                             spkDocGdg.destinationId = storage[0]._id;
                                             spkDocGdg.items = validTransferOutDoc.items;
                                             spkDocGdg.packingList = generateCode(modulePackingList);
+                                            packingList1 = spkDocGdg.packingList;
                                             spkDocGdg.isDraft = false;
-                                            spkDocGdg.isReceived = false;
+                                            spkDocGdg.isReceived = true;
                                             spkDocGdg.reference = rtt.code;
                                             var date = new Date();
                                             var passwordGdg = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
                                             spkDocGdg.password = passwordGdg;
                                             validspkDocGdg = spkDocGdg;
+                                            validspkDocGdg._createdDate = date;
                                             validspkDocGdg = new SPKDoc(validspkDocGdg);
                                             validspkDocGdg.stamp(this.user.profile.firstname, 'manager');
 
@@ -124,7 +150,7 @@ module.exports = class TokoTransferStokManager extends BaseManager {
                                             transferinDoc.destination = storage[0];
                                             transferinDoc.destinationId = storage[0]._id;;
                                             transferinDoc.items = validTransferOutDoc.items;
-                                            transferinDoc.reference = rtt.code;
+                                            transferinDoc.reference = packingList1;
 
                                             var PlSPK;
                                             var spkDoc = {};
@@ -143,40 +169,56 @@ module.exports = class TokoTransferStokManager extends BaseManager {
                                             var password = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
                                             spkDoc.password = password;
                                             validspkDoc = spkDoc;
+                                            validspkDoc._createdDate = date;
                                             validspkDoc = new SPKDoc(validspkDoc);
                                             validspkDoc.stamp(this.user.username, 'manager');
 
-                                            var ekspedisiDoc = {};
-                                            var validEkspedisiDoc;
-                                            ekspedisiDoc.code = generateCode("EFR-KB/EXP");
-                                            ekspedisiDoc.expedition = "Dikirim Sendiri";
-                                            validEkspedisiDoc = ekspedisiDoc;
-                                            validEkspedisiDoc = new ExpeditionDoc(validEkspedisiDoc);
-                                            validEkspedisiDoc.weight = 1;
-                                            validEkspedisiDoc.stamp(this.user.username, 'manager');
-
-                                            var transferOutDoc = {};
-                                            transferOutDoc.code = generateCode("EFR-KB/EXP");
-                                            transferOutDoc.destination = validTransferOutDoc.destination;
-                                            transferOutDoc.destinationId = validTransferOutDoc.destinationId;
-                                            transferOutDoc.items = validTransferOutDoc.items;
-                                            transferOutDoc.reference = PlSPK;
-                                            transferOutDoc.source = storage[0];
-                                            transferOutDoc.sourceId = storage[0]._id; 
-                                            
+                                            var spk2;
                                             var transferStok = [];
-                                            transferStok.push(this.SPKDocCollection.insert(validspkDocGdg));
+                                            transferStok.push(this.SPKDocCollection.insert(validspkDocGdg))
                                             transferStok.push(this.transferInDocManager.create(transferinDoc));
-                                            transferStok.push(this.SPKDocCollection.insert(validspkDoc));
                                             Promise.all(transferStok)
                                                 .then(id => {
+                                                    this.SPKDocCollection.insert(validspkDoc)
+                                                        .then(idSPK2 => {
+                                                            this.spkManager.getSingleById(idSPK2)
+                                                                .then(spk => {
+                                                                    spk2 = {};
+                                                                    spk2 = spk;
+                                                                    var ekspedisiDoc = {};
+                                                                    var eksCode;
+                                                                    var validEkspedisiDoc;
+                                                                    ekspedisiDoc.code = generateCode("EFR-KB/EXP");
+                                                                    eksCode = ekspedisiDoc.code;
+                                                                    ekspedisiDoc.expedition = "Dikirim Sendiri";
+                                                                    validEkspedisiDoc = ekspedisiDoc;
+                                                                    validEkspedisiDoc = new ExpeditionDoc(validEkspedisiDoc);
+                                                                    validEkspedisiDoc.weight = 1;
+                                                                    validEkspedisiDoc.spkDocuments.push(spk2);
+                                                                    validEkspedisiDoc._createdDate = date;
+                                                                    validEkspedisiDoc.stamp(this.user.username, 'manager');
 
-                                                    this.expeditionDocCollection.insert(validEkspedisiDoc)
-                                                        .then(id => {
-
-                                                            this.transferOutDocManager.create(transferOutDoc)
-                                                                .then(id => {
-                                                                    resolve(id);
+                                                                    var transferOutDoc = {};
+                                                                    transferOutDoc.code = eksCode;
+                                                                    transferOutDoc.destination = validTransferOutDoc.destination;
+                                                                    transferOutDoc.destinationId = validTransferOutDoc.destinationId;
+                                                                    transferOutDoc.items = validTransferOutDoc.items;
+                                                                    transferOutDoc.reference = PlSPK;
+                                                                    transferOutDoc.source = storage[0];
+                                                                    transferOutDoc.sourceId = storage[0]._id;
+                                                                    this.expeditionDocCollection.insert(validEkspedisiDoc)
+                                                                        .then(id => {
+                                                                            this.transferOutDocManager.create(transferOutDoc)
+                                                                                .then(id => {
+                                                                                    resolve(id);
+                                                                                })
+                                                                                .catch(e => {
+                                                                                    reject(e);
+                                                                                })
+                                                                        })
+                                                                        .catch(e => {
+                                                                            reject(e);
+                                                                        })
                                                                 })
                                                                 .catch(e => {
                                                                     reject(e);
