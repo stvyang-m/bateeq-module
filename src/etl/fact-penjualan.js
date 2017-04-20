@@ -238,6 +238,83 @@ module.exports = class FactPenjualan {
         });
     }
 
+    countMargin(item) {
+        var calculate = 0;
+        calculate = item.quantity * item.price;
+        //Diskon
+        calculate = (calculate * (100 - item.discount1) / 100 * (100 - item.discount2) / 100) - item.discountNominal;
+        //Spesial Diskon 
+        calculate = calculate * (100 - item.specialDiscount) / 100;
+        //Margin
+        calculate = calculate * (item.margin) / 100;
+        return calculate;
+    }
+
+    countBeforeMargin(item) {
+        var calculate = 0;
+        calculate = item.quantity * item.price;
+        //Diskon
+        calculate = (calculate * (100 - item.discount1) / 100 * (100 - item.discount2) / 100) - item.discountNominal;
+        //Spesial Diskon 
+        calculate = calculate * (100 - item.specialDiscount) / 100;
+        return calculate;
+    }
+
+    sumGrandTotalBeforeMargin(sale) {
+        var sum = 0;
+        if (sale.isReturn) {
+            if (sale.grandTotal == 0) {
+                return 0;
+            } else {
+                for (var item of sale.items) {
+                    if (item.isReturn) {
+                        sum -= this.countBeforeMargin(item);
+                    } else {
+                        sum += this.countBeforeMargin(item);
+                    }
+                }
+                sum = sum * (100 - sale.discount) / 100;
+            }
+        } else {
+            for (var item of sale.items) {
+                sum += this.countBeforeMargin(item);
+            }
+            sum = sum * (100 - sale.discount) / 100;
+
+        }
+        return sum;
+    }
+
+    calculateDiscount(item) {
+        var discount = {};
+        var price = 0;
+        price = item.quantity * item.price;
+        //Diskon1
+        var discount1 = price * (100 - item.discount1) / 100;
+        var discount1Nominal = price * item.discount1 / 100;
+
+        var discount2 = discount1 * (100 - item.discount2) / 100;
+        var discount2Nominal = discount1 * item.discount2 / 100;
+
+        var fixedDiscount = discount2 - item.discountNominal;
+        var fixedDiscountNominal = item.discountNominal;
+
+        var specialDiscount = fixedDiscount * (100 - item.specialDiscount) / 100;
+        var specialDiscountNominal = fixedDiscount * item.specialDiscount / 100;
+
+        discount.discount1 = discount1;
+        discount.discount2 = discount2;
+        discount.fixedDiscount = fixedDiscount;
+        discount.specialDiscount = specialDiscount;
+
+        discount.discount1Nominal = discount1Nominal;
+        discount.discount2Nominal = discount2Nominal;
+        discount.fixedDiscountNominal = fixedDiscountNominal;
+        discount.specialDiscountNominal = specialDiscountNominal;
+
+        return discount;
+    }
+
     transform(data) {
         return new Promise((resolve, reject) => {
             Promise.all([this.getArticles(), this.getExcludedItem()]).then((x) => {
@@ -247,8 +324,13 @@ module.exports = class FactPenjualan {
                         var count = 1;
 
                         var result = data.map((sale) => {
+                            var discount = 0;
+                            var salesDiscount = 0;
                             var items = sale.items.map((item) => {
-                                if (excludedBarcode.indexOf(item.item.code) == -1 && !item.isReturn) {
+                                if (excludedBarcode.indexOf(item.item.code) == -1) {
+                                    var discountData = this.calculateDiscount(item);
+                                    discount += (discountData.discount1Nominal + discountData.discount2Nominal + discountData.fixedDiscountNominal + discountData.specialDiscountNominal);
+                                    salesDiscount += discountData.specialDiscount * sale.discount / 100;
                                     return {
                                         timekey: `'${moment(sale.date).format("L")}'`,
                                         countdays: `'${moment(sale.date).daysInMonth()}'`,
@@ -299,14 +381,28 @@ module.exports = class FactPenjualan {
                                         hd_bank_card: `'${this.getDBValidString((!sale.salesDetail.bankCard.name || sale.salesDetail.bankCard.name == "-") ? "" : sale.salesDetail.bankCard.name)}'`,
                                         hd_is_void: `'${sale.isVoid ? 1 : 0}'`,
                                         hd_transaction_date: `'${moment(sale.date).format("YYYY-MM-DD HH:mm:ss")}'`,
-                                        hd_is_return_transaction: `'${(item.isReturn) ? '1' : '0'}'`,
+                                        hd_is_return: `'${(sale.isReturn) ? '1' : '0'}'`,
                                         hd_updated_date: `'${moment(sale._updatedDate).format("YYYY-MM-DD HH:mm:ss")}'`,
-                                        hd_updated_by: `'${this.getDBValidString(sale._updatedBy)}'`
+                                        hd_updated_by: `'${this.getDBValidString(sale._updatedBy)}'`,
+                                        dt_is_return: `'${(item.isReturn) ? '1' : '0'}'`,
+                                        dt_margin_nominal: `'${this.getDBValidString(this.countMargin(item))}'`,
+                                        hd_grandtotal_before_margin: `'${this.getDBValidString(this.sumGrandTotalBeforeMargin(sale))}'`,
+                                        dt_item_bruto: `'${this.getDBValidString(item.price * item.quantity)}'`,
+                                        dt_item_hpp: `'${this.getDBValidString(item.item.domesticCOGS || 0)}'`,
+                                        dt_discount_product_nominal: `'${this.getDBValidString(discountData.discount1Nominal)}'`,
+                                        dt_discount_product_nominal_additional: `'${this.getDBValidString(discountData.discount2Nominal)}'`,
+                                        dt_special_discount_product_nominal: `'${this.getDBValidString(discountData.specialDiscountNominal)}'`,
                                     }
                                     // console.log(`Transform data : ${count}`)
                                     count++;
                                 }
                             });
+                            for (var item of items) {
+                                if (item) {
+                                    item.hd_sales_discount_nominal = `'${this.getDBValidString(salesDiscount)}'`;
+                                    item.hd_items_total_discounts_nominal = `'${this.getDBValidString(discount)}'`;
+                                }
+                            }
                             return [].concat.apply([], items);
                         });
                         resolve([].concat.apply([], result));
@@ -344,16 +440,16 @@ module.exports = class FactPenjualan {
                         var command = [];
 
                         var sqlQuery = '';
-                        // var allSqlQuery = '';
+                        var allSqlQuery = '';
 
                         var count = 0;
 
                         for (var item of data) {
                             if (item) {
                                 count++;
-                                var queryString = `INSERT INTO [BTQ_FactPenjualan_Temp] ([timekey],[countdays],[store_code],[hd_transaction_number],[hd_shift],[hd_subtotal],[hd_sales_discount_percentage],[hd_grandtotal],[hd_payment_type],[hd_card],[hd_card_type],[hd_bank_name],[hd_card_number],[hd_voucher_amount],[hd_cash_amount],[hd_card_amount],[dt_item_name],[dt_item_quantity],[dt_barcode],[dt_motif_name],[dt_counter_name],[dt_subcounter_name],[dt_material_name],[dt_size_name],[dt_mainsalesprice],[dt_item_price],[dt_is_discount_percentage],[dt_fixed_discount_amount],[dt_discount_product_percentage],[dt_discount_product_percentage_additional],[dt_special_discount_product_percentage],[dt_margin_percentage],[dt_total_price_per_product],[store_name],[store_city],[store_open_date],[store_close_date],[store_area],[store_status],[store_wide],[store_offline_online],[store_sales_category],[store_monthly_total_cost],[store_category],[store_montly_omzet_target],[hd_pos],[hd_bank_card],[hd_is_void],[hd_transaction_date],[hd_is_return_transaction],[hd_updated_date]		,[hd_updated_by]) values(${item.timekey},${item.countdays},${item.store_code},${item.hd_transaction_number},${item.hd_shift},${item.hd_subtotal},${item.hd_sales_discount_percentage},${item.hd_grandtotal},${item.hd_payment_type},${item.hd_card},${item.hd_card_type},${item.hd_bank_name},${item.hd_card_number},${item.hd_voucher_amount},${item.hd_cash_amount},${item.hd_card_amount},${item.dt_item_name},${item.dt_item_quantity},${item.dt_barcode},${item.dt_motif_name},${item.dt_counter_name},${item.dt_subcounter_name},${item.dt_material_name},${item.dt_size_name},${item.dt_mainsalesprice},${item.dt_item_price},${item.dt_is_discount_percentage},${item.dt_fixed_discount_amount},${item.dt_discount_product_percentage},${item.dt_discount_product_percentage_additional},${item.dt_special_discount_product_percentage},${item.dt_margin_percentage},${item.dt_total_price_per_product},${item.store_name},${item.store_city},${item.store_open_date},${item.store_close_date},${item.store_area},${item.store_status},${item.store_wide},${item.store_offline_online},${item.store_sales_category},${item.store_monthly_total_cost},${item.store_category},${item.store_montly_omzet_target},${item.hd_pos},${item.hd_bank_card},${item.hd_is_void},${item.hd_transaction_date},${item.hd_is_return_transaction},${item.hd_updated_date},${item.hd_updated_by})\n`;
+                                var queryString = `INSERT INTO [BTQ_FactPenjualan_Temp] ([timekey],[countdays],[store_code],[hd_transaction_number],[hd_shift],[hd_subtotal],[hd_sales_discount_percentage],[hd_grandtotal],[hd_payment_type],[hd_card],[hd_card_type],[hd_bank_name],[hd_card_number],[hd_voucher_amount],[hd_cash_amount],[hd_card_amount],[dt_item_name],[dt_item_quantity],[dt_barcode],[dt_motif_name],[dt_counter_name],[dt_subcounter_name],[dt_material_name],[dt_size_name],[dt_mainsalesprice],[dt_item_price],[dt_is_discount_percentage],[dt_fixed_discount_amount],[dt_discount_product_percentage],[dt_discount_product_percentage_additional],[dt_special_discount_product_percentage],[dt_margin_percentage],[dt_total_price_per_product],[store_name],[store_city],[store_open_date],[store_close_date],[store_area],[store_status],[store_wide],[store_offline_online],[store_sales_category],[store_monthly_total_cost],[store_category],[store_montly_omzet_target],[hd_pos],[hd_bank_card],[hd_is_void],[hd_transaction_date],[hd_is_return],[hd_updated_date]		,[hd_updated_by],[dt_is_return],[dt_margin_nominal],[hd_grandtotal_before_margin],[dt_item_bruto],[dt_item_hpp],[dt_discount_product_nominal],[dt_discount_product_nominal_additional],[dt_special_discount_product_nominal],[hd_items_total_discounts_nominal],[hd_sales_discount_nominal]) values(${item.timekey},${item.countdays},${item.store_code},${item.hd_transaction_number},${item.hd_shift},${item.hd_subtotal},${item.hd_sales_discount_percentage},${item.hd_grandtotal},${item.hd_payment_type},${item.hd_card},${item.hd_card_type},${item.hd_bank_name},${item.hd_card_number},${item.hd_voucher_amount},${item.hd_cash_amount},${item.hd_card_amount},${item.dt_item_name},${item.dt_item_quantity},${item.dt_barcode},${item.dt_motif_name},${item.dt_counter_name},${item.dt_subcounter_name},${item.dt_material_name},${item.dt_size_name},${item.dt_mainsalesprice},${item.dt_item_price},${item.dt_is_discount_percentage},${item.dt_fixed_discount_amount},${item.dt_discount_product_percentage},${item.dt_discount_product_percentage_additional},${item.dt_special_discount_product_percentage},${item.dt_margin_percentage},${item.dt_total_price_per_product},${item.store_name},${item.store_city},${item.store_open_date},${item.store_close_date},${item.store_area},${item.store_status},${item.store_wide},${item.store_offline_online},${item.store_sales_category},${item.store_monthly_total_cost},${item.store_category},${item.store_montly_omzet_target},${item.hd_pos},${item.hd_bank_card},${item.hd_is_void},${item.hd_transaction_date},${item.hd_is_return},${item.hd_updated_date},${item.hd_updated_by},${item.dt_is_return},${item.dt_margin_nominal},${item.hd_grandtotal_before_margin},${item.dt_item_bruto},${item.dt_item_hpp},${item.dt_discount_product_nominal},${item.dt_discount_product_nominal_additional},${item.dt_special_discount_product_nominal},${item.hd_items_total_discounts_nominal},${item.hd_sales_discount_nominal})\n`;
                                 sqlQuery = sqlQuery.concat(queryString);
-                                // allSqlQuery = allSqlQuery.concat(queryString);
+                                allSqlQuery = allSqlQuery.concat(queryString);
                                 if (count % 1000 == 0) {
                                     command.push(this.insertQuery(request, sqlQuery));
                                     sqlQuery = "";
@@ -367,16 +463,16 @@ module.exports = class FactPenjualan {
 
                         request.multiple = true;
 
-                        // var fs = require("fs");
-                        // var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";
+                        var fs = require("fs");
+                        var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";
 
-                        // fs.writeFile(path, allSqlQuery, function (error) {
-                        //     if (error) {
-                        //         console.log("write error:  " + error.message);
-                        //     } else {
-                        //         console.log("Successful Write to " + path);
-                        //     }
-                        // });
+                        fs.writeFile(path, allSqlQuery, function (error) {
+                            if (error) {
+                                console.log("write error:  " + error.message);
+                            } else {
+                                console.log("Successful Write to " + path);
+                            }
+                        });
 
                         return Promise.all(command)
                             .then((results) => {
