@@ -536,17 +536,34 @@ module.exports = class SalesManager extends BaseManager {
                         if (_store.shifts) {
                             for (var shift of _store.shifts) {
 
-                                var dateFrom = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateFrom)));
-                                var dateTo = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateTo)));
+                                // var dateFrom = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateFrom)));
+                                // var dateTo = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateTo)));
 
-                                if (dateFrom > dateTo) {
-                                    // dateFrom.setDate(dateFrom.getDate() - 1);
-                                    dateTo.setDate(dateTo.getDate() + 1); // karena UTC berbeda 7 jam
+                                // if (dateFrom > dateTo) {
+                                //     // dateFrom.setDate(dateFrom.getDate() - 1);
+                                //     dateTo.setDate(dateTo.getDate() + 1);  
+                                // }
+                                // if (dateFrom < today && today < dateTo) {
+                                //     valid.shift = parseInt(shift.shift);
+                                //     break;
+                                // }
+
+                                var dateFrom = new Date(shift.dateFrom);
+                                var dateTo = new Date(shift.dateTo);
+
+                                var dateFromSecond = (dateFrom.getHours() * 3600) + (dateFrom.getMinutes() * 60) + (dateFrom.getSeconds());
+                                var dateToSecond = (dateTo.getHours() * 3600) + (dateTo.getMinutes() * 60) + (dateTo.getSeconds());
+                                var todaySecond = (today.getHours() * 3600) + (today.getMinutes() * 60) + (today.getSeconds());
+
+                                if (dateFromSecond > dateToSecond) {
+                                    dateToSecond += 86400;
                                 }
-                                if (dateFrom < today && today < dateTo) {
+
+                                if (dateFromSecond <= todaySecond && todaySecond <= dateToSecond) {
                                     valid.shift = parseInt(shift.shift);
                                     break;
                                 }
+
                             }
                         }
 
