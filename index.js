@@ -75,7 +75,11 @@ module.exports = {
         SupplierManager: require('./src/managers/master/supplier-manager'),
         StorageManager: require('./src/managers/master/storage-manager'),
         FinishedGoodsManager: require('./src/managers/master/finished-goods-manager'),
-        MaterialManager: require('./src/managers/master/material-manager')
+        MaterialManager: require('./src/managers/master/material-manager'),
+        article: {
+            ArticleMotifManager: require('./src/managers/master/article/article-motif-manager'),
+            ArticleColorManager: require('./src/managers/master/article/article-color-manager')
+        }
     },
     sales: {
         SalesManager: require('./src/managers/sales/sales-manager'),
@@ -94,10 +98,10 @@ module.exports = {
         salesMigration: require('./src/etl/sales-etl'),
         salesSpMigration: require('./src/etl/sp-sales-etl'),
 
-        factPenjualan : require('./src/etl/fact-penjualan'),
-        factPenjualanSummary : require('./src/etl/fact-penjualan-summary'),
-        dimBranch : require('./src/etl/dim-branch'),
-        dimTime : require('./src/etl/dim-time')
+        factPenjualan: require('./src/etl/fact-penjualan'),
+        factPenjualanSummary: require('./src/etl/fact-penjualan-summary'),
+        dimBranch: require('./src/etl/dim-branch'),
+        dimTime: require('./src/etl/dim-time')
 
 
 
