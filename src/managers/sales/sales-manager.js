@@ -551,9 +551,9 @@ module.exports = class SalesManager extends BaseManager {
                                 var dateFrom = new Date(shift.dateFrom);
                                 var dateTo = new Date(shift.dateTo);
 
-                                var dateFromSecond = (dateFrom.getHours() * 3600) + (dateFrom.getMinutes() * 60) + (dateFrom.getSeconds());
-                                var dateToSecond = (dateTo.getHours() * 3600) + (dateTo.getMinutes() * 60) + (dateTo.getSeconds());
-                                var todaySecond = (today.getHours() * 3600) + (today.getMinutes() * 60) + (today.getSeconds());
+                                var dateFromSecond = (dateFrom.getUTCHours() * 3600) + (dateFrom.getUTCMinutes() * 60) + (dateFrom.getUTCSeconds());
+                                var dateToSecond = (dateTo.getUTCHours() * 3600) + (dateTo.getUTCMinutes() * 60) + (dateTo.getUTCSeconds());
+                                var todaySecond = (today.getUTCHours() * 3600) + (today.getUTCMinutes() * 60) + (today.getUTCSeconds());
 
                                 if (dateFromSecond > dateToSecond) {
                                     dateToSecond += 86400;
