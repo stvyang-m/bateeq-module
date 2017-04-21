@@ -556,13 +556,17 @@ module.exports = class SalesManager extends BaseManager {
                                 var todaySecond = (today.getUTCHours() * 3600) + (today.getUTCMinutes() * 60) + (today.getUTCSeconds());
 
                                 if (dateFromSecond > dateToSecond) {
-                                    dateToSecond += 86400;
+                                    if ((todaySecond >= dateFromSecond  && todaySecond <= 86400) || (todaySecond >= 0  && todaySecond <= dateToSecond)) {
+                                        valid.shift = parseInt(shift.shift);
+                                        break;
+                                    }
+                                } else {
+                                    if (dateFromSecond <= todaySecond && todaySecond <= dateToSecond) {
+                                        valid.shift = parseInt(shift.shift);
+                                        break;
+                                    }
                                 }
 
-                                if (dateFromSecond <= todaySecond && todaySecond <= dateToSecond) {
-                                    valid.shift = parseInt(shift.shift);
-                                    break;
-                                }
 
                             }
                         }
