@@ -144,7 +144,7 @@ module.exports = class FinishedGoodsManager extends ItemManager {
 
     updateImage(colorCode, articleColor, products, imagePath, motifPath) {
         return new Promise((resolve, reject) => {
-            var dataError = [], errorMessage;
+            var dataError = {};
             if (colorCode === "") {
                 dataError["colorCode"] = "Kode warna harus diisi";
             }
@@ -163,7 +163,7 @@ module.exports = class FinishedGoodsManager extends ItemManager {
             }
 
             var motifManager = new ArticleMotifManager(this.db, this.user);
-            var getMotif = motifManager.getSingleByQuery({
+            var getMotif = motifManager.getSingleByQueryOrDefault({
                 "code": articleMotifCode
             })
 
@@ -204,14 +204,16 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                             dataError["dataDestination"] = "produk tidak ditemukan";
                         }
                         if (!results[0]) {
-                            dataError["motif"] = "article motif tidak ditemukan";
+                            dataError["motifUpload"] = "isi master motif terlebih dahulu. ";
                         }
                         if (!results[1]) {
                             dataError["color"] = "article color tidak ditemukan";
                         }
 
-                        if (dataError.length > 0) {
-                            resolve(dataError);
+
+                        for (var prop in dataError) {
+                            var ValidationError = require('module-toolkit').ValidationError;
+                            reject(new ValidationError('data does not pass validation', dataError));
                         }
                     }
                 })
