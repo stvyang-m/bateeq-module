@@ -9,6 +9,8 @@ var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 var ItemManager = require('./item-manager');
 var FinishedGoods = BateeqModels.master.FinishedGoods;
+var ArticleMotifManager = require('./article/article-motif-manager');
+var ArticleColorManager = require('./article/article-color-manager');
 
 module.exports = class FinishedGoodsManager extends ItemManager {
     constructor(db, user) {
@@ -140,6 +142,85 @@ module.exports = class FinishedGoodsManager extends ItemManager {
         // });
     }
 
+    updateImage(colorCode, articleColor, products, imagePath, motifPath) {
+        return new Promise((resolve, reject) => {
+            var dataError = [], errorMessage;
+            if (colorCode === "") {
+                dataError["colorCode"] = "Kode warna harus diisi";
+            }
+
+            var articleMotifCode = "";
+
+            if (!products || products.length == 0) {
+                dataError["dataDestination"] = "Produk harus dipilih";
+            } else {
+                articleMotifCode = products[0].code.substring(9, 11);
+            }
+
+            var getItems = [];
+            for (var item of products) {
+                getItems.push(this.getByCode(item.code));
+            }
+
+            var motifManager = new ArticleMotifManager(this.db, this.user);
+            var getMotif = motifManager.getSingleByQuery({
+                "code": articleMotifCode
+            })
+
+            var colorManager = new ArticleColorManager(this.db, this.user);
+            var getColor = colorManager.getSingleByIdOrDefault(articleColor._id);
+
+
+            Promise.all([getMotif, getColor].concat(getItems))
+                .then(results => {
+                    if (results[0] && results[1] && results.length > 2) {
+
+                        var motif = results[0];
+                        var color = results[1];
+                        motif["filePath"] = motifPath;
+                        var updateMotif = motifManager.update(motif);
+
+
+                        var updateItem = [];
+                        for (var i = 2; i < results.length; i++) {
+                            var item = results[i];
+                            item["imagePath"] = imagePath;
+                            item["motifPath"] = imagePath;
+                            item["motifDoc"] = motif;
+                            item["colorCode"] = colorCode;
+                            item["colorDoc"] = color;
+                            updateItem.push(this.update(item));
+                        }
+
+                        Promise.all([updateMotif].concat(updateItem))
+                            .then(updateResults => {
+                                resolve(updateResults);
+                            })
+                            .catch(updateErrors => {
+                                reject(updateErrors);
+                            })
+                    } else {
+                        if (!results[2]) {
+                            dataError["dataDestination"] = "produk tidak ditemukan";
+                        }
+                        if (!results[0]) {
+                            dataError["motif"] = "article motif tidak ditemukan";
+                        }
+                        if (!results[1]) {
+                            dataError["color"] = "article color tidak ditemukan";
+                        }
+
+                        if (dataError.length > 0) {
+                            resolve(dataError);
+                        }
+                    }
+                })
+                .catch(errors => {
+                    reject(errors);
+                });
+        });
+    }
+
     insert(dataFile) {
         return new Promise((resolve, reject) => {
             var data = [];
@@ -196,61 +277,62 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                 var fgTemp = [];
                 for (var fg of data) {
                     var item = fg;
-                    super.getByCode(item.code)
-                        .then(resultItem => {
-                            if (resultItem) {
-                                resultItem.name = item.name;
-                                resultItem.uom = item.uom;
-                                resultItem.size = item.size;
-                                resultItem.domesticCOGS = item.domesticCOGS;
-                                resultItem.domesticSale = item.domesticSale;
-                                resultItem.internationalSale = item.internationalSale;
-                                resultItem.article.realizationOrder = item.realizationOrder;
-                                this.update(resultItem)
-                                    .then(id => {
-                                        super.getSingleById(id)
-                                            .then(resultItem => {
-                                                fgTemp.push(resultItem)
-                                                resolve(fgTemp);
-                                            })
-                                            .catch(e => {
-                                                reject(e);
-                                            });
-                                    })
-                                    .catch(e => {
-                                        reject(e);
-                                    });
-                            }
-                            else {
-                                var finishGood = new FinishedGoods();
-                                finishGood.code = item.code;
-                                finishGood.name = item.name;
-                                finishGood.uom = item.uom;
-                                finishGood.size = item.size;
-                                finishGood.domesticCOGS = item.domesticCOGS;
-                                finishGood.internationalSale = item.internationalSale;
-                                finishGood.domesticSale = item.domesticSale;
-                                finishGood.article.realizationOrder = item.realizationOrder;
-                                this.create(finishGood)
-                                    .then(id => {
-                                        super.getSingleById(id)
-                                            .then(resultItem => {
-                                                fgTemp.push(resultItem)
-                                                resolve(fgTemp);
-                                            })
-                                            .catch(e => {
-                                                reject(e);
-                                            });
-                                    })
-                                    .catch(e => {
-                                        reject(e);
-                                    });
-                            }
-
+                    // super.getByCode(item.code)
+                    //     .then(resultItem => {
+                    // if (resultItem) {
+                    //     resultItem.name = item.name;
+                    //     resultItem.uom = item.uom;
+                    //     resultItem.size = item.size;
+                    //     resultItem.domesticCOGS = item.domesticCOGS;
+                    //     resultItem.domesticSale = item.domesticSale;
+                    //     resultItem.internationalSale = item.internationalSale;
+                    //     resultItem.article.realizationOrder = item.realizationOrder;
+                    //     this.update(resultItem)
+                    //         .then(id => {
+                    //             super.getSingleById(id)
+                    //                 .then(resultItem => {
+                    //                     fgTemp.push(resultItem)
+                    //                     resolve(fgTemp);
+                    //                 })
+                    //                 .catch(e => {
+                    //                     reject(e);
+                    //                 });
+                    //         })
+                    //         .catch(e => {
+                    //             reject(e);
+                    //         });
+                    // }
+                    // else {
+                    var finishGood = new FinishedGoods();
+                    finishGood.code = item.code;
+                    finishGood.name = item.name;
+                    finishGood.uom = item.uom;
+                    finishGood.size = item.size;
+                    finishGood.domesticCOGS = item.domesticCOGS;
+                    finishGood.internationalSale = item.internationalSale;
+                    finishGood.domesticSale = item.domesticSale;
+                    finishGood.article.realizationOrder = item.realizationOrder;
+                    this.create(finishGood)
+                        .then(id => {
+                            super.getSingleById(id)
+                                .then(resultItem => {
+                                    fgTemp.push(resultItem)
+                                    resolve(fgTemp);
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                });
                         })
                         .catch(e => {
                             reject(e);
                         });
+                    break;
+                    // }
+
+                    // })
+                    // .catch(e => {
+                    //     reject(e);
+                    // });
                 }
             } else {
                 resolve(dataError);

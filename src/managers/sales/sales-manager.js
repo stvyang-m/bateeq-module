@@ -117,6 +117,116 @@ module.exports = class SalesManager extends BaseManager {
 
         return this.collection.aggregate(aggregate);
     }
+
+    productsReport(dateFrom, dateTo, skip, limit) {
+        var aggregate =
+            [
+                {
+                    "$match": {
+                        date: {
+                            $gte: new Date(dateFrom),
+                            $lte: new Date(dateTo)
+                        },
+                        'isVoid': false
+                    }
+                }, {
+                    "$project": {
+                        _id: 0, items: {
+                            $filter: {
+                                input: "$items",
+                                as: "item",
+                                cond: { $and: [{ $not: ["$$item.isReturn"] }, true] }
+                            }
+                        }, store: 1
+                    }
+                }, {
+                    "$unwind": "$items"
+                },
+                {
+                    "$lookup":
+                    {
+                        from: "items",
+                        localField: "items.item._id",
+                        foreignField: "_id",
+                        as: "masterItem"
+                    }
+                }
+                , {
+                    "$group": {
+                        _id: { "code": "$items.item.code" },
+                        quantity: { "$sum": "$items.quantity" },
+                        masterItem: { "$first": "$masterItem" },
+                        stores: {
+                            "$push": {
+                                store: "$store",
+                                quantity: "$items.quantity"
+                            }
+                        }
+                    }
+                }, {
+                    "$sort": {
+                        "quantity": -1
+                    }
+                }, { "$skip": parseInt(skip || 0) }, { "$limit": parseInt(limit || 0) }
+            ];
+        return this.collection.aggregate(aggregate);
+    }
+
+    productsReportQuery(dateFrom, dateTo) {
+        var aggregate =
+            [
+                {
+                    "$match": {
+                        date: {
+                            $gte: new Date(dateFrom),
+                            $lte: new Date(dateTo)
+                        },
+                        'isVoid': false
+                    }
+                }, {
+                    "$project": {
+                        _id: 0, items: {
+                            $filter: {
+                                input: "$items",
+                                as: "item",
+                                cond: { $and: [{ $not: ["$$item.isReturn"] }, true] }
+                            }
+                        }, store: 1
+                    }
+                }, {
+                    "$unwind": "$items"
+                },
+                {
+                    "$lookup":
+                    {
+                        from: "items",
+                        localField: "items.item._id",
+                        foreignField: "_id",
+                        as: "masterItem"
+                    }
+                }
+                , {
+                    "$group": {
+                        _id: { "code": "$items.item.code" },
+                        quantity: { "$sum": "$items.quantity" },
+                        masterItem: { "$first": "$masterItem" },
+                        stores: {
+                            "$push": {
+                                store: "$store",
+                                quantity: "$items.quantity"
+                            }
+                        }
+                    }
+                }, {
+                    "$sort": {
+                        "quantity": -1
+                    }
+                },
+                { $group: { _id: null, total: { $sum: 1 } } }
+            ];
+        return this.collection.aggregate(aggregate);
+    }
+
     _createIndexes() {
         var dateIndex = {
             name: `ix_${map.sales.SalesDoc}__updatedDate`,
@@ -426,16 +536,38 @@ module.exports = class SalesManager extends BaseManager {
                         if (_store.shifts) {
                             for (var shift of _store.shifts) {
 
-                                var dateFrom = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateFrom)));
-                                var dateTo = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateTo)));
+                                // var dateFrom = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateFrom)));
+                                // var dateTo = new Date(this.getUTCStringDate(today) + "T" + this.getUTCStringTime(new Date(shift.dateTo)));
 
-                                if (dateFrom > dateTo) {
-                                    dateFrom.setDate(dateFrom.getDate() - 1);
+                                // if (dateFrom > dateTo) {
+                                //     // dateFrom.setDate(dateFrom.getDate() - 1);
+                                //     dateTo.setDate(dateTo.getDate() + 1);  
+                                // }
+                                // if (dateFrom < today && today < dateTo) {
+                                //     valid.shift = parseInt(shift.shift);
+                                //     break;
+                                // }
+
+                                var dateFrom = new Date(shift.dateFrom);
+                                var dateTo = new Date(shift.dateTo);
+
+                                var dateFromSecond = (dateFrom.getUTCHours() * 3600) + (dateFrom.getUTCMinutes() * 60) + (dateFrom.getUTCSeconds());
+                                var dateToSecond = (dateTo.getUTCHours() * 3600) + (dateTo.getUTCMinutes() * 60) + (dateTo.getUTCSeconds());
+                                var todaySecond = (today.getUTCHours() * 3600) + (today.getUTCMinutes() * 60) + (today.getUTCSeconds());
+
+                                if (dateFromSecond > dateToSecond) {
+                                    if ((todaySecond >= dateFromSecond  && todaySecond <= 86400) || (todaySecond >= 0  && todaySecond <= dateToSecond)) {
+                                        valid.shift = parseInt(shift.shift);
+                                        break;
+                                    }
+                                } else {
+                                    if (dateFromSecond <= todaySecond && todaySecond <= dateToSecond) {
+                                        valid.shift = parseInt(shift.shift);
+                                        break;
+                                    }
                                 }
-                                if (dateFrom < today && today < dateTo) {
-                                    valid.shift = parseInt(shift.shift);
-                                    break;
-                                }
+
+
                             }
                         }
 
