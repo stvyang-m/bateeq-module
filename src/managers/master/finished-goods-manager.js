@@ -278,63 +278,73 @@ module.exports = class FinishedGoodsManager extends ItemManager {
             if (dataError.length === 0) {
                 var fgTemp = [];
                 for (var fg of data) {
-                    var item = fg;
-                    super.getByCode(item.code)
-                        .then(resultItem => {
-                            if (resultItem) {
-                                resultItem.name = item.name;
-                                resultItem.uom = item.uom;
-                                resultItem.size = item.size;
-                                resultItem.domesticCOGS = item.domesticCOGS;
-                                resultItem.domesticSale = item.domesticSale;
-                                resultItem.internationalSale = item.internationalSale;
-                                resultItem.article.realizationOrder = item.realizationOrder;
-                                this.update(resultItem)
-                                    .then(id => {
-                                        super.getSingleById(id)
-                                            .then(resultItem => {
-                                                fgTemp.push(resultItem)
-                                                resolve(fgTemp);
-                                            })
-                                            .catch(e => {
-                                                reject(e);
-                                            });
-                                    })
-                                    .catch(e => {
-                                        reject(e);
-                                    });
-                            }
-                            else {
-                                var finishGood = new FinishedGoods();
-                                finishGood.code = item.code;
-                                finishGood.name = item.name;
-                                finishGood.uom = item.uom;
-                                finishGood.size = item.size;
-                                finishGood.domesticCOGS = item.domesticCOGS;
-                                finishGood.internationalSale = item.internationalSale;
-                                finishGood.domesticSale = item.domesticSale;
-                                finishGood.article.realizationOrder = item.realizationOrder;
-                                this.create(finishGood)
-                                    .then(id => {
-                                        super.getSingleById(id)
-                                            .then(resultItem => {
-                                                fgTemp.push(resultItem)
-                                                resolve(fgTemp);
-                                            })
-                                            .catch(e => {
-                                                reject(e);
-                                            });
-                                    })
-                                    .catch(e => {
-                                        reject(e);
-                                    });
-                            }
-
-                        })
-                        .catch(e => {
-                            reject(e);
-                        });
+                    var finished = new Promise((resolve, reject) => {
+                        var item = fg;
+                        super.getByCode(item.code)
+                            .then(resultItem => {
+                                if (resultItem) {
+                                    resultItem.name = item.name;
+                                    resultItem.uom = item.uom;
+                                    resultItem.size = item.size;
+                                    resultItem.domesticCOGS = item.domesticCOGS;
+                                    resultItem.domesticSale = item.domesticSale;
+                                    resultItem.internationalSale = item.internationalSale;
+                                    resultItem.article.realizationOrder = item.realizationOrder;
+                                    this.update(resultItem)
+                                        .then(id => {
+                                            super.getSingleById(id)
+                                                .then(resultItem => {
+                                                    // fgTemp.push(resultItem)
+                                                    resolve(resultItem);
+                                                })
+                                                .catch(e => {
+                                                    reject(e);
+                                                });
+                                        })
+                                        .catch(e => {
+                                            reject(e);
+                                        });
+                                }
+                                else {
+                                    var finishGood = new FinishedGoods();
+                                    finishGood.code = item.code;
+                                    finishGood.name = item.name;
+                                    finishGood.uom = item.uom;
+                                    finishGood.size = item.size;
+                                    finishGood.domesticCOGS = item.domesticCOGS;
+                                    finishGood.internationalSale = item.internationalSale;
+                                    finishGood.domesticSale = item.domesticSale;
+                                    finishGood.article.realizationOrder = item.realizationOrder;
+                                    this.create(finishGood)
+                                        .then(id => {
+                                            super.getSingleById(id)
+                                                .then(resultItem => {
+                                                    // fgTemp.push(resultItem)
+                                                    resolve(resultItem);
+                                                })
+                                                .catch(e => {
+                                                    reject(e);
+                                                });
+                                        })
+                                        .catch(e => {
+                                            reject(e);
+                                        });
+                                }
+                            })
+                            .catch(e => {
+                                reject(e);
+                            });
+                    });
+                    fgTemp.push(finished);
                 }
+
+                Promise.all(fgTemp)
+                    .then(resultItem => {
+                        resolve(resultItem);
+                    })
+                    .catch(e => {
+                        reject(e);
+                    });
             } else {
                 resolve(dataError);
             }
