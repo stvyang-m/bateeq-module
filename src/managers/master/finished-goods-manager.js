@@ -13,9 +13,9 @@ var ArticleMotifManager = require('./article/article-motif-manager');
 var ArticleColorManager = require('./article/article-color-manager');
 
 module.exports = class FinishedGoodsManager extends ItemManager {
-    constructor(db, user) {
-        super(db, user);
-    }
+    // constructor(db, user) {
+    //     super(db, user);
+    // }
 
     _getQuery(paging) {
         var basicFilter = {
