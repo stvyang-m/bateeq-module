@@ -47,6 +47,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
             var regexModuleId = new RegExp(moduleId, "i");
             var filter = {
                 _deleted: false,
+                _createdBy : this.user.username,
                 'code': {
                     '$regex': regexModuleId
                 }
@@ -211,7 +212,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                     }
                                     validExpeditionDoc = new ExpeditionDoc(validExpeditionDoc);
                                     validExpeditionDoc._createdDate = new Date();
-                                    validExpeditionDoc.stamp(this.user.profile.firstname, 'manager');
+                                    validExpeditionDoc.stamp(this.user.username, 'manager');
                                     //Create Promise Expedition 
                                     this.expeditionDocCollection.insert(validExpeditionDoc)
                                         .then(resultExpeditionId => {
