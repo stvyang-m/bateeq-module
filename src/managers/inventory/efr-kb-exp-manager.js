@@ -28,6 +28,9 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         var TransferOutDocManager = require('./transfer-out-doc-manager');
         this.transferOutDocManager = new TransferOutDocManager(db, user);
 
+        var InventoryManager = require('./inventory-manager');
+        this.inventoryManager = new InventoryManager(db, user);
+
         var SpkManager = require('../merchandiser/efr-pk-manager');
         this.spkManager = new SpkManager(db, user);
 
@@ -36,18 +39,13 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
     }
 
     read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
+        var _paging = Object.assign({}, paging);
 
         return new Promise((resolve, reject) => {
             var regexModuleId = new RegExp(moduleId, "i");
             var filter = {
                 _deleted: false,
-                _createdBy : this.user.username,
+                _createdBy: this.user.username,
                 'code': {
                     '$regex': regexModuleId
                 }
@@ -74,7 +72,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
             this.expeditionDocCollection
                 .where(query)
                 .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
+                .order(_paging.order)
                 .execute()
                 .then(expeditionDocs => {
                     resolve(expeditionDocs);
@@ -163,13 +161,13 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
             //Validate Input Model
             this._validate(expeditionDoc)
                 .then(validatedExpeditionDoc => {
+                    var code = generateCode(moduleId);
                     var getTransferOuts = [];
                     //Create Promise to Create Transfer Out
                     for (var spkDocument of validatedExpeditionDoc.spkDocuments) {
                         //getTransferOuts.push(this.transferOutDocManager.create(validTransferOutDoc));
                         var f = (spkDoc, outManager) => {
                             return () => {
-                                var code = generateCode(moduleId);
                                 var validTransferOutDoc = {};
                                 validTransferOutDoc.code = code;
                                 validTransferOutDoc.reference = spkDoc.packingList;
@@ -202,7 +200,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                 .then(transferOutResults => {
                                     //Create Expedition Model
                                     var validExpeditionDoc = {};
-                                    validExpeditionDoc.code = generateCode(moduleId);
+                                    validExpeditionDoc.code = code;
                                     validExpeditionDoc.expedition = validatedExpeditionDoc.expedition;
                                     validExpeditionDoc.weight = validatedExpeditionDoc.weight;
                                     validExpeditionDoc.transferOutDocuments = [];
@@ -292,6 +290,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                     var getPromise = [];
                     var validateSPKisExist = [];
 
+                    var getStock = [];
+
                     if (!valid.expedition || valid.expedition == '')
                         errors["expedition"] = "expedition is required";
 
@@ -328,6 +328,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                 spkDocumentError["code"] = "packing list harus memiliki tujuan yang sama";
 
                             spkDocumentErrors.push(spkDocumentError);
+
+                            for (var item of spkDocument.items) {
+                                getStock.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(spkDocument.sourceId, item.itemId));
+                            }
                         }
                         for (var spkDocumentError of spkDocumentErrors) {
                             for (var prop in spkDocumentError) {
@@ -341,9 +345,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
 
                     Promise.all(validateSPKisExist).then(
                         validateSPKisExistResult => {
-                            Promise.all(getPromise)
+                            Promise.all([].concat(getPromise, getStock))
                                 .then(spkDocuments => {
                                     var index = 0;
+                                    var inventory = spkDocuments.filter(x => x._type === 'inventory')
                                     for (var spkDocument of valid.spkDocuments) {
                                         var spkDocumentError = spkDocumentErrors[index];
 
@@ -357,6 +362,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                     var itemErrors = [];
                                                     for (var item of spkDocument.items) {
                                                         var itemError = {};
+                                                        var quantityStock = inventory.find(x => x.itemId == item.itemId && x.storageId == spkDocument.sourceId);
+                                                        if (item.quantitySend > quantityStock.quantity) {
+                                                            itemError["quantitySend"] = "stok tidak tersedia";
+                                                        }
                                                         if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
                                                             itemError["quantity"] = "kuantitas harus diisi";
                                                         }
@@ -404,9 +413,9 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
 
                                             spkDocument = spkDocuments[index];
                                         }
-                                        // else {
-                                        //     spkDocumentError["spkDocument"] = "SPK Document not found";
-                                        // } 
+                                        else {
+                                            spkDocumentError.code = "packing list tidak ditemukan";
+                                        }
                                         index++;
                                     }
                                     for (var spkDocumentError of spkDocumentErrors) {
