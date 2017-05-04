@@ -82,7 +82,8 @@ module.exports = {
         article: {
             ArticleMotifManager: require('./src/managers/master/article/article-motif-manager'),
             ArticleColorManager: require('./src/managers/master/article/article-color-manager')
-        }
+        },
+        ExpeditionServiceManager: require('./src/managers/master/expedition-service-manager')
     },
     sales: {
         SalesManager: require('./src/managers/sales/sales-manager'),
