@@ -15,6 +15,7 @@ inventoryMap.set("efr-kb-exp", require('./src/managers/inventory/efr-kb-exp-mana
 inventoryMap.set("efr-kb-alt", require('./src/managers/inventory/efr-kb-alt-manager'));
 inventoryMap.set("efr-tb-act", require('./src/managers/inventory/efr-tb-act-manager'));
 inventoryMap.set("efr-tb-bat", require('./src/managers/inventory/efr-tb-bat-manager'));
+inventoryMap.set("efr-tb-bbp", require('./src/managers/inventory/efr-tb-bbp-manager'));
 inventoryMap.set("efr-tb-bbt", require('./src/managers/inventory/efr-tb-bbt-manager'));
 inventoryMap.set("efr-tb-bjb", require('./src/managers/inventory/efr-tb-bjb-manager'));
 inventoryMap.set("efr-tb-bjr", require('./src/managers/inventory/efr-tb-bjr-manager'));
@@ -52,6 +53,7 @@ module.exports = {
         FinishingTerimaAksesorisManager: inventoryMap.get("efr-tb-acc"),
         TokoTerimaAksesorisManager: inventoryMap.get("efr-tb-bat"),
         TokoTerimaBarangBaruManager: inventoryMap.get("efr-tb-bbt"),
+        PusatTerimaBarangBaruManager: inventoryMap.get("efr-tb-bbp"),
         PusatBarangBaruTerimaBarangBaruManager: inventoryMap.get("efr-tb-bjb"),
         FinishingTerimaBarangReturManager: inventoryMap.get("efr-tb-bjr"),
         PusatReturTokoTerimaBarangReturSelesaiPerbaikanManager: inventoryMap.get("efr-tb-brd"),
