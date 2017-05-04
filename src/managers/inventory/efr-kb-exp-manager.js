@@ -306,14 +306,14 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                             expeditionDoc.weight += parseInt(spkDocument.weight || 0);
                             var spkDocumentError = {};
                             if (!spkDocument._id || spkDocument._id == "") {
-                                spkDocumentError["spkDocumentId"] = "packing list is required";
+                                spkDocumentError["code"] = "packing list harus diisi";
                                 getPromise.push(Promise.resolve(null));
                             }
                             else {
                                 for (var i = valid.spkDocuments.indexOf(spkDocument) + 1; i < valid.spkDocuments.length; i++) {
                                     var otherItem = valid.spkDocuments[i];
                                     if (spkDocument._id == otherItem._id) {
-                                        spkDocumentError["spkDocumentId"] = "spkDocumentId already exists on another detail";
+                                        spkDocumentError["code"] = "duplikat packing list";
                                     }
                                 }
 
@@ -324,8 +324,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
 
                             if (spkDocumentDestinationId == "")
                                 spkDocumentDestinationId = spkDocument.destinationId;
-                            if (spkDocument.destinationId != spkDocumentDestinationId)
-                                spkDocumentError["spkDocumentId"] = "packing list harus memiliki tujuan yang sama";
+                            else if (spkDocument.destinationId != spkDocumentDestinationId)
+                                spkDocumentError["code"] = "packing list harus memiliki tujuan yang sama";
 
                             spkDocumentErrors.push(spkDocumentError);
                         }
@@ -341,16 +341,14 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
 
                     Promise.all(validateSPKisExist).then(
                         validateSPKisExistResult => {
-                            var spkDocumentErrors = [];
-
                             Promise.all(getPromise)
                                 .then(spkDocuments => {
                                     var index = 0;
                                     for (var spkDocument of valid.spkDocuments) {
-                                        var spkDocumentError = {};
+                                        var spkDocumentError = spkDocumentErrors[index];
 
                                         if (spkDocuments[index]) {
-                                            var spkspkDocumentError = {};
+                                            var spkspkDocumentError = spkDocumentError;
                                             if (spkDocument) {
                                                 if (!spkDocument.items || spkDocument.items.length == 0) {
                                                     spkspkDocumentError["items"] = "items is required";
@@ -360,23 +358,23 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                     for (var item of spkDocument.items) {
                                                         var itemError = {};
                                                         if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
-                                                            itemError["quantity"] = "quantity is required";
+                                                            itemError["quantity"] = "kuantitas harus diisi";
                                                         }
                                                         else if (parseInt(item.quantity) <= 0) {
-                                                            itemError["quantity"] = "quantity must be greater than 0";
+                                                            itemError["quantity"] = "kuantitas harus lebih besar dari 0";
                                                         }
                                                         if (item.quantitySend == undefined || (item.quantitySend && item.quantitySend == '')) {
-                                                            itemError["quantitySend"] = "quantitySend is required";
+                                                            itemError["quantitySend"] = "kuantitas pengiriman harus diisi";
                                                         }
                                                         else if (parseInt(item.quantitySend) <= 0) {
-                                                            itemError["quantitySend"] = "quantitySend must be greater than 0";
+                                                            itemError["quantitySend"] = "kuantitas pengiriman harus lebih besar dari 0";
                                                         }
 
                                                         if (item.quantitySend > item.quantity) {
-                                                            itemError["quantitySend"] = "quantitySend must not be greater then quantity";
+                                                            itemError["quantitySend"] = "kuantitas pengiriman tidak boleh lebih besar dari kuantitas packing list";
                                                         }
                                                         if (item.quantitySend != item.quantity && (!item.remark || item.remark == '')) {
-                                                            itemError["remark"] = "notes is required";
+                                                            itemError["remark"] = "catatan harus diisi";
                                                         }
                                                         item.quantity = item.quantitySend;
 
@@ -393,7 +391,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                 }
 
                                                 if ((spkDocument.weight || 0) == 0)
-                                                    spkspkDocumentError["weight"] = "weight is required";
+                                                    spkspkDocumentError["weight"] = "berat harus diisi";
                                             }
 
                                             for (var prop in spkspkDocumentError) {
@@ -402,7 +400,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                             }
 
                                             if (validateSPKisExistResult[index].count > 0)
-                                                spkDocumentError.code = "spk document sudah memiliki ekspedisi";
+                                                spkDocumentError.code = "packing list sudah memiliki ekspedisi";
 
                                             spkDocument = spkDocuments[index];
                                         }
@@ -410,7 +408,6 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                         //     spkDocumentError["spkDocument"] = "SPK Document not found";
                                         // } 
                                         index++;
-                                        spkDocumentErrors.push(spkDocumentError);
                                     }
                                     for (var spkDocumentError of spkDocumentErrors) {
                                         for (var prop in spkDocumentError) {
