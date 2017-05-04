@@ -171,11 +171,11 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                 var code = generateCode(moduleId);
                                 var validTransferOutDoc = {};
                                 validTransferOutDoc.code = code;
-                                validTransferOutDoc.reference = spkDoc.spkDocument.packingList;
-                                validTransferOutDoc.sourceId = spkDoc.spkDocument.sourceId;
-                                validTransferOutDoc.destinationId = spkDoc.spkDocument.destinationId;
+                                validTransferOutDoc.reference = spkDoc.packingList;
+                                validTransferOutDoc.sourceId = spkDoc.sourceId;
+                                validTransferOutDoc.destinationId = spkDoc.destinationId;
                                 validTransferOutDoc.items = [];
-                                for (var item of spkDoc.spkDocument.items) {
+                                for (var item of spkDoc.items) {
                                     var newitem = {};
                                     newitem.itemId = item.itemId;
                                     newitem.quantity = item.quantity;
@@ -210,6 +210,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                         validExpeditionDoc.transferOutDocuments.push(transferOut);
                                     }
                                     validExpeditionDoc = new ExpeditionDoc(validExpeditionDoc);
+                                    validExpeditionDoc._createdDate = new Date();
+                                    validExpeditionDoc.stamp(this.user.profile.firstname, 'manager');
                                     //Create Promise Expedition 
                                     this.expeditionDocCollection.insert(validExpeditionDoc)
                                         .then(resultExpeditionId => {
@@ -372,9 +374,11 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                         if (item.quantitySend > item.quantity) {
                                                             itemError["quantitySend"] = "quantitySend must not be greater then quantity";
                                                         }
-                                                        if (item.quantitySend != item.quantity && (!item.notes || item.notes == '')) {
+                                                        if (item.quantitySend != item.quantity && (!item.remark || item.remark == '')) {
                                                             itemError["remark"] = "notes is required";
                                                         }
+                                                        item.quantity = item.quantitySend;
+
                                                         itemErrors.push(itemError);
                                                     }
                                                     for (var itemError of itemErrors) {
@@ -396,7 +400,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                 break;
                                             }
 
-                                            if (validateSPKisExistResult[index])
+                                            if (validateSPKisExistResult[index].count > 0)
                                                 spkDocumentError.code = "spk document sudah memiliki ekspedisi";
 
                                             spkDocument = spkDocuments[index];
@@ -419,8 +423,6 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                         reject(new ValidationError('data does not pass validation', errors));
                                     }
 
-                                    valid = new ExpeditionDoc(valid);
-                                    valid.stamp(this.user.username, 'manager');
                                     resolve(valid)
                                 })
                                 .catch(e => {
@@ -432,6 +434,30 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                 .catch(e => {
                     reject(new Error(`Unable to load module:${moduleId}`));
                 });
+        });
+    }
+
+    pdf(id) {
+        return new Promise((resolve, reject) => {
+
+            this.getSingleById(id)
+                .then(docs => {
+                    var getDefinition = require('../../pdf/definitions/efr-kb-exp');
+                    var definition = getDefinition(docs);
+
+                    var generatePdf = require('../../pdf/pdf-generator');
+                    generatePdf(definition)
+                        .then(binary => {
+                            resolve(binary);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+                })
+                .catch(e => {
+                    reject(e);
+                });
+
         });
     }
 };
