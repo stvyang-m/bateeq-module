@@ -12,14 +12,14 @@ module.exports = function (expeditions) {
     var table1 = [
         {
             columns: [
-                { width: '40%', text: "No Bon", style: ['size12', 'bold'], alignment: 'left' },
-                { width: '60%', text: expeditions.code, style: ['size12'], alignment: 'left' }
+                { width: '30%', text: "No Bon", style: ['size12', 'bold'], alignment: 'left' },
+                { width: '70%', text: expeditions.code, style: ['size12'], alignment: 'left' }
             ]
         },
         {
             columns: [
-                { width: '40%', text: "Tanggal", style: ['size12', 'bold'], alignment: 'left' },
-                { width: '60%', text: `${moment(expeditions._createdDate).format(locale.date.format)}`, style: ['size12'], alignment: 'left' }
+                { width: '30%', text: "Tanggal", style: ['size12', 'bold'], alignment: 'left' },
+                { width: '70%', text: `${moment(expeditions._createdDate).format(locale.date.format)}`, style: ['size12'], alignment: 'left' }
             ]
         }
     ]
@@ -61,11 +61,11 @@ module.exports = function (expeditions) {
                 width: "50%",
                 columns: [
                     {
-                        width: '30%',
+                        width: '20%',
                         text: ''
                     },
                     {
-                        width: '70%',
+                        width: '80%',
                         stack: table1,
                     }
                 ],
@@ -78,11 +78,12 @@ module.exports = function (expeditions) {
     var thead = [
         { text: "No", style: 'tableHeader' },
         { text: "Packing List", style: 'tableHeader' },
-        { text: "Beart (Kg)", style: 'tableHeader' },
+        { text: "Berat (Kg)", style: 'tableHeader' },
         { text: "Total Barang", style: 'tableHeader' }
     ]
 
     var index = 1;
+    var total = 0;
     var tbody = expeditions.spkDocuments.map(item => {
         var totalBarang = 0;
         if (item.items.length > 1) {
@@ -90,12 +91,12 @@ module.exports = function (expeditions) {
         } else {
             totalBarang = item.items[0].quantity;
         }
-
+        total += total;
         return [
-            index++,
-            item.code,
-            item.weight || 0,
-            totalBarang
+            { text: index++, alignment: 'center' },
+            { text: item.code, alignment: 'center' },
+            { text: item.weight || 0, alignment: 'center' },
+            { text: totalBarang || 0, alignment: 'center' }
         ]
     });
 
@@ -115,23 +116,25 @@ module.exports = function (expeditions) {
     var data3 = {
         table: {
             headerRows: 0,
-            width: ['75%', '25%'],
+            widths: ['75%', '25%'],
             body: [
                 [{ text: 'Total', style: ['bold', 'size12'], alignment: 'center' },
-                { text: 'Total', style: ['bold', 'size12'], alignment: 'center' }]
+                { text: total, style: ['bold', 'size12'], alignment: 'center' }]
             ]
-        }
+        },
+        style: ['marginTop20']
     }
 
     var dd = {
         pageSize: 'A4',
-        pageOrientation: 'landscape',
+        pageOrientation: 'portrait',
         pageMargins: 20,
         content: [
             header,
             subHeader,
             data1,
-            data2
+            data2,
+            data3
         ],
         styles: {
             size06: {
