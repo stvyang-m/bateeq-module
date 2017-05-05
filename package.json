@@ -29,7 +29,8 @@
     "mongodb-toolkit": "git+https://github.com/pinkgorilla/mongodb-toolkit.git",
     "mssql": "^3.3.0",
     "sha1": "^1.1.1",
-    "should": "^10.0.0"
+    "should": "^10.0.0",
+    "pdfmake": "^0.1.18"
   },
   "devDependencies": {
     "coveralls": "^2.11.15",
