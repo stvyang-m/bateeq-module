@@ -11,9 +11,11 @@ inventoryMap.set("efr-kb-rtf", require('./src/managers/inventory/efr-kb-rtf-mana
 inventoryMap.set("efr-kb-rtp", require('./src/managers/inventory/efr-kb-rtp-manager'));
 inventoryMap.set("efr-kb-rtd", require('./src/managers/inventory/efr-kb-rtd-manager'));
 inventoryMap.set("efr-kb-exb", require('./src/managers/inventory/efr-kb-exb-manager'));
+inventoryMap.set("efr-kb-exp", require('./src/managers/inventory/efr-kb-exp-manager'));
 inventoryMap.set("efr-kb-alt", require('./src/managers/inventory/efr-kb-alt-manager'));
 inventoryMap.set("efr-tb-act", require('./src/managers/inventory/efr-tb-act-manager'));
 inventoryMap.set("efr-tb-bat", require('./src/managers/inventory/efr-tb-bat-manager'));
+inventoryMap.set("efr-tb-bbp", require('./src/managers/inventory/efr-tb-bbp-manager'));
 inventoryMap.set("efr-tb-bbt", require('./src/managers/inventory/efr-tb-bbt-manager'));
 inventoryMap.set("efr-tb-bjb", require('./src/managers/inventory/efr-tb-bjb-manager'));
 inventoryMap.set("efr-tb-bjr", require('./src/managers/inventory/efr-tb-bjr-manager'));
@@ -40,7 +42,7 @@ module.exports = {
         InventoryManager: inventoryMap.get("inventory"),
         InventoryMovementManager: inventoryMap.get("inventory-movement"),
         FinishedGoodsManager: inventoryMap.get("efr-hp-fng"),
-        ExpeditionsManager: inventoryMap.get("efr-kb-exb"),
+        ExpeditionsManager: inventoryMap.get("efr-kb-exp"),
         AlterationOutManager: inventoryMap.get("efr-kb-alt"),
         AlterationInManager: inventoryMap.get("efr-tb-alt"),
         TokoTransferStokManager: inventoryMap.get("efr-kb-rtt"),
@@ -51,6 +53,7 @@ module.exports = {
         FinishingTerimaAksesorisManager: inventoryMap.get("efr-tb-acc"),
         TokoTerimaAksesorisManager: inventoryMap.get("efr-tb-bat"),
         TokoTerimaBarangBaruManager: inventoryMap.get("efr-tb-bbt"),
+        PusatTerimaBarangBaruManager: inventoryMap.get("efr-tb-bbp"),
         PusatBarangBaruTerimaBarangBaruManager: inventoryMap.get("efr-tb-bjb"),
         FinishingTerimaBarangReturManager: inventoryMap.get("efr-tb-bjr"),
         PusatReturTokoTerimaBarangReturSelesaiPerbaikanManager: inventoryMap.get("efr-tb-brd"),
@@ -79,7 +82,8 @@ module.exports = {
         article: {
             ArticleMotifManager: require('./src/managers/master/article/article-motif-manager'),
             ArticleColorManager: require('./src/managers/master/article/article-color-manager')
-        }
+        },
+        ExpeditionServiceManager: require('./src/managers/master/expedition-service-manager')
     },
     sales: {
         SalesManager: require('./src/managers/sales/sales-manager'),
