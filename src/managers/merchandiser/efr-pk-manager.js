@@ -306,7 +306,7 @@ module.exports = class SPKBarangManager extends BaseManager {
     getByReference(ref) {
         return new Promise((resolve, reject) => {
             var query = {
-                packingList: ref,
+                reference: ref,
                 _deleted: false
             };
             this.SPKDocCollection.singleOrDefault(query)

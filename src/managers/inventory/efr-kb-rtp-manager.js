@@ -11,13 +11,18 @@ var map = BateeqModels.map;
 var BaseManager = require('module-toolkit').BaseManager;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
+var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc;
+var SPKDoc = BateeqModels.merchandiser.SPK;
 
 var moduleId = "EFR-KB/RTP";
+const modulePackingList = "EFR-KB/PLR";
 
 module.exports = class TokoKirimBarangReturnManager extends BaseManager {
     constructor(db, user) {
-        super(db,user);
+        super(db, user);
         this.collection = this.db.use(map.inventory.TransferOutDoc);
+        this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
+        this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);
         var StorageManager = require('../master/storage-manager');
         this.storageManager = new StorageManager(db, user);
 
@@ -35,8 +40,8 @@ module.exports = class TokoKirimBarangReturnManager extends BaseManager {
 
         var SPKBarangManager = require('../merchandiser/efr-pk-manager');
         this.spkBarangManager = new SPKBarangManager(db, user);
-    } 
-    
+    }
+
     _getQuery(paging) {
         var deletedFilter = {
             _deleted: false
@@ -57,16 +62,67 @@ module.exports = class TokoKirimBarangReturnManager extends BaseManager {
         }
         query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
         return query;
-    } 
+    }
 
     create(transferOutDoc) {
         return new Promise((resolve, reject) => {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
+                    var date = new Date();
                     validTransferOutDoc.code = generateCode(moduleId);
                     this.transferOutDocManager.create(validTransferOutDoc)
                         .then(id => {
-                            resolve(id);
+                            var spkDoc = {};
+                            var validspkDoc;
+                            var PlSPK;
+                            spkDoc.code = generateCode("EFR-PK/PBJ");
+                            spkDoc.source = validTransferOutDoc.source;
+                            spkDoc.sourceId = validTransferOutDoc.source._id;
+                            spkDoc.destination = validTransferOutDoc.destination;
+                            spkDoc.destinationId = validTransferOutDoc.destination._id;
+                            spkDoc.items = validTransferOutDoc.items;
+                            spkDoc.packingList = generateCode(modulePackingList);
+                            PlSPK = spkDoc.packingList;
+                            spkDoc.isDraft = false;
+                            spkDoc.isReceived = false;
+                            spkDoc.reference = validTransferOutDoc.code;
+                            var password = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
+                            spkDoc.password = password;
+                            validspkDoc = spkDoc;
+                            validspkDoc._createdDate = date;
+                            validspkDoc = new SPKDoc(validspkDoc);
+                            validspkDoc.stamp(this.user.username, 'manager');
+                            this.SPKDocCollection.insert(validspkDoc)
+                                .then(spkId => {
+                                    this.spkBarangManager.getSingleById(spkId)
+                                        .then(spkResult => {
+                                            var ekspedisiDoc = {};
+                                            var eksCode;
+                                            var validEkspedisiDoc;
+                                            ekspedisiDoc.code = generateCode("EFR-KB/EXP");
+                                            eksCode = ekspedisiDoc.code;
+                                            ekspedisiDoc.expedition = transferOutDoc.expedition;
+                                            validEkspedisiDoc = ekspedisiDoc;
+                                            validEkspedisiDoc = new ExpeditionDoc(validEkspedisiDoc);
+                                            validEkspedisiDoc.weight = 1;
+                                            validEkspedisiDoc.spkDocuments.push(spkResult);
+                                            validEkspedisiDoc._createdDate = date;
+                                            validEkspedisiDoc.stamp(this.user.username, 'manager');
+                                            this.expeditionDocCollection.insert(validEkspedisiDoc)
+                                                .then(expId => {
+                                                    resolve(id);
+                                                })
+                                                .catch(e => {
+                                                    reject(e);
+                                                })
+                                        })
+                                        .catch(e => {
+                                            reject(e);
+                                        })
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                })
                         })
                         .catch(e => {
                             reject(e);
@@ -116,7 +172,7 @@ module.exports = class TokoKirimBarangReturnManager extends BaseManager {
         });
     }
 
-   _validate(transferOutDoc) {
+    _validate(transferOutDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
             var valid = transferOutDoc;
