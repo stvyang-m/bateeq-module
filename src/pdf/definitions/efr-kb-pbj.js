@@ -7,15 +7,15 @@ module.exports = function (spkDocs) {
     var moment = require('moment');
     moment.locale(locale.name);
 
-    var header = { text: "BON PENGELUARAN BARANG", style: ['size20', 'bold', 'headerMargin', {}], alignment: 'center' };
+    var header = { text: "BON PACKING LIST", style: ['size20', 'bold', 'headerMargin', {}], alignment: 'center' };
 
     var table1 = [
-        {
-            columns: [
-                { width: '30%', text: "No Bon", style: ['size12', 'bold'], alignment: 'left' },
-                { width: '70%', text: spkDocs.code, style: ['size12'], alignment: 'left' }
-            ]
-        },
+        // {
+        //     columns: [
+        //         { width: '30%', text: "No Bon", style: ['size12', 'bold'], alignment: 'left' },
+        //         { width: '70%', text: spkDocs.code, style: ['size12'], alignment: 'left' }
+        //     ]
+        // },
         {
             columns: [
                 { width: '30%', text: "No Packing List", style: ['size12', 'bold'], alignment: 'left' },
@@ -40,13 +40,13 @@ module.exports = function (spkDocs) {
         {
             columns: [
                 { width: '40%', text: "Dari", style: ['size12', 'bold'] },
-                { width: '80%', text: spkDocs.source.code + "-" + spkDocs.source.name, style: ['size12'] }
+                { width: '80%', text: spkDocs.source.name, style: ['size12'] }
             ]
         },
         {
             columns: [
                 { width: '40%', text: "Tujuan", style: ['size12', 'bold'] },
-                { width: '80%', text: spkDocs.destination.code + "-" + spkDocs.destination.name, style: ['size12'] }
+                { width: '80%', text: spkDocs.destination.name, style: ['size12'] }
             ]
         },
         {
@@ -104,17 +104,24 @@ module.exports = function (spkDocs) {
         { text: "Produk", style: 'tableHeader' },
         { text: "Nama Produk", style: 'tableHeader' },
         { text: "Kuantitas", style: 'tableHeader' }
+        ,
+        { text: "Harga", style: 'tableHeader' }
     ]
 
     var index = 1;
     var total = 0;
+    var totalHarga = 0;
     var tbody = spkDocs.items.map(item => {
+        var harga = 0;
         total += parseInt(item.quantity);
+        harga = parseInt(item.quantity) * parseInt(item.item.domesticSale);
+        totalHarga += harga;
         return [
             { text: index++, alignment: 'center' },
             { text: item.item.code, alignment: 'center' },
             { text: item.item.name || 0, alignment: 'center' },
-            { text: item.quantity || 0, alignment: 'center' }
+            { text: item.quantity || 0, alignment: 'center' },
+            { text: harga.toLocaleString() || 0, alignment: 'right' }
         ]
     });
 
@@ -125,7 +132,7 @@ module.exports = function (spkDocs) {
     var data2 = {
         table: {
             headerRows: 1,
-            widths: ['15%', '35%', '25%', '25%'],
+            widths: ['10%', '20%', '25%', '25%', '20%'],
             body: [].concat([thead], tbody)
         },
         style: ['marginTop20']
@@ -134,10 +141,11 @@ module.exports = function (spkDocs) {
     var data3 = {
         table: {
             headerRows: 0,
-            widths: ['75%', '25%'],
+            widths: ['56%', '25%', '19%'],
             body: [
                 [{ text: 'Total', style: ['bold', 'size12'], alignment: 'center' },
-                { text: total, style: ['bold', 'size12'], alignment: 'center' }]
+                { text: total, style: ['bold', 'size12'], alignment: 'center' },
+                { text: totalHarga.toLocaleString(), style: ['bold', 'size12'], alignment: 'right' }]
             ]
         },
         style: ['marginTop20']
