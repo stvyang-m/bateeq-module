@@ -31,8 +31,7 @@ describe('#bateeq-module', function (done) {
     test('@manager/transfer-in-doc-ext-manager', './managers/transfer-in-doc-ext-manager-test');
     test('@manager/efr-tb-bjr-manager', './managers/efr-tb-bjr-manager-test');
     test('@manager/efr-tb-brd-manager', './managers/efr-tb-brd-manager-test');
-    test('@manager/efr-tb-brt-manager', './managers/efr-tb-brt-manager-test');
-    test('@manager/efr-hp-fng-manager', './managers/efr-hp-fng-manager-test');
+    test('@manager/efr-tb-brt-manager', './managers/efr-tb-brt-manager-test'); 
     test('@manager/sales-manager', './managers/sales-manager-test');
     test('@manager/sales-return-manager', './managers/sales-return-manager-test');
 
