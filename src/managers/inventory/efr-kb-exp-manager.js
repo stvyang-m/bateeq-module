@@ -156,6 +156,51 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         })
     }
 
+    getByPackingList(packingList) {
+        var query = { "spkDocuments.packingList": packingList };
+        return new Promise((resolve, reject) => {
+            this.expeditionDocCollection
+                .where(query)
+                .execute()
+                .then(expeditionDocs => {
+                    resolve(expeditionDocs);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+
+    updateReceivedByPackingList(packingList) {
+        return new Promise((resolve, reject) => {
+            this.getByPackingList(packingList)
+                .then(results => {
+                    if (results.data.length > 0) {
+                        var expedition = results.data[0];
+                        for (var spkDoc of expedition.spkDocuments) {
+                            if (spkDoc.packingList == packingList) {
+                                spkDoc.isReceived = true;
+                            }
+                        }
+                        expedition._updatedDate = new Date();
+                        expedition._updatedBy = this.user.username;
+                        this.expeditionDocCollection.update(expedition).then(id => {
+                            resolve(id);
+                        })
+                            .catch(e => {
+                                reject(e);
+                            });
+                    } else {
+                        resolve();
+                    }
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+
     create(expeditionDoc) {
         return new Promise((resolve, reject) => {
             //Validate Input Model
