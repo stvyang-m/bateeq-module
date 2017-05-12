@@ -38,6 +38,9 @@ module.exports = class PusatTerimaBarangBaruManager extends BaseManager {
 
         var SPKManager = require('../merchandiser/efr-pk-manager');
         this.spkManager = new SPKManager(db, user);
+
+        var ExpeditionManager = require('./efr-kb-exp-manager');
+        this.expeditionManager = new ExpeditionManager(db, user);
     }
 
     readPendingSPK(paging) {
@@ -233,7 +236,10 @@ module.exports = class PusatTerimaBarangBaruManager extends BaseManager {
                     this.transferInDocManager.create(validTransferInDoc)
                         .then(id => {
                             var reference = transferInDoc.reference;
-                            this.spkManager.updateReceivedByRef(reference)
+                            var updateSPK = this.spkManager.updateReceivedByPackingList(reference);
+                            var updateExpedition = this.expeditionManager.updateReceivedByPackingList(reference);
+
+                            Promise.all([updateSPK, updateExpedition]).then
                                 .then(result => {
                                     resolve(id);
                                 }).catch(e => {
@@ -290,7 +296,7 @@ module.exports = class PusatTerimaBarangBaruManager extends BaseManager {
     _validate(transferInDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            this.spkManager.getByReference(transferInDoc.reference).
+            this.spkManager.getByPL(transferInDoc.reference).
                 then(spkDoc => {
                     if (spkDoc) {
                         if (transferInDoc.password != spkDoc.password) {

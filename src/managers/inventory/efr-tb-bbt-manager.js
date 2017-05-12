@@ -38,6 +38,9 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
 
         var SPKManager = require('../merchandiser/efr-pk-manager');
         this.spkManager = new SPKManager(db, user);
+
+        var ExpeditionManager = require('./efr-kb-exp-manager');
+        this.expeditionManager = new ExpeditionManager(db, user);
     }
 
     readPendingSPK(paging) {
@@ -233,7 +236,10 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                     this.transferInDocManager.create(validTransferInDoc)
                         .then(id => {
                             var reference = transferInDoc.reference;
-                            this.spkManager.updateReceivedByRef(reference)
+                            var updateSPK = this.spkManager.updateReceivedByPackingList(reference);
+                            var updateExpedition = this.expeditionManager.updateReceivedByPackingList(reference);
+
+                            Promise.all([updateSPK, updateExpedition]).then
                                 .then(result => {
                                     resolve(id);
                                 }).catch(e => {
@@ -290,9 +296,17 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
     _validate(transferInDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            this.spkManager.getByReference(transferInDoc.reference).
-                then(spkDoc => {
+            var getSpk = this.spkManager.getByPL(transferInDoc.reference);
+            var getExpedition = this.expeditionManager.getByPackingList(transferInDoc.reference);
+
+            Promise.all([getSpk, getExpedition]).
+                then(results => {
+                    var spkDoc = results[0];
+                    var expeditionDoc = results[1];
                     if (spkDoc) {
+                        if (expeditionDoc.data.length == 0) {
+                            errors["reference"] = "this reference does not have expedition";
+                        }
                         if (transferInDoc.password != spkDoc.password) {
                             errors["password"] = "invalid password";
                         }
