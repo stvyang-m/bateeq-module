@@ -408,8 +408,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                     for (var item of spkDocument.items) {
                                                         var itemError = {};
                                                         var quantityStock = inventory.find(x => x.itemId == item.itemId && x.storageId == spkDocument.sourceId);
-                                                        if (item.quantitySend > quantityStock.quantity) {
-                                                            itemError["quantitySend"] = "stok tidak tersedia";
+                                                        if (item.sendQuantity > quantityStock.quantity) {
+                                                            itemError["sendQuantity"] = "stok tidak tersedia";
                                                         }
                                                         if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
                                                             itemError["quantity"] = "kuantitas harus diisi";
@@ -417,20 +417,19 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                         else if (parseInt(item.quantity) <= 0) {
                                                             itemError["quantity"] = "kuantitas harus lebih besar dari 0";
                                                         }
-                                                        if (item.quantitySend == undefined || (item.quantitySend && item.quantitySend == '')) {
-                                                            itemError["quantitySend"] = "kuantitas pengiriman harus diisi";
+                                                        if (item.sendQuantity == undefined || (item.sendQuantity && item.sendQuantity == '')) {
+                                                            itemError["sendQuantity"] = "kuantitas pengiriman harus diisi";
                                                         }
-                                                        else if (parseInt(item.quantitySend) <= 0) {
-                                                            itemError["quantitySend"] = "kuantitas pengiriman harus lebih besar dari 0";
+                                                        else if (parseInt(item.sendQuantity) <= 0) {
+                                                            itemError["sendQuantity"] = "kuantitas pengiriman harus lebih besar dari 0";
                                                         }
 
-                                                        if (item.quantitySend > item.quantity) {
-                                                            itemError["quantitySend"] = "kuantitas pengiriman tidak boleh lebih besar dari kuantitas packing list";
+                                                        if (item.sendQuantity > item.quantity) {
+                                                            itemError["sendQuantity"] = "kuantitas pengiriman tidak boleh lebih besar dari kuantitas packing list";
                                                         }
-                                                        if (item.quantitySend != item.quantity && (!item.remark || item.remark == '')) {
+                                                        if (item.sendQuantity != item.quantity && (!item.remark || item.remark == '')) {
                                                             itemError["remark"] = "catatan harus diisi";
                                                         }
-                                                        item.quantity = item.quantitySend;
 
                                                         itemErrors.push(itemError);
                                                     }
