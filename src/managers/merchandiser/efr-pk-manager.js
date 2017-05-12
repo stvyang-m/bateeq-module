@@ -422,6 +422,24 @@ module.exports = class SPKBarangManager extends BaseManager {
         });
     }
 
+    updateReceivedByPackingList(packingList) {
+        return new Promise((resolve, reject) => {
+            this.getByPL(packingList)
+                .then(spkDoc => {
+                    spkDoc.isReceived = true;
+                    this.SPKDocCollection.update(spkDoc).then(id => {
+                        resolve(id);
+                    })
+                        .catch(e => {
+                            reject(e);
+                        });
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
     delete(spkDoc) {
         return new Promise((resolve, reject) => {
             resolve(spkDoc);
