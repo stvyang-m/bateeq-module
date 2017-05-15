@@ -325,6 +325,33 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         });
     }
 
+    getReport(filter) {
+        var transaksi = "";
+        if (filter.transaction == 0) {
+            transaksi = new RegExp("^[A-Z0-9]+\/EFR-KB/PLB\/[0-9]{2}\/[0-9]{4}$", "i");
+        } else if (filter.transaction == 1) {
+            transaksi = new RegExp("^[A-Z0-9]+\/EFR-KB/PLR\/[0-9]{2}\/[0-9]{4}$", "i");
+        }
+
+        var query = {
+            "date": {
+                "$gt": filter.dateFrom,
+                "$lt": filter.dateTo
+            },
+            // "spkDocuments.packingList": transaksi,
+            "spkDocuments.destinationId": ObjectId(filter.storageId),
+            // "spkDocuments.isReceived": filter.packingListStatus
+        }
+        return new Promise((resolve, reject) => {
+            this.expeditionDocCollection.where(query)
+                .order({ date: 1 }).execute()
+                .then(expeditionDocs => {
+                    resolve(expeditionDocs)
+                })
+                .catch(err => { reject(err) });
+        })
+    }
+
     _validate(expeditionDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
