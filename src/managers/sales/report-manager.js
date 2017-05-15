@@ -37,6 +37,19 @@ module.exports = class ReportManager extends BaseManager {
                 }
             }, {
                 "$unwind": "$items"
+            }, {
+                "$lookup":
+                {
+                    from: "migration-excluded-items",
+                    localField: "items.item.code",
+                    foreignField: "code",
+                    as: "embalase"
+                }
+            },
+            {
+                "$match": {
+                    "embalase": { $eq: [] }
+                }
             },
             {
                 "$group": {
@@ -78,6 +91,19 @@ module.exports = class ReportManager extends BaseManager {
                     }
                 }, {
                     "$unwind": "$items"
+                }, {
+                    "$lookup":
+                    {
+                        from: "migration-excluded-items",
+                        localField: "items.item.code",
+                        foreignField: "code",
+                        as: "embalase"
+                    }
+                },
+                {
+                    "$match": {
+                        "embalase": { $eq: [] }
+                    }
                 },
                 {
                     "$group": {
@@ -128,6 +154,19 @@ module.exports = class ReportManager extends BaseManager {
                         localField: "items.item._id",
                         foreignField: "_id",
                         as: "masterItem"
+                    }
+                }, {
+                    "$lookup":
+                    {
+                        from: "migration-excluded-items",
+                        localField: "items.item.code",
+                        foreignField: "code",
+                        as: "embalase"
+                    }
+                },
+                {
+                    "$match": {
+                        "embalase": { $eq: [] }
                     }
                 }
                 , {
@@ -187,6 +226,19 @@ module.exports = class ReportManager extends BaseManager {
                         foreignField: "_id",
                         as: "masterItem"
                     }
+                }, {
+                    "$lookup":
+                    {
+                        from: "migration-excluded-items",
+                        localField: "items.item.code",
+                        foreignField: "code",
+                        as: "embalase"
+                    }
+                },
+                {
+                    "$match": {
+                        "embalase": { $eq: [] }
+                    }
                 }
                 , {
                     "$group": {
@@ -209,7 +261,7 @@ module.exports = class ReportManager extends BaseManager {
             ];
         return this.collection.aggregate(aggregate);
     }
-    
+
     productsReportByProductID(dateFrom, dateTo, productId) {
         var aggregate =
             [
@@ -252,7 +304,7 @@ module.exports = class ReportManager extends BaseManager {
                     "$group": {
                         _id: { "code": "$store._id" },
                         quantity: { "$sum": "$items.quantity" },
-                        store : {"$first" : "$store"},
+                        store: { "$first": "$store" },
                         masterItem: { "$first": "$masterItem" },
                         stores: {
                             "$push": {
