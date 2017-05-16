@@ -53,7 +53,8 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
 
         return new Promise((resolve, reject) => {
             var deleted = {
-                _deleted: false
+                _deleted: false,
+                isDraft: false
             }, keywordFilter = {};
 
             var regex = new RegExp("EFR\-PK/\PBJ|EFR\-PK/\PBR", "i");
@@ -200,7 +201,8 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false,
-                isReceived: false
+                isReceived: false,
+                isDraft: false
             };
             this.spkDocCollection.singleOrDefault(query)
                 .then(SPKDoc => {
