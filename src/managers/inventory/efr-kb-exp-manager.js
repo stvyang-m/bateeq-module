@@ -9,6 +9,7 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
+var BaseManager = require('module-toolkit').BaseManager;
 var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
@@ -16,9 +17,9 @@ var SPK = BateeqModels.merchandiser.SPK;
 var generateCode = require('../../utils/code-generator');
 
 const moduleId = "EFR-KB/EXP";
-module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
+module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
+        super(db, user);
         this.user = user;
         this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);
 
@@ -222,7 +223,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                 for (var item of spkDoc.items) {
                                     var newitem = {};
                                     newitem.itemId = item.itemId;
-                                    newitem.quantity = item.quantity;
+                                    newitem.quantity = item.sendQuantity;
                                     validTransferOutDoc.items.push(newitem);
                                 }
                                 return outManager.create(validTransferOutDoc)
@@ -273,9 +274,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                             //Create Promise Update SPK Data
                                                             var getUpdateSPKData = [];
                                                             for (var resultSPK of resultSPKs) {
-                                                                resultSPK.expeditionDocumentId = resultExpeditionId;
-                                                                resultSPK.expeditionDocument = resultExpedition;
-                                                                resultSPK = new SPK(resultSPK);
+                                                                var spk = validExpeditionDoc.spkDocuments.find(x => x.packingList == resultSPK.packingList);
+                                                                if (spk) {
+                                                                    resultSPK.items = spk.items;
+                                                                }
                                                                 getUpdateSPKData.push(this.spkManager.update(resultSPK));
                                                             }
                                                             //Update SPK Data
@@ -347,7 +349,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                 }]
             }
         }
-        
+
         return new Promise((resolve, reject) => {
             this.expeditionDocCollection.where(query)
                 .order({ date: 1 }).execute()

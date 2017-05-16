@@ -81,6 +81,9 @@ module.exports = class ReturnKeUnitManager extends BaseManager {
                             spkDoc.destination = validTransferOutDoc.destination;
                             spkDoc.destinationId = validTransferOutDoc.destination._id;
                             spkDoc.items = validTransferOutDoc.items;
+                            for (var item of spkDoc.items) {
+                                item.sendQuantity = parseInt(item.quantity || 0);
+                            }
                             spkDoc.packingList = generateCode(modulePackingList);
                             PlSPK = spkDoc.packingList;
                             spkDoc.isDraft = false;
@@ -105,6 +108,9 @@ module.exports = class ReturnKeUnitManager extends BaseManager {
                                             validEkspedisiDoc = ekspedisiDoc;
                                             validEkspedisiDoc = new ExpeditionDoc(validEkspedisiDoc);
                                             validEkspedisiDoc.weight = 1;
+                                            for(var item of spkResult.items){
+                                                item.sendQuantity = item.quantity || 0;
+                                            }
                                             validEkspedisiDoc.spkDocuments.push(spkResult);
                                             validEkspedisiDoc._createdDate = date;
                                             validEkspedisiDoc.stamp(this.user.username, 'manager');

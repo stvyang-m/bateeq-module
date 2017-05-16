@@ -42,6 +42,9 @@ module.exports = class TokoTransferStokManager extends BaseManager {
         var ModuleManager = require('../master/module-manager');
         this.moduleManager = new ModuleManager(db, user);
 
+        var ExpeditionServiceManager = require('../master/expedition-service-manager');
+        this.expeditionServiceManager = new ExpeditionServiceManager(db, user);
+
         var TransferInDocManager = require('./transfer-in-doc-manager');
         this.transferInDocManager = new TransferInDocManager(db, user);
 
@@ -107,139 +110,152 @@ module.exports = class TokoTransferStokManager extends BaseManager {
             this._validate(transferOutDoc)
                 .then(validTransferOutDoc => {
                     validTransferOutDoc.code = generateCode(moduleId);
-                    this.storageManager.getByCode("GDG.01")
-                        .then(storage => {
-                            var transferOutDoc1 = {};
-                            transferOutDoc1.code = generateCode("EFR-KB/RTT");
-                            transferOutDoc1.destination = validTransferOutDoc.destination;
-                            transferOutDoc1.destinationId = validTransferOutDoc.destinationId;
-                            transferOutDoc1.items = validTransferOutDoc.items;
-                            transferOutDoc1.reference = validTransferOutDoc.reference;
-                            transferOutDoc1.source = validTransferOutDoc.source;
-                            transferOutDoc1.sourceId = validTransferOutDoc.source._id;
-                            this.transferOutDocManager.create(transferOutDoc1)
-                                .then(id => {
-                                    this.getSingleById(id)
-                                        .then(rtt => {
-                                            var spkDocGdg = {};
-                                            var validspkDocGdg;
-                                            var packingList1;
-                                            spkDocGdg.code = generateCode("EFR-PK/PBJ");
-                                            spkDocGdg.source = validTransferOutDoc.source;
-                                            spkDocGdg.sourceId = validTransferOutDoc.source._id;
-                                            spkDocGdg.destination = storage[0];
-                                            spkDocGdg.destinationId = storage[0]._id;
-                                            spkDocGdg.items = validTransferOutDoc.items;
-                                            spkDocGdg.packingList = generateCode(modulePackingList);
-                                            packingList1 = spkDocGdg.packingList;
-                                            spkDocGdg.isDraft = false;
-                                            spkDocGdg.isReceived = true;
-                                            spkDocGdg.reference = rtt.code;
-                                            var date = new Date();
-                                            var passwordGdg = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
-                                            spkDocGdg.password = passwordGdg;
-                                            validspkDocGdg = spkDocGdg;
-                                            validspkDocGdg._createdDate = date;
-                                            validspkDocGdg = new SPKDoc(validspkDocGdg);
-                                            validspkDocGdg.stamp(this.user.profile.firstname, 'manager');
+                    var getData = [];
+                    getData.push(this.storageManager.getByCode("GDG.01"));
+                    getData.push(this.expeditionServiceManager.getSingleByQuery({
+                        "code": "Dikirim Sendiri"
+                    }));
 
-                                            var transferinDoc = {};
-                                            transferinDoc.code = generateCode("EFR-TB/BRT");
-                                            transferinDoc.source = validTransferOutDoc.source;
-                                            transferinDoc.sourceId = validTransferOutDoc.source._id;
-                                            transferinDoc.destination = storage[0];
-                                            transferinDoc.destinationId = storage[0]._id;;
-                                            transferinDoc.items = validTransferOutDoc.items;
-                                            transferinDoc.reference = packingList1;
+                    Promise.all(getData).then(results => {
+                        var storage = results[0];
+                        var expedition = results[1];
+                        var transferOutDoc1 = {};
+                        transferOutDoc1.code = generateCode("EFR-KB/RTT");
+                        transferOutDoc1.destination = validTransferOutDoc.destination;
+                        transferOutDoc1.destinationId = validTransferOutDoc.destinationId;
+                        transferOutDoc1.items = validTransferOutDoc.items;
+                        transferOutDoc1.reference = validTransferOutDoc.reference;
+                        transferOutDoc1.source = validTransferOutDoc.source;
+                        transferOutDoc1.sourceId = validTransferOutDoc.source._id;
+                        this.transferOutDocManager.create(transferOutDoc1)
+                            .then(id => {
+                                this.getSingleById(id)
+                                    .then(rtt => {
+                                        var spkDocGdg = {};
+                                        var validspkDocGdg;
+                                        var packingList1;
+                                        spkDocGdg.code = generateCode("EFR-PK/PBJ");
+                                        spkDocGdg.source = validTransferOutDoc.source;
+                                        spkDocGdg.sourceId = validTransferOutDoc.source._id;
+                                        spkDocGdg.destination = storage[0];
+                                        spkDocGdg.destinationId = storage[0]._id;
+                                        spkDocGdg.items = validTransferOutDoc.items;
+                                        for (var item of spkDocGdg.items) {
+                                            item.sendQuantity = parseInt(item.quantity || 0);
+                                        }
+                                        spkDocGdg.packingList = generateCode(modulePackingList);
+                                        packingList1 = spkDocGdg.packingList;
+                                        spkDocGdg.isDraft = false;
+                                        spkDocGdg.isReceived = true;
+                                        spkDocGdg.reference = rtt.code;
+                                        var date = new Date();
+                                        var passwordGdg = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
+                                        spkDocGdg.password = passwordGdg;
+                                        validspkDocGdg = spkDocGdg;
+                                        validspkDocGdg._createdDate = date;
+                                        validspkDocGdg = new SPKDoc(validspkDocGdg);
+                                        validspkDocGdg.stamp(this.user.profile.firstname, 'manager');
 
-                                            var PlSPK;
-                                            var spkDoc = {};
-                                            var validspkDoc;
-                                            spkDoc.code = generateCode("EFR-PK/PBJ");
-                                            spkDoc.source = storage[0];
-                                            spkDoc.sourceId = storage[0]._id;
-                                            spkDoc.destination = validTransferOutDoc.destination;
-                                            spkDoc.destinationId = validTransferOutDoc.destination._id;
-                                            spkDoc.items = validTransferOutDoc.items;
-                                            spkDoc.packingList = generateCode(modulePackingList);
-                                            PlSPK = spkDoc.packingList;
-                                            spkDoc.isDraft = false;
-                                            spkDoc.isReceived = false;
-                                            spkDoc.reference = rtt.code;
-                                            var password = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
-                                            spkDoc.password = password;
-                                            validspkDoc = spkDoc;
-                                            validspkDoc._createdDate = date;
-                                            validspkDoc = new SPKDoc(validspkDoc);
-                                            validspkDoc.stamp(this.user.username, 'manager');
+                                        var transferinDoc = {};
+                                        transferinDoc.code = generateCode("EFR-TB/BRT");
+                                        transferinDoc.source = validTransferOutDoc.source;
+                                        transferinDoc.sourceId = validTransferOutDoc.source._id;
+                                        transferinDoc.destination = storage[0];
+                                        transferinDoc.destinationId = storage[0]._id;;
+                                        transferinDoc.items = validTransferOutDoc.items;
+                                        transferinDoc.reference = packingList1;
 
-                                            var spk2;
-                                            var transferStok = [];
-                                            transferStok.push(this.SPKDocCollection.insert(validspkDocGdg))
-                                            transferStok.push(this.transferInDocManager.create(transferinDoc));
-                                            Promise.all(transferStok)
-                                                .then(id => {
-                                                    this.SPKDocCollection.insert(validspkDoc)
-                                                        .then(idSPK2 => {
-                                                            this.spkManager.getSingleById(idSPK2)
-                                                                .then(spk => {
-                                                                    spk2 = {};
-                                                                    spk2 = spk;
-                                                                    var ekspedisiDoc = {};
-                                                                    var eksCode;
-                                                                    var validEkspedisiDoc;
-                                                                    ekspedisiDoc.code = generateCode("EFR-KB/EXP");
-                                                                    eksCode = ekspedisiDoc.code;
-                                                                    ekspedisiDoc.expedition = "Dikirim Sendiri";
-                                                                    validEkspedisiDoc = ekspedisiDoc;
-                                                                    validEkspedisiDoc = new ExpeditionDoc(validEkspedisiDoc);
-                                                                    validEkspedisiDoc.weight = 1;
-                                                                    validEkspedisiDoc.spkDocuments.push(spk2);
-                                                                    validEkspedisiDoc._createdDate = date;
-                                                                    validEkspedisiDoc.stamp(this.user.username, 'manager');
+                                        var PlSPK;
+                                        var spkDoc = {};
+                                        var validspkDoc;
+                                        spkDoc.code = generateCode("EFR-PK/PBJ");
+                                        spkDoc.source = storage[0];
+                                        spkDoc.sourceId = storage[0]._id;
+                                        spkDoc.destination = validTransferOutDoc.destination;
+                                        spkDoc.destinationId = validTransferOutDoc.destination._id;
+                                        spkDoc.items = validTransferOutDoc.items;
+                                        for (var item of spkDoc.items) {
+                                            item.sendQuantity = parseInt(item.quantity || 0);
+                                        }
+                                        spkDoc.packingList = generateCode(modulePackingList);
+                                        PlSPK = spkDoc.packingList;
+                                        spkDoc.isDraft = false;
+                                        spkDoc.isReceived = false;
+                                        spkDoc.reference = rtt.code;
+                                        var password = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
+                                        spkDoc.password = password;
+                                        validspkDoc = spkDoc;
+                                        validspkDoc._createdDate = date;
+                                        validspkDoc = new SPKDoc(validspkDoc);
+                                        validspkDoc.stamp(this.user.username, 'manager');
 
-                                                                    var transferOutDoc = {};
-                                                                    transferOutDoc.code = eksCode;
-                                                                    transferOutDoc.destination = validTransferOutDoc.destination;
-                                                                    transferOutDoc.destinationId = validTransferOutDoc.destinationId;
-                                                                    transferOutDoc.items = validTransferOutDoc.items;
-                                                                    transferOutDoc.reference = PlSPK;
-                                                                    transferOutDoc.source = storage[0];
-                                                                    transferOutDoc.sourceId = storage[0]._id;
-                                                                    this.expeditionDocCollection.insert(validEkspedisiDoc)
-                                                                        .then(id => {
-                                                                            this.transferOutDocManager.create(transferOutDoc)
-                                                                                .then(id => {
-                                                                                    resolve(id);
-                                                                                })
-                                                                                .catch(e => {
-                                                                                    reject(e);
-                                                                                })
-                                                                        })
-                                                                        .catch(e => {
-                                                                            reject(e);
-                                                                        })
-                                                                })
-                                                                .catch(e => {
-                                                                    reject(e);
-                                                                })
-                                                        })
-                                                        .catch(e => {
-                                                            reject(e);
-                                                        })
-                                                })
-                                                .catch(e => {
-                                                    reject(e);
-                                                })
-                                        })
-                                        .catch(e => {
-                                            reject(e);
-                                        })
-                                })
-                                .catch(e => {
-                                    reject(e);
-                                })
-                        })
+                                        var spk2;
+                                        var transferStok = [];
+                                        transferStok.push(this.SPKDocCollection.insert(validspkDocGdg))
+                                        transferStok.push(this.transferInDocManager.create(transferinDoc));
+                                        Promise.all(transferStok)
+                                            .then(id => {
+                                                this.SPKDocCollection.insert(validspkDoc)
+                                                    .then(idSPK2 => {
+                                                        this.spkManager.getSingleById(idSPK2)
+                                                            .then(spk => {
+                                                                spk2 = {};
+                                                                spk2 = spk;
+                                                                var ekspedisiDoc = {};
+                                                                var eksCode;
+                                                                var validEkspedisiDoc;
+                                                                ekspedisiDoc.code = generateCode("EFR-KB/EXP");
+                                                                eksCode = ekspedisiDoc.code;
+                                                                ekspedisiDoc.expedition = expedition;
+                                                                validEkspedisiDoc = ekspedisiDoc;
+                                                                validEkspedisiDoc = new ExpeditionDoc(validEkspedisiDoc);
+                                                                validEkspedisiDoc.weight = 1;
+                                                                validEkspedisiDoc.spkDocuments.push(spk2);
+                                                                validEkspedisiDoc._createdDate = date;
+                                                                validEkspedisiDoc.stamp(this.user.username, 'manager');
+
+                                                                var transferOutDoc = {};
+                                                                transferOutDoc.code = eksCode;
+                                                                transferOutDoc.destination = validTransferOutDoc.destination;
+                                                                transferOutDoc.destinationId = validTransferOutDoc.destinationId;
+                                                                transferOutDoc.items = validTransferOutDoc.items;
+                                                                transferOutDoc.reference = PlSPK;
+                                                                transferOutDoc.source = storage[0];
+                                                                transferOutDoc.sourceId = storage[0]._id;
+                                                                this.expeditionDocCollection.insert(validEkspedisiDoc)
+                                                                    .then(id => {
+                                                                        this.transferOutDocManager.create(transferOutDoc)
+                                                                            .then(id => {
+                                                                                resolve(id);
+                                                                            })
+                                                                            .catch(e => {
+                                                                                reject(e);
+                                                                            })
+                                                                    })
+                                                                    .catch(e => {
+                                                                        reject(e);
+                                                                    })
+                                                            })
+                                                            .catch(e => {
+                                                                reject(e);
+                                                            })
+                                                    })
+                                                    .catch(e => {
+                                                        reject(e);
+                                                    })
+                                            })
+                                            .catch(e => {
+                                                reject(e);
+                                            })
+                                    })
+                                    .catch(e => {
+                                        reject(e);
+                                    })
+                            })
+                            .catch(e => {
+                                reject(e);
+                            })
+                    })
                         .catch(e => {
                             reject(e);
                         })

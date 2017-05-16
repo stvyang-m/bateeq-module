@@ -331,10 +331,11 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                         var itemErrors = [];
                         for (var item of transferInDoc.items) {
                             var itemError = {};
-                            if (item.quantity < 0)
-                                itemError["quantity"] = "items should not less than 0 quantity";
+                            item.quantity = item.sendQuantity;
+                            if (item.sendQuantity < 0)
+                                itemError["sendQuantity"] = "items should not less than 0 quantity";
                             else
-                                if (item.quantity != spkDoc.items[index].quantity)
+                                if (item.sendQuantity != spkDoc.items[index].sendQuantity)
                                     if (item.remark == "")
                                         itemError["remark"] = "Masukkan no referensi berita acara";
                             index++;
