@@ -337,11 +337,17 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
             "date": {
                 "$gt": filter.dateFrom,
                 "$lt": filter.dateTo
-            },
-            // "spkDocuments.packingList": transaksi,
-            "spkDocuments.destinationId": ObjectId(filter.storageId),
-            // "spkDocuments.isReceived": filter.packingListStatus
+            }
         }
+
+        if (filter.storageId != "") {
+            query = {
+                '$and': [query, {
+                    "spkDocuments.destinationId": ObjectId(filter.storageId),
+                }]
+            }
+        }
+        
         return new Promise((resolve, reject) => {
             this.expeditionDocCollection.where(query)
                 .order({ date: 1 }).execute()
