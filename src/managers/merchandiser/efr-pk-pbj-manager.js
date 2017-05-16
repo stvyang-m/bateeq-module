@@ -409,6 +409,9 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                         inventoryQuantity = items[index].quantity;
                                     }
                                     index++;
+                                    if (parseInt(item.quantity) <= 0) {
+                                        itemError["quantity"] = "quantity must be greater than 0";
+                                    }
                                     if (item.quantity > inventoryQuantity) {
                                         itemError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
                                     }
