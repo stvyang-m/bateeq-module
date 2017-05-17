@@ -38,6 +38,9 @@ module.exports = class PusatTerimaBarangBaruManager extends BaseManager {
 
         var SPKManager = require('../merchandiser/efr-pk-manager');
         this.spkManager = new SPKManager(db, user);
+
+        var ExpeditionManager = require('./efr-kb-exp-manager');
+        this.expeditionManager = new ExpeditionManager(db, user);
     }
 
     readPendingSPK(paging) {
@@ -50,7 +53,8 @@ module.exports = class PusatTerimaBarangBaruManager extends BaseManager {
 
         return new Promise((resolve, reject) => {
             var deleted = {
-                _deleted: false
+                _deleted: false,
+                isDraft: false
             }, keywordFilter = {};
 
             var regex = new RegExp("EFR\-PK/\PBJ|EFR\-PK/\PBR", "i");
@@ -197,7 +201,8 @@ module.exports = class PusatTerimaBarangBaruManager extends BaseManager {
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false,
-                isReceived: false
+                isReceived: false,
+                isDraft: false
             };
             this.spkDocCollection.singleOrDefault(query)
                 .then(SPKDoc => {
@@ -233,7 +238,10 @@ module.exports = class PusatTerimaBarangBaruManager extends BaseManager {
                     this.transferInDocManager.create(validTransferInDoc)
                         .then(id => {
                             var reference = transferInDoc.reference;
-                            this.spkManager.updateReceivedByRef(reference)
+                            var updateSPK = this.spkManager.updateReceivedByPackingList(reference);
+                            var updateExpedition = this.expeditionManager.updateReceivedByPackingList(reference);
+
+                            Promise.all([updateSPK, updateExpedition]).then
                                 .then(result => {
                                     resolve(id);
                                 }).catch(e => {
@@ -290,7 +298,7 @@ module.exports = class PusatTerimaBarangBaruManager extends BaseManager {
     _validate(transferInDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            this.spkManager.getByReference(transferInDoc.reference).
+            this.spkManager.getByPL(transferInDoc.reference).
                 then(spkDoc => {
                     if (spkDoc) {
                         if (transferInDoc.password != spkDoc.password) {
@@ -315,10 +323,11 @@ module.exports = class PusatTerimaBarangBaruManager extends BaseManager {
                         var itemErrors = [];
                         for (var item of transferInDoc.items) {
                             var itemError = {};
-                            if (item.quantity < 0)
-                                itemError["quantity"] = "items should not less than 0 quantity";
+                            item.quantity = item.sendQuantity;
+                            if (item.sendQuantity < 0)
+                                itemError["sendQuantity"] = "items should not less than 0 quantity";
                             else
-                                if (item.quantity != spkDoc.items[index].quantity)
+                                if (item.sendQuantity != spkDoc.items[index].sendQuantity)
                                     if (item.remark == "")
                                         itemError["remark"] = "Masukkan no referensi berita acara";
                             index++;

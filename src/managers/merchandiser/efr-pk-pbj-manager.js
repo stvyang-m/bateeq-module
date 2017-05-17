@@ -74,6 +74,76 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
         return query;
     }
 
+    readNotReceived(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: '_id',
+            asc: true
+        }, paging);
+
+        return new Promise((resolve, reject) => {
+            var filter = paging.filter;
+            var query = _paging.keyword ? {
+                '$and': [filter]
+            } : filter;
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterPackingList = {
+                    'packingList': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterPackingList]
+                };
+
+                query['$and'].push($or);
+            }
+            this.collection
+                .where(query)
+                .page(_paging.page, _paging.size)
+                .order(_paging.order)
+                .execute()
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    pdf(id) {
+        return new Promise((resolve, reject) => {
+
+            this.getSingleById(id)
+                .then(docs => {
+                    var getDefinition = require('../../pdf/definitions/efr-kb-pbj');
+                    var definition = getDefinition(docs);
+
+                    var generatePdf = require('../../pdf/pdf-generator');
+                    generatePdf(definition)
+                        .then(binary => {
+                            resolve(binary);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+                })
+                .catch(e => {
+                    reject(e);
+                });
+
+        });
+    }
+
     getById(id) {
         return new Promise((resolve, reject) => {
             if (id === '')
@@ -139,7 +209,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
             this._validate(spkDoc)
                 .then(validSpkDoc => {
                     validSpkDoc.code = generateCode(moduleId);
-                    validSpkDoc.packingList = generateCode('EFR-KB/PBJ');
+                    validSpkDoc.packingList = generateCode('EFR-KB/PLB');
                     var date = new Date();
                     var password = (generateCode(("0" + date.getDate()).slice(-2))).split('/').join('');
                     validSpkDoc.password = password;
@@ -299,39 +369,22 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                             }
                         }
                     }
-                    var getDestination = this.storageManager.getSingleByIdOrDefault(valid.destinationId);
-                    var getSource = this.storageManager.getSingleByIdOrDefault(valid.sourceId);
-
                     var getItem = [];
 
                     if (valid.items && valid.items.length > 0) {
                         for (var item of valid.items) {
-                            getItem.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(valid.sourceId, item.articleVariantId))
+                            getItem.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(valid.sourceId, item.itemId))
                         }
                     }
                     else {
                         errors["items"] = "items is required";
                     }
-                    Promise.all([getSPKDoc, getDestination, getSource].concat(getItem))
+                    Promise.all([getSPKDoc].concat(getItem))
                         .then(results => {
-                            var _spkDoc = results[0];
-                            var destination = results[1];
-                            var source = results[2];
+                            var index = 0;
+                            var inventoryQuantity = 0;
 
-                            if (!destination) {
-                                errors["destinationId"] = "destinationId in storage is not found";
-                            } else {
-                                valid.destinationId = destination._id;
-                                valid.destination = destination;
-                            }
-
-                            if (!source) {
-                                errors["sourceId"] = "sourceId in storage is not found";
-                            }
-                            else {
-                                valid.sourceId = source._id;
-                                valid.source = source;
-                            }
+                            var dataSpk = results[0];
 
                             if (valid._id == '') {
                                 var getSPKDoc = this.collection.where(valid._id);
@@ -344,44 +397,24 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                 errors["date"] = "date is required";
                             }
 
-                            var inventoryItems = results.slice(3, results.length)
+                            var items = results.slice(1, results.length)
                             // 2a. begin: Validate error on item level.
-                            if (inventoryItems.length > 0) {
+                            if (items.length > 0) {
                                 var itemErrors = [];
-                                for (var inventoryItem of inventoryItems) {
-                                    var index = inventoryItems.indexOf(inventoryItem);
-                                    var item = valid.items[index];
+                                for (var item of valid.items) {
                                     var itemError = {};
-
-                                    if (!item.articleVariantId || item.articleVariantId == '') {
-                                        itemError["articleVariantId"] = "articleVariantId is required";
-                                    }
-                                    if (inventoryItems[index] != null) {
-                                        if (!inventoryItem.articleVariantId) {
-                                            itemError["articleVariantId"] = "articleVariantId not found";
-                                        }
-                                        else {
-                                            item.articleVariantId = inventoryItem.articleVariantId;
-                                            item.articleVariant = inventoryItem.articleVariant;
-                                        }
-                                    }
-
-                                    if (item.quantity == undefined || item.quantity == "") {
-                                        itemError["quantity"] = "quantity is required";
-                                    }
-                                    else if (parseInt(item.quantity) <= 0) {
-                                        itemError["quantity"] = "quantity must be greater than 0";
-                                    }
-
-                                    if (inventoryItems[index] == null) {
-                                        var inventoryQuantity = 0;
+                                    if (items[index] == null) {
+                                        inventoryQuantity = 0;
                                     } else {
-                                        var inventoryQuantity = inventoryItems[index].quantity;
+                                        inventoryQuantity = items[index].quantity;
+                                    }
+                                    index++;
+                                    if (parseInt(item.quantity) <= 0) {
+                                        itemError["quantity"] = "quantity must be greater than 0";
                                     }
                                     if (item.quantity > inventoryQuantity) {
                                         itemError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
                                     }
-
                                     itemErrors.push(itemError);
                                 }
                                 // 2a. end: Validate error on item level.
@@ -401,6 +434,8 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                 var ValidationError = require('module-toolkit').ValidationError;
                                 reject(new ValidationError('data does not pass validation', errors));
                             }
+
+                            valid._createdDate = new Date();
                             valid = new SPKDoc(valid);
                             valid.stamp(this.user.username, 'manager');
                             resolve(valid)

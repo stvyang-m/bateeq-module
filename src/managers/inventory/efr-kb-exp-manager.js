@@ -9,6 +9,7 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
+var BaseManager = require('module-toolkit').BaseManager;
 var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
@@ -16,9 +17,9 @@ var SPK = BateeqModels.merchandiser.SPK;
 var generateCode = require('../../utils/code-generator');
 
 const moduleId = "EFR-KB/EXP";
-module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
+module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
+        super(db, user);
         this.user = user;
         this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);
 
@@ -156,6 +157,51 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         })
     }
 
+    getByPackingList(packingList) {
+        var query = { "spkDocuments.packingList": packingList };
+        return new Promise((resolve, reject) => {
+            this.expeditionDocCollection
+                .where(query)
+                .execute()
+                .then(expeditionDocs => {
+                    resolve(expeditionDocs);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+
+    updateReceivedByPackingList(packingList) {
+        return new Promise((resolve, reject) => {
+            this.getByPackingList(packingList)
+                .then(results => {
+                    if (results.data.length > 0) {
+                        var expedition = results.data[0];
+                        for (var spkDoc of expedition.spkDocuments) {
+                            if (spkDoc.packingList == packingList) {
+                                spkDoc.isReceived = true;
+                            }
+                        }
+                        expedition._updatedDate = new Date();
+                        expedition._updatedBy = this.user.username;
+                        this.expeditionDocCollection.update(expedition).then(id => {
+                            resolve(id);
+                        })
+                            .catch(e => {
+                                reject(e);
+                            });
+                    } else {
+                        resolve();
+                    }
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+
     create(expeditionDoc) {
         return new Promise((resolve, reject) => {
             //Validate Input Model
@@ -177,7 +223,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                 for (var item of spkDoc.items) {
                                     var newitem = {};
                                     newitem.itemId = item.itemId;
-                                    newitem.quantity = item.quantity;
+                                    newitem.quantity = item.sendQuantity;
                                     validTransferOutDoc.items.push(newitem);
                                 }
                                 return outManager.create(validTransferOutDoc)
@@ -204,7 +250,12 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                     validExpeditionDoc.expedition = validatedExpeditionDoc.expedition;
                                     validExpeditionDoc.weight = validatedExpeditionDoc.weight;
                                     validExpeditionDoc.transferOutDocuments = [];
-                                    validExpeditionDoc.spkDocuments = validatedExpeditionDoc.spkDocuments
+                                    validExpeditionDoc.spkDocuments = [];
+                                    for (var spkDoc of validatedExpeditionDoc.spkDocuments) {
+                                        spkDoc = new SPK(spkDoc);
+                                        spkDoc.stamp(this.user.username, "manager");
+                                        validExpeditionDoc.spkDocuments.push(spkDoc);
+                                    }
                                     for (var transferOut of transferOutResults) {
                                         validExpeditionDoc.transferOutDocuments.push(transferOut);
                                     }
@@ -228,9 +279,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                             //Create Promise Update SPK Data
                                                             var getUpdateSPKData = [];
                                                             for (var resultSPK of resultSPKs) {
-                                                                resultSPK.expeditionDocumentId = resultExpeditionId;
-                                                                resultSPK.expeditionDocument = resultExpedition;
-                                                                resultSPK = new SPK(resultSPK);
+                                                                var spk = validExpeditionDoc.spkDocuments.find(x => x.packingList == resultSPK.packingList);
+                                                                if (spk) {
+                                                                    resultSPK.items = spk.items;
+                                                                }
                                                                 getUpdateSPKData.push(this.spkManager.update(resultSPK));
                                                             }
                                                             //Update SPK Data
@@ -278,6 +330,39 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
         return new Promise((resolve, reject) => {
             resolve(null);
         });
+    }
+
+    getReport(filter) {
+        var transaksi = "";
+        if (filter.transaction == 0) {
+            transaksi = new RegExp("^[A-Z0-9]+\/EFR-KB/PLB\/[0-9]{2}\/[0-9]{4}$", "i");
+        } else if (filter.transaction == 1) {
+            transaksi = new RegExp("^[A-Z0-9]+\/EFR-KB/PLR\/[0-9]{2}\/[0-9]{4}$", "i");
+        }
+
+        var query = {
+            "date": {
+                "$gt": filter.dateFrom,
+                "$lt": filter.dateTo
+            }
+        }
+
+        if (filter.storageId != "") {
+            query = {
+                '$and': [query, {
+                    "spkDocuments.destinationId": ObjectId(filter.storageId),
+                }]
+            }
+        }
+
+        return new Promise((resolve, reject) => {
+            this.expeditionDocCollection.where(query)
+                .order({ date: 1 }).execute()
+                .then(expeditionDocs => {
+                    resolve(expeditionDocs)
+                })
+                .catch(err => { reject(err) });
+        })
     }
 
     _validate(expeditionDoc) {
@@ -353,6 +438,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                         var spkDocumentError = spkDocumentErrors[index];
 
                                         if (spkDocuments[index]) {
+                                            spkDocument._createdDate = spkDocuments[index]._createdDate;
                                             var spkspkDocumentError = spkDocumentError;
                                             if (spkDocument) {
                                                 if (!spkDocument.items || spkDocument.items.length == 0) {
@@ -363,8 +449,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                     for (var item of spkDocument.items) {
                                                         var itemError = {};
                                                         var quantityStock = inventory.find(x => x.itemId == item.itemId && x.storageId == spkDocument.sourceId);
-                                                        if (item.quantitySend > quantityStock.quantity) {
-                                                            itemError["quantitySend"] = "stok tidak tersedia";
+                                                        if (item.sendQuantity > quantityStock.quantity) {
+                                                            itemError["sendQuantity"] = "stok tidak tersedia";
                                                         }
                                                         if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
                                                             itemError["quantity"] = "kuantitas harus diisi";
@@ -372,20 +458,19 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                         else if (parseInt(item.quantity) <= 0) {
                                                             itemError["quantity"] = "kuantitas harus lebih besar dari 0";
                                                         }
-                                                        if (item.quantitySend == undefined || (item.quantitySend && item.quantitySend == '')) {
-                                                            itemError["quantitySend"] = "kuantitas pengiriman harus diisi";
+                                                        if (item.sendQuantity == undefined || (item.sendQuantity && item.sendQuantity == '')) {
+                                                            itemError["sendQuantity"] = "kuantitas pengiriman harus diisi";
                                                         }
-                                                        else if (parseInt(item.quantitySend) <= 0) {
-                                                            itemError["quantitySend"] = "kuantitas pengiriman harus lebih besar dari 0";
+                                                        else if (parseInt(item.sendQuantity) <= 0) {
+                                                            itemError["sendQuantity"] = "kuantitas pengiriman harus lebih besar dari 0";
                                                         }
 
-                                                        if (item.quantitySend > item.quantity) {
-                                                            itemError["quantitySend"] = "kuantitas pengiriman tidak boleh lebih besar dari kuantitas packing list";
+                                                        if (item.sendQuantity > item.quantity) {
+                                                            itemError["sendQuantity"] = "kuantitas pengiriman tidak boleh lebih besar dari kuantitas packing list";
                                                         }
-                                                        if (item.quantitySend != item.quantity && (!item.remark || item.remark == '')) {
+                                                        if (item.sendQuantity != item.quantity && (!item.remark || item.remark == '')) {
                                                             itemError["remark"] = "catatan harus diisi";
                                                         }
-                                                        item.quantity = item.quantitySend;
 
                                                         itemErrors.push(itemError);
                                                     }

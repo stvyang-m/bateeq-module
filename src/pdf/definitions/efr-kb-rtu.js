@@ -1,25 +1,31 @@
 var global = require('../../global');
 
-module.exports = function (expeditions) {
+module.exports = function (rtu, spkDoc) {
 
     var locale = global.config.locale;
 
     var moment = require('moment');
     moment.locale(locale.name);
 
-    var header = { text: "BON PENGELUARAN BARANG", style: ['size20', 'bold', 'headerMargin', {}], alignment: 'center' };
+    var header = { text: "BON RETUR BARANG", style: ['size20', 'bold', 'headerMargin', {}], alignment: 'center' };
 
     var table1 = [
         {
             columns: [
-                { width: '30%', text: "No Bon", style: ['size12', 'bold'], alignment: 'left' },
-                { width: '70%', text: expeditions.code, style: ['size12'], alignment: 'left' }
+                { width: '30%', text: "No Packing List", style: ['size12', 'bold'], alignment: 'left' },
+                { width: '70%', text: spkDoc.packingList, style: ['size12'], alignment: 'left' }
+            ]
+        },
+        {
+            columns: [
+                { width: '30%', text: "Password", style: ['size12', 'bold'], alignment: 'left' },
+                { width: '70%', text: spkDoc.password, style: ['size12'], alignment: 'left' }
             ]
         },
         {
             columns: [
                 { width: '30%', text: "Tanggal", style: ['size12', 'bold'], alignment: 'left' },
-                { width: '70%', text: `${moment(expeditions._createdDate).format(locale.date.format)}`, style: ['size12'], alignment: 'left' }
+                { width: '70%', text: `${moment(rtu._createdDate).format(locale.date.format)}`, style: ['size12'], alignment: 'left' }
             ]
         }
     ]
@@ -27,20 +33,14 @@ module.exports = function (expeditions) {
     var table2 = [
         {
             columns: [
+                { width: '40%', text: "Dari", style: ['size12', 'bold'] },
+                { width: '80%', text: rtu.source.name, style: ['size12'] }
+            ]
+        },
+        {
+            columns: [
                 { width: '40%', text: "Tujuan", style: ['size12', 'bold'] },
-                { width: '60%', text: expeditions.spkDocuments[0].destination.name || "", style: ['size12'] }
-            ]
-        },
-        {
-            columns: [
-                { width: '40%', text: "Ekspedisi", style: ['size12', 'bold'] },
-                { width: '60%', text: expeditions.expedition.name || expeditions.expedition, style: ['size12'] }
-            ]
-        },
-        {
-            columns: [
-                { width: '40%', text: "Total Berat (Kg)", style: ['size12', 'bold'] },
-                { width: '60%', text: expeditions.weight, style: ['size12'] }
+                { width: '80%', text: rtu.destination.name, style: ['size12'] }
             ]
         }
     ];
@@ -77,26 +77,27 @@ module.exports = function (expeditions) {
 
     var thead = [
         { text: "No", style: 'tableHeader' },
-        { text: "Packing List", style: 'tableHeader' },
-        { text: "Berat (Kg)", style: 'tableHeader' },
-        { text: "Total Barang", style: 'tableHeader' }
+        { text: "Produk", style: 'tableHeader' },
+        { text: "Nama Produk", style: 'tableHeader' },
+        { text: "Kuantitas", style: 'tableHeader' }
+        ,
+        { text: "Harga", style: 'tableHeader' }
     ]
 
     var index = 1;
     var total = 0;
-    var tbody = expeditions.spkDocuments.map(item => {
-        var totalBarang = 0;
-        if (item.items.length > 1) {
-            totalBarang = item.items.reduce((prev, curr) => prev.quantity + curr.quantity);
-        } else {
-            totalBarang = item.items[0].quantity;
-        }
-        total += totalBarang;
+    var totalHarga = 0;
+    var tbody = rtu.items.map(item => {
+        var harga = 0;
+        total += parseInt(item.quantity);
+        harga = parseInt(item.quantity) * parseInt(item.item.domesticSale);
+        totalHarga += harga;
         return [
             { text: index++, alignment: 'center' },
-            { text: item.code, alignment: 'center' },
-            { text: item.weight || 0, alignment: 'center' },
-            { text: totalBarang || 0, alignment: 'center' }
+            { text: item.item.code, alignment: 'center' },
+            { text: item.item.name || 0, alignment: 'center' },
+            { text: item.quantity || 0, alignment: 'center' },
+            { text: harga.toLocaleString() || 0, alignment: 'right' }
         ]
     });
 
@@ -107,7 +108,7 @@ module.exports = function (expeditions) {
     var data2 = {
         table: {
             headerRows: 1,
-            widths: ['15%', '35%', '25%', '25%'],
+            widths: ['10%', '20%', '25%', '25%', '20%'],
             body: [].concat([thead], tbody)
         },
         style: ['marginTop20']
@@ -116,10 +117,11 @@ module.exports = function (expeditions) {
     var data3 = {
         table: {
             headerRows: 0,
-            widths: ['75%', '25%'],
+            widths: ['56%', '25%', '19%'],
             body: [
                 [{ text: 'Total', style: ['bold', 'size12'], alignment: 'center' },
-                { text: total, style: ['bold', 'size12'], alignment: 'center' }]
+                { text: total, style: ['bold', 'size12'], alignment: 'center' },
+                { text: totalHarga.toLocaleString(), style: ['bold', 'size12'], alignment: 'right' }]
             ]
         },
         style: ['marginTop20']
