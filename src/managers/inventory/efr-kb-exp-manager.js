@@ -250,7 +250,12 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                                     validExpeditionDoc.expedition = validatedExpeditionDoc.expedition;
                                     validExpeditionDoc.weight = validatedExpeditionDoc.weight;
                                     validExpeditionDoc.transferOutDocuments = [];
-                                    validExpeditionDoc.spkDocuments = validatedExpeditionDoc.spkDocuments
+                                    validExpeditionDoc.spkDocuments = [];
+                                    for (var spkDoc of validatedExpeditionDoc.spkDocuments) {
+                                        spkDoc = new SPK(spkDoc);
+                                        spkDoc.stamp(this.user.username, "manager");
+                                        validExpeditionDoc.spkDocuments.push(spkDoc);
+                                    }
                                     for (var transferOut of transferOutResults) {
                                         validExpeditionDoc.transferOutDocuments.push(transferOut);
                                     }
@@ -433,6 +438,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                                         var spkDocumentError = spkDocumentErrors[index];
 
                                         if (spkDocuments[index]) {
+                                            spkDocument._createdDate = spkDocuments[index]._createdDate;
                                             var spkspkDocumentError = spkDocumentError;
                                             if (spkDocument) {
                                                 if (!spkDocument.items || spkDocument.items.length == 0) {
