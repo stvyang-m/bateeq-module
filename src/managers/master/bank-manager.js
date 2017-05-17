@@ -85,10 +85,13 @@ module.exports = class BankManager extends BaseManager {
             Promise.all([getBank])
                 .then(results => {
                     var _bank = results[0];
+                    var patternForCode = "[a-zA-Z0-9]";
 
-                    if (!valid.code || valid.code == '')
+                    if (!valid.code || valid.code == '') {
                         errors["code"] = "code is required";
-                    else if (_bank) {
+                    } else if (valid.code.match(patternForCode) == null) {
+                        errors["code"] = "code only using alphanumeric";
+                    } else if (_bank) {
                         errors["code"] = "code already exists";
                     }
                     if (!valid.name || valid.name == '')
