@@ -463,16 +463,16 @@ module.exports = class FactPenjualan {
 
                         request.multiple = true;
 
-                        var fs = require("fs");
-                        var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";
+                        // var fs = require("fs");
+                        // var path = "C:\\Users\\daniel.nababan.MOONLAY\\Desktop\\sqlQuery.txt";
 
-                        fs.writeFile(path, allSqlQuery, function (error) {
-                            if (error) {
-                                console.log("write error:  " + error.message);
-                            } else {
-                                console.log("Successful Write to " + path);
-                            }
-                        });
+                        // fs.writeFile(path, allSqlQuery, function (error) {
+                        //     if (error) {
+                        //         console.log("write error:  " + error.message);
+                        //     } else {
+                        //         console.log("Successful Write to " + path);
+                        //     }
+                        // });
 
                         return Promise.all(command)
                             .then((results) => {
