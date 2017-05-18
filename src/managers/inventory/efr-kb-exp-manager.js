@@ -184,7 +184,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                                     var _data = pkList.find((_data) => _data === data.packingList);
                                     if (_data && filter.packingListStatus == 1) {
                                         spkDocEnterExp.push(data);
-                                    } else if (filter.packingListStatus == 0) {
+                                    } else if (!_data && filter.packingListStatus == 0) {
                                         spkDocEnterExp.push(data);
                                     }
                                 }
