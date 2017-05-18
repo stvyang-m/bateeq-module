@@ -189,11 +189,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                                     }
                                 }
                             }
-                            if (spkDocEnterExp.length > 0) {
-                                resolve(spkDocEnterExp);
-                            } else {
-                                resolve(null);
-                            }
+                            resolve(spkDocEnterExp);
                         })
                         .catch(e => {
                             reject(e);
