@@ -88,14 +88,14 @@ module.exports = class BankManager extends BaseManager {
                     var patternForCode = "[a-zA-Z0-9]";
 
                     if (!valid.code || valid.code == '') {
-                        errors["code"] = "code is required";
+                        errors["code"] = "Masukkan Kode";
                     } else if (valid.code.match(patternForCode) == null) {
-                        errors["code"] = "code only using alphanumeric";
+                        errors["code"] = "Hanya menggunakan alphanumeric";
                     } else if (_bank) {
-                        errors["code"] = "code already exists";
+                        errors["code"] = "Kode sudah ada";
                     }
                     if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required";
+                        errors["name"] = "Masukkan nama";
 
                     // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
