@@ -207,7 +207,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
             //Validate Input Model
             this._validate(expeditionDoc)
                 .then(validatedExpeditionDoc => {
-                    var code = generateCode(moduleId);
+                    var expCode = generateCode(moduleId);
                     var getTransferOuts = [];
                     //Create Promise to Create Transfer Out
                     for (var spkDocument of validatedExpeditionDoc.spkDocuments) {
@@ -215,8 +215,8 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                         var f = (spkDoc, outManager) => {
                             return () => {
                                 var validTransferOutDoc = {};
-                                validTransferOutDoc.code = code;
-                                validTransferOutDoc.reference = spkDoc.packingList;
+                                validTransferOutDoc.code = generateCode(moduleId);
+                                validTransferOutDoc.reference = expCode;
                                 validTransferOutDoc.sourceId = spkDoc.sourceId;
                                 validTransferOutDoc.destinationId = spkDoc.destinationId;
                                 validTransferOutDoc.items = [];
@@ -246,7 +246,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                                 .then(transferOutResults => {
                                     //Create Expedition Model
                                     var validExpeditionDoc = {};
-                                    validExpeditionDoc.code = code;
+                                    validExpeditionDoc.code = expCode;
                                     validExpeditionDoc.expedition = validatedExpeditionDoc.expedition;
                                     validExpeditionDoc.weight = validatedExpeditionDoc.weight;
                                     validExpeditionDoc.transferOutDocuments = [];
