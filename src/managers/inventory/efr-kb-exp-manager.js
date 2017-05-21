@@ -21,6 +21,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
     constructor(db, user) {
         super(db, user);
         this.user = user;
+        this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
         this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);
 
         var StorageManager = require('../master/storage-manager');
@@ -77,6 +78,122 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                 .execute()
                 .then(expeditionDocs => {
                     resolve(expeditionDocs);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    readAll(paging) {
+        var _paging = Object.assign({}, paging);
+
+        return new Promise((resolve, reject) => {
+            var regexModuleId = new RegExp(moduleId, "i");
+            var filter = {
+                _deleted: false,
+                'code': {
+                    '$regex': regexModuleId
+                }
+            };
+            var query = _paging.keyword ? {
+                '$and': [filter]
+            } : filter;
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode]
+                };
+                query['$and'].push($or);
+            }
+
+
+            this.expeditionDocCollection
+                .where(query)
+                .execute()
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    readPackingListExp() {
+        return new Promise((resolve, reject) => {
+            this.readAll(0)
+                .then(expDocs => {
+                    var expDocTemp = expDocs.data;
+                    var packingListExp = [];
+                    for (var exp of expDocTemp) {
+                        for (var spk of exp.spkDocuments) {
+                            packingListExp.push(spk.packingList);
+                        }
+                    }
+                    resolve(packingListExp);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+
+    readForPackingListReport(filter) {
+        return new Promise((resolve, reject) => {
+            this.readPackingListExp()
+                .then(pkList => {
+                    var transaksi = "";
+                    if (filter.transaction == 0) {
+                        transaksi = "EFR-KB/PLB";
+                    } else if (filter.transaction == 1) {
+                        transaksi = "EFR-KB/PLR";
+                    }
+                    var query;
+                    if (filter.storageId == "" || filter.storageId == undefined || filter.storageId == "undefined") {
+                        query = {
+                            _deleted: false,
+                            "_createdDate": {
+                                "$gt": new Date(filter.dateFrom),
+                                "$lt": new Date(filter.dateTo)
+                            },
+                            packingList: new RegExp(transaksi, "i")
+                        };
+                    } else {
+                        query = {
+                            _deleted: false,
+                            "_createdDate": {
+                                "$gt": new Date(filter.dateFrom),
+                                "$lt": new Date(filter.dateTo)
+                            },
+                            packingList: new RegExp(transaksi, "i"),
+                            "destinationId": ObjectId(filter.storageId),
+                        };
+                    }
+                    this.SPKDocCollection.where(query).select().execute()
+                        .then((results) => {
+                            var spkDocEnterExp = [];
+                            if (results.data.length > 0) {
+                                for (var data of results.data) {
+                                    var _data = pkList.find((_data) => _data === data.packingList);
+                                    if (_data && filter.packingListStatus == 1) {
+                                        spkDocEnterExp.push(data);
+                                    } else if (!_data && filter.packingListStatus == 0) {
+                                        spkDocEnterExp.push(data);
+                                    }
+                                }
+                            }
+                            resolve(spkDocEnterExp);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
                 })
                 .catch(e => {
                     reject(e);
