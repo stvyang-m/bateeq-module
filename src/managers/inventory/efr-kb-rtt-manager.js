@@ -177,7 +177,7 @@ module.exports = class TokoTransferStokManager extends BaseManager {
                                         for (var item of spkDoc.items) {
                                             item.sendQuantity = parseInt(item.quantity || 0);
                                         }
-                                        spkDoc.packingList = generateCode(modulePackingList);
+                                        spkDoc.packingList = generateCode("EFR-KB/PLB");
                                         PlSPK = spkDoc.packingList;
                                         spkDoc.isDraft = false;
                                         spkDoc.isReceived = false;
