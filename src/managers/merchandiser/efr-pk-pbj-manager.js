@@ -309,7 +309,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
         var errors = {};
         return new Promise((resolve, reject) => {
             var valid = spkDoc;
-            this.moduleManager.getByCode(moduleId)
+            this.moduleManager.getByCode("EFR-PK/PLB")
                 .then(module => {
                     // 1. begin: Declare promises.
                     var getSPKDoc = this.collection.singleOrDefault({

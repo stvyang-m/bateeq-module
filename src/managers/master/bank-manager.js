@@ -85,14 +85,17 @@ module.exports = class BankManager extends BaseManager {
             Promise.all([getBank])
                 .then(results => {
                     var _bank = results[0];
+                    var patternForCode = "[a-zA-Z0-9]";
 
-                    if (!valid.code || valid.code == '')
-                        errors["code"] = "code is required";
-                    else if (_bank) {
-                        errors["code"] = "code already exists";
+                    if (!valid.code || valid.code == '') {
+                        errors["code"] = "Masukkan Kode";
+                    } else if (valid.code.match(patternForCode) == null) {
+                        errors["code"] = "Hanya menggunakan alphanumeric";
+                    } else if (_bank) {
+                        errors["code"] = "Kode sudah ada";
                     }
                     if (!valid.name || valid.name == '')
-                        errors["name"] = "name is required";
+                        errors["name"] = "Masukkan nama";
 
                     // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
