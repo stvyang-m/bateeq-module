@@ -14,10 +14,10 @@ var TransferOutItem = BateeqModels.inventory.TransferOutItem;
 var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc;
 var SPKDoc = BateeqModels.merchandiser.SPK;
 
-var moduleId = "EFR-KB/RTP";
+var moduleId = "EFR-KB/RTU";
 const modulePackingList = "EFR-KB/PLR";
 
-module.exports = class TokoKirimBarangReturnManager extends BaseManager {
+module.exports = class ReturnKeUnitManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
         this.collection = this.db.use(map.inventory.TransferOutDoc);
@@ -108,8 +108,8 @@ module.exports = class TokoKirimBarangReturnManager extends BaseManager {
                                             validEkspedisiDoc = ekspedisiDoc;
                                             validEkspedisiDoc = new ExpeditionDoc(validEkspedisiDoc);
                                             validEkspedisiDoc.weight = 1;
-                                            for (var item of spkResult.items) {
-                                                item.sendQuantity = parseInt(item.quantity || 0);
+                                            for(var item of spkResult.items){
+                                                item.sendQuantity = item.quantity || 0;
                                             }
                                             validEkspedisiDoc.spkDocuments.push(spkResult);
                                             validEkspedisiDoc._createdDate = date;
@@ -273,6 +273,34 @@ module.exports = class TokoKirimBarangReturnManager extends BaseManager {
                 .catch(e => {
                     reject(e);
                 });
+        });
+    }
+
+    pdf(id) {
+        return new Promise((resolve, reject) => {
+            this.getSingleById(id)
+                .then(docs => {
+                    this.spkBarangManager.getByReference(docs.code)
+                        .then(spkdoc => {
+                            var getDefinition = require('../../pdf/definitions/efr-kb-rtu');
+                            var definition = getDefinition(docs, spkdoc);
+                            var generatePdf = require('../../pdf/pdf-generator');
+                            generatePdf(definition)
+                                .then(binary => {
+                                    resolve(binary);
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                });
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+                })
+                .catch(e => {
+                    reject(e);
+                });
+
         });
     }
 }; 

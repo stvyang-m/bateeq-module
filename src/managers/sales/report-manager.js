@@ -37,6 +37,19 @@ module.exports = class ReportManager extends BaseManager {
                 }
             }, {
                 "$unwind": "$items"
+            }, {
+                "$lookup":
+                {
+                    from: "migration-excluded-items",
+                    localField: "items.item.code",
+                    foreignField: "code",
+                    as: "embalase"
+                }
+            },
+            {
+                "$match": {
+                    "embalase": { $eq: [] }
+                }
             },
             {
                 "$group": {
@@ -78,6 +91,19 @@ module.exports = class ReportManager extends BaseManager {
                     }
                 }, {
                     "$unwind": "$items"
+                }, {
+                    "$lookup":
+                    {
+                        from: "migration-excluded-items",
+                        localField: "items.item.code",
+                        foreignField: "code",
+                        as: "embalase"
+                    }
+                },
+                {
+                    "$match": {
+                        "embalase": { $eq: [] }
+                    }
                 },
                 {
                     "$group": {
@@ -93,7 +119,149 @@ module.exports = class ReportManager extends BaseManager {
         return this.collection.aggregate(aggregate);
     }
 
-    
+    productsReport(dateFrom, dateTo, skip, limit) {
+        var aggregate =
+            [
+                {
+                    "$match": {
+                        date: {
+                            $gte: new Date(dateFrom),
+                            $lte: new Date(dateTo)
+                        },
+                        'isVoid': false
+                    }
+                }, {
+                    "$project": {
+                        _id: 0, items: {
+                            $filter: {
+                                input: "$items",
+                                as: "item",
+                                cond: {
+                                    $and: [
+                                        { $not: ["$$item.isReturn"] }
+                                    ]
+                                }
+                            }
+                        }, store: 1
+                    }
+                }, {
+                    "$unwind": "$items"
+                },
+                {
+                    "$lookup":
+                    {
+                        from: "items",
+                        localField: "items.item._id",
+                        foreignField: "_id",
+                        as: "masterItem"
+                    }
+                }, {
+                    "$lookup":
+                    {
+                        from: "migration-excluded-items",
+                        localField: "items.item.code",
+                        foreignField: "code",
+                        as: "embalase"
+                    }
+                },
+                {
+                    "$match": {
+                        "embalase": { $eq: [] }
+                    }
+                }
+                , {
+                    "$group": {
+                        _id: { "code": "$masterItem._id" },
+                        quantity: { "$sum": "$items.quantity" },
+                        masterItem: { "$first": "$masterItem" },
+                        stores: {
+                            "$push": {
+                                store: "$store",
+                                quantity: "$items.quantity"
+                            }
+                        }
+                    }
+                }, {
+                    "$sort": {
+                        "quantity": -1
+                    }
+                }, { "$skip": parseInt(skip || 0) }, { "$limit": parseInt(limit || 0) }
+            ];
+        return this.collection.aggregate(aggregate);
+    }
+
+    productsReportQuery(dateFrom, dateTo) {
+        var aggregate =
+            [
+                {
+                    "$match": {
+                        date: {
+                            $gte: new Date(dateFrom),
+                            $lte: new Date(dateTo)
+                        },
+                        'isVoid': false
+                    }
+                }, {
+                    "$project": {
+                        _id: 0, items: {
+                            $filter: {
+                                input: "$items",
+                                as: "item",
+                                cond: {
+                                    $and: [
+                                        { $not: ["$$item.isReturn"] }
+                                    ]
+                                }
+                            }
+                        }, store: 1
+                    }
+                }, {
+                    "$unwind": "$items"
+                },
+                {
+                    "$lookup":
+                    {
+                        from: "items",
+                        localField: "items.item._id",
+                        foreignField: "_id",
+                        as: "masterItem"
+                    }
+                }, {
+                    "$lookup":
+                    {
+                        from: "migration-excluded-items",
+                        localField: "items.item.code",
+                        foreignField: "code",
+                        as: "embalase"
+                    }
+                },
+                {
+                    "$match": {
+                        "embalase": { $eq: [] }
+                    }
+                }
+                , {
+                    "$group": {
+                        _id: { "code": "$masterItem._id" },
+                        quantity: { "$sum": "$items.quantity" },
+                        masterItem: { "$first": "$masterItem" },
+                        stores: {
+                            "$push": {
+                                store: "$store",
+                                quantity: "$items.quantity"
+                            }
+                        }
+                    }
+                }, {
+                    "$sort": {
+                        "quantity": -1
+                    }
+                },
+                { $group: { _id: null, total: { $sum: 1 } } }
+            ];
+        return this.collection.aggregate(aggregate);
+    }
+
     productsReportByProductID(dateFrom, dateTo, productId) {
         var aggregate =
             [
@@ -136,7 +304,7 @@ module.exports = class ReportManager extends BaseManager {
                     "$group": {
                         _id: { "code": "$store._id" },
                         quantity: { "$sum": "$items.quantity" },
-                        store : {"$first" : "$store"},
+                        store: { "$first": "$store" },
                         masterItem: { "$first": "$masterItem" },
                         stores: {
                             "$push": {

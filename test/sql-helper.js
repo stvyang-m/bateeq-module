@@ -8,6 +8,7 @@ var config = {
     server: 'efrata.database.windows.net',
     // database: 'efrata.pos',
     database: 'testefrata',
+    // database:'bateeq DWH',
     options: {
         encrypt: true
     },

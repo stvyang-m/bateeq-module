@@ -9,11 +9,14 @@ inventoryMap.set("efr-kb-rtt", require('./src/managers/inventory/efr-kb-rtt-mana
 inventoryMap.set("efr-kb-fng", require('./src/managers/inventory/efr-kb-fng-manager'));
 inventoryMap.set("efr-kb-rtf", require('./src/managers/inventory/efr-kb-rtf-manager'));
 inventoryMap.set("efr-kb-rtp", require('./src/managers/inventory/efr-kb-rtp-manager'));
+inventoryMap.set("efr-kb-rtu", require('./src/managers/inventory/efr-kb-rtu-manager'));
 inventoryMap.set("efr-kb-rtd", require('./src/managers/inventory/efr-kb-rtd-manager'));
 inventoryMap.set("efr-kb-exb", require('./src/managers/inventory/efr-kb-exb-manager'));
+inventoryMap.set("efr-kb-exp", require('./src/managers/inventory/efr-kb-exp-manager'));
 inventoryMap.set("efr-kb-alt", require('./src/managers/inventory/efr-kb-alt-manager'));
 inventoryMap.set("efr-tb-act", require('./src/managers/inventory/efr-tb-act-manager'));
 inventoryMap.set("efr-tb-bat", require('./src/managers/inventory/efr-tb-bat-manager'));
+inventoryMap.set("efr-tb-bbp", require('./src/managers/inventory/efr-tb-bbp-manager'));
 inventoryMap.set("efr-tb-bbt", require('./src/managers/inventory/efr-tb-bbt-manager'));
 inventoryMap.set("efr-tb-bjb", require('./src/managers/inventory/efr-tb-bjb-manager'));
 inventoryMap.set("efr-tb-bjr", require('./src/managers/inventory/efr-tb-bjr-manager'));
@@ -22,6 +25,7 @@ inventoryMap.set("efr-tb-brt", require('./src/managers/inventory/efr-tb-brt-mana
 inventoryMap.set("efr-tb-sab", require('./src/managers/inventory/efr-tb-sab-manager'));
 inventoryMap.set("efr-tb-alt", require('./src/managers/inventory/efr-tb-alt-manager'));
 inventoryMap.set("efr-hp-fng", require('./src/managers/inventory/efr-hp-fng-manager'));
+inventoryMap.set("inv-ro-report", require('./src/managers/inventory/inv-ro-report-manager'));
 
 var merchandiserMap = new Map();
 merchandiserMap.set("efr-pk", require('./src/managers/merchandiser/efr-pk-manager'));
@@ -40,17 +44,19 @@ module.exports = {
         InventoryManager: inventoryMap.get("inventory"),
         InventoryMovementManager: inventoryMap.get("inventory-movement"),
         FinishedGoodsManager: inventoryMap.get("efr-hp-fng"),
-        ExpeditionsManager: inventoryMap.get("efr-kb-exb"),
+        ExpeditionsManager: inventoryMap.get("efr-kb-exp"),
         AlterationOutManager: inventoryMap.get("efr-kb-alt"),
         AlterationInManager: inventoryMap.get("efr-tb-alt"),
         TokoTransferStokManager: inventoryMap.get("efr-kb-rtt"),
         FinishingKirimBarangBaruManager: inventoryMap.get("efr-kb-fng"),
         PusatReturTokoKirimBarangReturManager: inventoryMap.get("efr-kb-rtf"),
         TokoKirimBarangReturnManager: inventoryMap.get("efr-kb-rtp"),
+        ReturnKeUnitManager: inventoryMap.get("efr-kb-rtu"),
         FinishingKirimBarangReturSelesaiPerbaikanManager: inventoryMap.get("efr-kb-rtd"),
         FinishingTerimaAksesorisManager: inventoryMap.get("efr-tb-acc"),
         TokoTerimaAksesorisManager: inventoryMap.get("efr-tb-bat"),
         TokoTerimaBarangBaruManager: inventoryMap.get("efr-tb-bbt"),
+        PusatTerimaBarangBaruManager: inventoryMap.get("efr-tb-bbp"),
         PusatBarangBaruTerimaBarangBaruManager: inventoryMap.get("efr-tb-bjb"),
         FinishingTerimaBarangReturManager: inventoryMap.get("efr-tb-bjr"),
         PusatReturTokoTerimaBarangReturSelesaiPerbaikanManager: inventoryMap.get("efr-tb-brd"),
@@ -79,7 +85,8 @@ module.exports = {
         article: {
             ArticleMotifManager: require('./src/managers/master/article/article-motif-manager'),
             ArticleColorManager: require('./src/managers/master/article/article-color-manager')
-        }
+        },
+        ExpeditionServiceManager: require('./src/managers/master/expedition-service-manager')
     },
     sales: {
         SalesManager: require('./src/managers/sales/sales-manager'),
@@ -88,26 +95,18 @@ module.exports = {
         SalesReportManager: require('./src/managers/sales/report-manager')
     },
 
-
     etl: {
         itemsMigration: require('./src/etl/items-etl'),
         itemsSpMigration: require('./src/etl/sp-items-etl'),
         items: require('./src/etl/items-migration-etl'),
         storesMigration: require('./src/etl/stores-migration-etl'),
         storagesMigration: require('./src/etl/storages-migration-etl'),
-
         salesMigration: require('./src/etl/sales-etl'),
         salesSpMigration: require('./src/etl/sp-sales-etl'),
-
         factPenjualan: require('./src/etl/fact-penjualan'),
         factPenjualanSummary: require('./src/etl/fact-penjualan-summary'),
         dimBranch: require('./src/etl/dim-branch'),
         dimTime: require('./src/etl/dim-time')
-
-
-
-
-
     }
 
 }

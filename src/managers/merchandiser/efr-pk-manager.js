@@ -175,6 +175,58 @@ module.exports = class SPKBarangManager extends BaseManager {
         });
     }
 
+    readForExpedition(paging) {
+        var _paging = Object.assign({
+            page: 1,
+            size: 20,
+            order: '_id',
+            asc: true
+        }, paging);
+
+        return new Promise((resolve, reject) => {
+            var filter = {
+                _deleted: false,
+                isReceived: false,
+                isDraft:false
+            };
+
+            var query = _paging.keyword ? {
+                '$and': [filter]
+            } : filter;
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var filterPackingList = {
+                    'packingList': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode, filterPackingList]
+                };
+
+                query['$and'].push($or);
+            }
+            
+            this.SPKDocCollection
+                .where(query)
+                .page(_paging.page, _paging.size)
+                .orderBy(_paging.order, _paging.asc)
+                .execute()
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
     readNotReceivedAndDraft(filter) {
         return new Promise((resolve, reject) => {
             var query = {
@@ -254,7 +306,7 @@ module.exports = class SPKBarangManager extends BaseManager {
     getByReference(ref) {
         return new Promise((resolve, reject) => {
             var query = {
-                packingList: ref,
+                reference: ref,
                 _deleted: false
             };
             this.SPKDocCollection.singleOrDefault(query)
@@ -355,6 +407,24 @@ module.exports = class SPKBarangManager extends BaseManager {
     updateReceivedByRef(ref) {
         return new Promise((resolve, reject) => {
             this.getByReference(ref)
+                .then(spkDoc => {
+                    spkDoc.isReceived = true;
+                    this.SPKDocCollection.update(spkDoc).then(id => {
+                        resolve(id);
+                    })
+                        .catch(e => {
+                            reject(e);
+                        });
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    updateReceivedByPackingList(packingList) {
+        return new Promise((resolve, reject) => {
+            this.getByPL(packingList)
                 .then(spkDoc => {
                     spkDoc.isReceived = true;
                     this.SPKDocCollection.update(spkDoc).then(id => {

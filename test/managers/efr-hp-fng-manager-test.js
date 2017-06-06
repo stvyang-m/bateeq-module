@@ -81,22 +81,3 @@ it(`#02. should success when get created data with id`, function (done) {
             done(e);
         })
 });
-
-it('#03. should error with property items minimum one', function(done) {
-    manager.create({})
-        .then(id => {
-            done("Should not be error with property items minimum one");
-        })
-        .catch(e => {
-            try { 
-                e.errors.should.have.property('sourceId');
-                e.errors.should.have.property('destinationId'); 
-                e.errors.should.have.property('items');
-                e.errors.items.should.String();
-                done();
-            }
-            catch (ex) {
-                done(ex);
-            }
-        })
-});

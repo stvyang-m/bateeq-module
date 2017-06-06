@@ -7,26 +7,26 @@ var ObjectId = require('mongodb').ObjectId;
 require('mongodb-toolkit');
 var BaseManager = require('module-toolkit').BaseManager;
 var BateeqModels = require('bateeq-models');
-var Bank = BateeqModels.master.Bank;
+var ExpeditionService = BateeqModels.master.ExpeditionService;
 var map = BateeqModels.map;
 //var generateCode = require('../../utils/code-generator');
 
-module.exports = class BankManager extends BaseManager {
+module.exports = class ExpeditionServiceManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
-        this.collection = this.db.use(map.master.Bank);
+        this.collection = this.db.use(map.master.ExpeditionService);
     }
 
     _createIndexes() {
         var dateIndex = {
-            name: `ix_${map.master.Bank}__updatedDate`,
+            name: `ix_${map.master.ExpeditionService}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         };
 
         var codeIndex = {
-            name: `ix_${map.master.Bank}_code`,
+            name: `ix_${map.master.ExpeditionService}_code`,
             key: {
                 code: 1
             },
@@ -34,6 +34,13 @@ module.exports = class BankManager extends BaseManager {
         };
 
         return this.collection.createIndexes([dateIndex, codeIndex]);
+    }
+
+    readAll() {
+        var basicFilter = {
+            _deleted: false
+        }, keywordFilter = {};
+        return this.collection.where(basicFilter).execute();
     }
 
     _getQuery(paging) {
@@ -65,12 +72,12 @@ module.exports = class BankManager extends BaseManager {
         return query;
     }
 
-    _validate(bank) {
+    _validate(expeditionService) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = new Bank(bank);
+            var valid = new ExpeditionService(expeditionService);
             // 1. begin: Declare promises.
-            var getBank = this.collection.singleOrDefault({
+            var getExpeditionService = this.collection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
@@ -82,20 +89,17 @@ module.exports = class BankManager extends BaseManager {
             // 1. end: Declare promises.
 
             // 2. begin: Validation.
-            Promise.all([getBank])
+            Promise.all([getExpeditionService])
                 .then(results => {
-                    var _bank = results[0];
-                    var patternForCode = "[a-zA-Z0-9]";
+                    var _expeditionService = results[0];
 
-                    if (!valid.code || valid.code == '') {
-                        errors["code"] = "Masukkan Kode";
-                    } else if (valid.code.match(patternForCode) == null) {
-                        errors["code"] = "Hanya menggunakan alphanumeric";
-                    } else if (_bank) {
-                        errors["code"] = "Kode sudah ada";
+                    if (!valid.code || valid.code == '')
+                        errors["code"] = "code is required";
+                    else if (_expeditionService) {
+                        errors["code"] = "code already exists";
                     }
                     if (!valid.name || valid.name == '')
-                        errors["name"] = "Masukkan nama";
+                        errors["name"] = "name is required";
 
                     // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
