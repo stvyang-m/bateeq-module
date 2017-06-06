@@ -509,11 +509,15 @@ module.exports = class SalesManager extends BaseManager {
             }
 
             //update on 6-6-2017
-            for (promoId of sales.salesDetail.promoDoc) {
+            if (sales.salesDetail.promoDoc)
+            {
+                for (promoId of sales.salesDetail.promoDoc) {
                 if (promoId && ObjectId.isValid(promoId)) {
                     getPromoDocs.push(this.promoManager.getSingleByIdOrDefault(promoId));
                 }
             }
+            }
+            
 
             var countGetItems = getItems.length;
             var countGetPromos = getPromos.length;
