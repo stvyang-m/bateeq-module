@@ -6,6 +6,7 @@ inventoryMap.set("inventory", require('./src/managers/inventory/inventory-manage
 inventoryMap.set("inventory-movement", require('./src/managers/inventory/inventory-movement-manager'));
 
 inventoryMap.set("efr-kb-rtt", require('./src/managers/inventory/efr-kb-rtt-manager'));
+inventoryMap.set("adjustment", require('./src/managers/inventory/adjustment-manager'));
 inventoryMap.set("efr-kb-fng", require('./src/managers/inventory/efr-kb-fng-manager'));
 inventoryMap.set("efr-kb-rtf", require('./src/managers/inventory/efr-kb-rtf-manager'));
 inventoryMap.set("efr-kb-rtp", require('./src/managers/inventory/efr-kb-rtp-manager'));
@@ -48,6 +49,7 @@ module.exports = {
         AlterationOutManager: inventoryMap.get("efr-kb-alt"),
         AlterationInManager: inventoryMap.get("efr-tb-alt"),
         TokoTransferStokManager: inventoryMap.get("efr-kb-rtt"),
+        AdjustmentStockManager: inventoryMap.get("adjustment"),
         FinishingKirimBarangBaruManager: inventoryMap.get("efr-kb-fng"),
         PusatReturTokoKirimBarangReturManager: inventoryMap.get("efr-kb-rtf"),
         TokoKirimBarangReturnManager: inventoryMap.get("efr-kb-rtp"),
