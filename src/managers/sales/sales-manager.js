@@ -249,7 +249,7 @@ module.exports = class SalesManager extends BaseManager {
     _getQuery(paging) {
         var deleted = {
             _deleted: false
-        };
+        }; 
 
         var query = paging.filter ? {
             '$and': [paging.filter, deleted]
