@@ -306,9 +306,9 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                     var spkDoc = results[0];
                     var expeditionDoc = results[1];
                     if (spkDoc) {
-                        if (expeditionDoc.data.length == 0) {
-                            errors["reference"] = "this reference does not have expedition";
-                        }
+                        // if (expeditionDoc.data.length == 0) {
+                        //     errors["reference"] = "this reference does not have expedition";
+                        // }
                         if (transferInDoc.password != spkDoc.password) {
                             errors["password"] = "invalid password";
                         }
