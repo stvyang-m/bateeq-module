@@ -26,6 +26,7 @@ inventoryMap.set("efr-tb-brt", require('./src/managers/inventory/efr-tb-brt-mana
 inventoryMap.set("efr-tb-sab", require('./src/managers/inventory/efr-tb-sab-manager'));
 inventoryMap.set("efr-tb-alt", require('./src/managers/inventory/efr-tb-alt-manager'));
 inventoryMap.set("efr-hp-fng", require('./src/managers/inventory/efr-hp-fng-manager'));
+inventoryMap.set("inv-ro-report", require('./src/managers/inventory/inv-ro-report-manager'));
 
 var merchandiserMap = new Map();
 merchandiserMap.set("efr-pk", require('./src/managers/merchandiser/efr-pk-manager'));

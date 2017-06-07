@@ -415,6 +415,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                     if (item.quantity > inventoryQuantity) {
                                         itemError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
                                     }
+                                    item.sendQuantity = parseInt(item.quantity || 0);
                                     itemErrors.push(itemError);
                                 }
                                 // 2a. end: Validate error on item level.
@@ -630,6 +631,9 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                         for (var spkDocument of spks.values()) {
                             var spkDocs = new Promise((resolve, reject) => {
                                 var spkDoc = spkDocument;
+                                for (var item of spkDoc.items) {
+                                    item.sendQuantity = parseInt(item.quantity || 0);
+                                }
                                 this.pkManager.getByPL(spkDoc.packingList)
                                     .then(resultItem => {
                                         if (resultItem) {
