@@ -249,7 +249,7 @@ module.exports = class SalesManager extends BaseManager {
     _getQuery(paging) {
         var deleted = {
             _deleted: false
-        };
+        }; 
 
         var query = paging.filter ? {
             '$and': [paging.filter, deleted]
@@ -451,6 +451,7 @@ module.exports = class SalesManager extends BaseManager {
             var getVoucher = Promise.resolve(null);
             var getItems = [];
             var getPromos = [];
+            var getPromoDocs = [];//update on 6-6-2017
 
             if (sales.storeId && ObjectId.isValid(sales.storeId)) {
                 getStore = this.storeManager.getSingleByIdOrDefault(sales.storeId);
@@ -507,9 +508,20 @@ module.exports = class SalesManager extends BaseManager {
                 errors["items"] = "items is required";
             }
 
+            //update on 6-6-2017
+            if (sales.salesDetail.promoDoc)
+            {
+                for (promoId of sales.salesDetail.promoDoc) {
+                if (promoId && ObjectId.isValid(promoId)) {
+                    getPromoDocs.push(this.promoManager.getSingleByIdOrDefault(promoId));
+                }
+            }
+            }
+            
+
             var countGetItems = getItems.length;
             var countGetPromos = getPromos.length;
-            Promise.all([getSales, getStore, getBank, getBankCard, getCardType, getVoucher].concat(getItems).concat(getPromos))
+            Promise.all([getSales, getStore, getBank, getBankCard, getCardType, getVoucher, getPromoDocs].concat(getItems).concat(getPromos))
                 .then(results => {
                     var _sales = results[0];
                     var _store = results[1];
@@ -517,7 +529,8 @@ module.exports = class SalesManager extends BaseManager {
                     var _bankCard = results[3];
                     var _cardType = results[4];
                     var _voucherType = results[5];
-                    var _items = results.slice(6, results.length - countGetPromos)
+                    var _promoDocs = results[6];//update on 6-6-2017
+                    var _items = results.slice(7, results.length - countGetPromos)//update on 6-6-2017
                     var _promos = results.slice(results.length - countGetPromos, results.length)
 
                     if (_sales) {
@@ -584,9 +597,11 @@ module.exports = class SalesManager extends BaseManager {
                     else if (parseInt(valid.discount) < 0 || parseInt(valid.discount) > 100) {
                         errors["discount"] = "discount must be greater than 0 or less than 100";
                     }
-                    else
+                    else {
                         valid.discount = parseInt(valid.discount);
-
+                    }
+                    
+                    valid.salesDetail.promoDoc = _promoDocs;//update on 6-6-2017
                     valid.totalProduct = 0;
                     valid.subTotal = 0;
                     valid.grandTotal = 0;

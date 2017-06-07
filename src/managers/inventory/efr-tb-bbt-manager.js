@@ -306,9 +306,9 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                     var spkDoc = results[0];
                     var expeditionDoc = results[1];
                     if (spkDoc) {
-                        if (expeditionDoc.data.length == 0) {
-                            errors["reference"] = "this reference does not have expedition";
-                        }
+                        // if (expeditionDoc.data.length == 0) {
+                        //     errors["reference"] = "this reference does not have expedition";
+                        // }
                         if (transferInDoc.password != spkDoc.password) {
                             errors["password"] = "invalid password";
                         }
@@ -331,11 +331,11 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                         var itemErrors = [];
                         for (var item of transferInDoc.items) {
                             var itemError = {};
-                            item.quantity = item.sendQuantity;
-                            if (item.sendQuantity < 0)
-                                itemError["sendQuantity"] = "items should not less than 0 quantity";
+                            item.quantity = item.quantity;
+                            if (item.quantity < 0)
+                                itemError["quantity"] = "items should not less than 0 quantity";
                             else
-                                if (item.sendQuantity != spkDoc.items[index].sendQuantity)
+                                if (item.quantity != spkDoc.items[index].quantity)
                                     if (item.remark == "")
                                         itemError["remark"] = "Masukkan no referensi berita acara";
                             index++;
