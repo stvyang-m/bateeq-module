@@ -601,8 +601,8 @@ module.exports = class SalesManager extends BaseManager {
                     }
 
                     if (_promoDocs) {
+                        valid.salesDetail.promoDoc = [];
                         for (var promoDoc of _promoDocs) {
-                            valid.salesDetail.promoDoc = [];
                             valid.salesDetail.promoDoc.push(promoDoc);//update on 6-6-2017
                         }
                     } else {
