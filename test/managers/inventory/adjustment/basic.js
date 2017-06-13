@@ -56,7 +56,7 @@ it("#02. should success when create new data with inQty", function(done) {
             outQty:0,
             remarks : 'data for unit test'
         }]
-    }
+    };
      instanceManager.create(data)
     .then(id => {
         id.should.be.Object();
@@ -80,7 +80,7 @@ it("#03. should success when create new data with outQty", function(done) {
             outQty:5,
             remarks : 'data for unit test'
         }]
-    }
+    };
      instanceManager.create(data)
     .then(id => {
         id.should.be.Object();
@@ -119,7 +119,7 @@ it("#05. should error when create new data with inQty>0 and outQty>0", function(
             outQty:10,
             remarks : 'data for unit test'
         }]
-    }
+    };
      instanceManager.create(data)
     .then((id) => {
             done("Should not be able to create new data with inQty>0 and outQty>0");
@@ -175,7 +175,7 @@ it("#07. should error when create new data with availableQuantity=0 and outQty>0
             outQty:10,
             remarks : 'data for unit test'
         }]
-    }
+    };
      instanceManager.create(data)
     .then((id) => {
             done("Should not be able to create new data with availableQuantity=0 and outQty>0");
@@ -203,7 +203,7 @@ it("#08. should error when create new data without remarks", function(done) {
             outQty:10,
             remarks : ''
         }]
-    }
+    };
      instanceManager.create(data)
     .then((id) => {
             done("Should not be able to create new data without remarks");
