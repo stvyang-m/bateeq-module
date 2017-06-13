@@ -249,7 +249,7 @@ module.exports = class SalesManager extends BaseManager {
     _getQuery(paging) {
         var deleted = {
             _deleted: false
-        }; 
+        };
 
         var query = paging.filter ? {
             '$and': [paging.filter, deleted]
@@ -509,19 +509,22 @@ module.exports = class SalesManager extends BaseManager {
             }
 
             //update on 6-6-2017
-            if (sales.salesDetail.promoDoc)
-            {
-                for (promoId of sales.salesDetail.promoDoc) {
-                if (promoId && ObjectId.isValid(promoId)) {
-                    getPromoDocs.push(this.promoManager.getSingleByIdOrDefault(promoId));
+            if (sales.salesDetail.promoDoc) {
+                for (var promoId of sales.salesDetail.promoDoc) {
+                    if (promoId === Object(promoId)) {
+                        promoId = promoId._id;
+                    }
+
+                    if (promoId && ObjectId.isValid(promoId)) {
+                        getPromoDocs.push(this.promoManager.getSingleByIdOrDefault(promoId));
+                    }
                 }
             }
-            }
-            
 
+            var countGetPromoDoc = getPromoDocs.length;
             var countGetItems = getItems.length;
             var countGetPromos = getPromos.length;
-            Promise.all([getSales, getStore, getBank, getBankCard, getCardType, getVoucher, getPromoDocs].concat(getItems).concat(getPromos))
+            Promise.all([getSales, getStore, getBank, getBankCard, getCardType, getVoucher].concat(getPromoDocs).concat(getItems).concat(getPromos))
                 .then(results => {
                     var _sales = results[0];
                     var _store = results[1];
@@ -529,9 +532,9 @@ module.exports = class SalesManager extends BaseManager {
                     var _bankCard = results[3];
                     var _cardType = results[4];
                     var _voucherType = results[5];
-                    var _promoDocs = results[6];//update on 6-6-2017
-                    var _items = results.slice(7, results.length - countGetPromos)//update on 6-6-2017
-                    var _promos = results.slice(results.length - countGetPromos, results.length)
+                    var _promoDocs = results.slice(6, 6 + countGetPromoDoc);
+                    var _items = results.slice(6 + countGetPromoDoc, 6 + countGetPromoDoc + countGetItems);
+                    var _promos = results.slice(6 + countGetPromoDoc + countGetItems, results.length);
 
                     if (_sales) {
                         errors["code"] = "code already exists";
@@ -569,7 +572,7 @@ module.exports = class SalesManager extends BaseManager {
                                 var todaySecond = (today.getUTCHours() * 3600) + (today.getUTCMinutes() * 60) + (today.getUTCSeconds());
 
                                 if (dateFromSecond > dateToSecond) {
-                                    if ((todaySecond >= dateFromSecond  && todaySecond <= 86400) || (todaySecond >= 0  && todaySecond <= dateToSecond)) {
+                                    if ((todaySecond >= dateFromSecond && todaySecond <= 86400) || (todaySecond >= 0 && todaySecond <= dateToSecond)) {
                                         valid.shift = parseInt(shift.shift);
                                         break;
                                     }
@@ -600,8 +603,16 @@ module.exports = class SalesManager extends BaseManager {
                     else {
                         valid.discount = parseInt(valid.discount);
                     }
-                    
-                    valid.salesDetail.promoDoc = _promoDocs;//update on 6-6-2017
+
+                    if (_promoDocs) {
+                        valid.salesDetail.promoDoc = [];
+                        for (var promoDoc of _promoDocs) {
+                            valid.salesDetail.promoDoc.push(promoDoc);//update on 6-6-2017
+                        }
+                    } else {
+                        valid.salesDetail.promoDoc = [];
+                    }
+
                     valid.totalProduct = 0;
                     valid.subTotal = 0;
                     valid.grandTotal = 0;
