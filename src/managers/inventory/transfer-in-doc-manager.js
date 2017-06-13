@@ -15,7 +15,7 @@ var BaseManager = require('module-toolkit').BaseManager;
 module.exports = class TransferInDocManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
-        this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
+        this.collection = this.db.use(map.inventory.TransferInDoc);
         var StorageManager = require('../master/storage-manager');
         this.storageManager = new StorageManager(db, user);
 
@@ -203,7 +203,7 @@ module.exports = class TransferInDocManager extends BaseManager {
         return new Promise((resolve, reject) => {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
-                    this.transferInDocCollection.update(validTransferInDoc)
+                    this.collection.update(validTransferInDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -222,7 +222,7 @@ module.exports = class TransferInDocManager extends BaseManager {
             this._validate(transferInDoc)
                 .then(validTransferInDoc => {
                     validTransferInDoc._deleted = true;
-                    this.transferInDocCollection.update(validTransferInDoc)
+                    this.collection.update(validTransferInDoc)
                         .then(id => {
                             resolve(id);
                         })
@@ -242,7 +242,7 @@ module.exports = class TransferInDocManager extends BaseManager {
             var valid = transferInDoc;
 
             // 1. begin: Declare promises.
-            var getTransferInDoc = this.transferInDocCollection.singleOrDefault({
+            var getTransferInDoc = this.collection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
