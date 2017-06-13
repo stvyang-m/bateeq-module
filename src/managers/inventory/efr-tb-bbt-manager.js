@@ -404,6 +404,7 @@ module.exports = class TokoTerimaBarangBaruManager extends TransferInManager {
                     transferInDoc = new TransferInDoc(transferInDoc);
                     transferInDoc.stamp(this.user.username, 'manager');
                     resolve(transferInDoc);
+                    
                 })
                 .catch(e => {
                     reject(e);
