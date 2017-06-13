@@ -35,4 +35,8 @@ describe('#bateeq-module', function (done) {
     test('@manager/sales-manager', './managers/sales-manager-test');
     test('@manager/sales-return-manager', './managers/sales-return-manager-test');
 
+    //inventory
+
+    test('@manager/adjustment-manager', './managers/inventory/adjustment');
+
 })
