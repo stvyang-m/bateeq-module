@@ -10,12 +10,11 @@ var map = BateeqModels.map;
 
 var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
+var BaseManager = require('module-toolkit').BaseManager;
 
-
-module.exports = class TransferInDocManager {
+module.exports = class TransferInDocManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
-        this.user = user;
+        super(db, user);
         this.transferInDocCollection = this.db.use(map.inventory.TransferInDoc);
         var StorageManager = require('../master/storage-manager');
         this.storageManager = new StorageManager(db, user);
@@ -27,133 +26,177 @@ module.exports = class TransferInDocManager {
         this.inventoryManager = new InventoryManager(db, user);
     }
 
-    read(paging) {
-        var _paging = Object.assign({
-            page: 1,
-            size: 20,
-            order: '_id',
-            asc: true
-        }, paging);
+    _getQuery(paging) {
+        var deletedFilter = {
+            _deleted: false
+        }, keywordFilter = {};
 
-        return new Promise((resolve, reject) => {
-            var deleted = {
-                _deleted: false
+        var query = {};
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
+
+            var filterCode = {
+                'code': {
+                    '$regex': regex
+                }
             };
-            var query = _paging.keyword ? {
-                '$and': [deleted]
-            } : deleted;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode]
-                };
-
-                query['$and'].push($or);
-            }
-
-
-            this.transferInDocCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .orderBy(_paging.order, _paging.asc)
-                .execute()
-                .then(transferInDocs => {
-                    resolve(transferInDocs);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-
-    getSingleById(id) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
+            keywordFilter = {
+                '$or': [filterCode]
             };
-            this.getSingleByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
+        }
+        query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
+        return query;
     }
 
-    getSingleByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQueryOrDefault(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
-    
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.transferInDocCollection
-                .single(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
-    
-    getSingleByQueryOrDefault(query) {
-        return new Promise((resolve, reject) => {
-            this.transferInDocCollection
-                .singleOrDefault(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
+    // read(paging) {
+    //     var _paging = Object.assign({
+    //         page: 1,
+    //         size: 20,
+    //         order: '_id',
+    //         asc: true
+    //     }, paging);
+
+    //     return new Promise((resolve, reject) => {
+    //         var deleted = {
+    //             _deleted: false
+    //         };
+    //         var query = _paging.keyword ? {
+    //             '$and': [deleted]
+    //         } : deleted;
+
+    //         if (_paging.keyword) {
+    //             var regex = new RegExp(_paging.keyword, "i");
+    //             var filterCode = {
+    //                 'code': {
+    //                     '$regex': regex
+    //                 }
+    //             };
+    //             var $or = {
+    //                 '$or': [filterCode]
+    //             };
+
+    //             query['$and'].push($or);
+    //         }
+
+
+    //         this.transferInDocCollection
+    //             .where(query)
+    //             .page(_paging.page, _paging.size)
+    //             .orderBy(_paging.order, _paging.asc)
+    //             .execute()
+    //             .then(transferInDocs => {
+    //                 resolve(transferInDocs);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     });
+    // }
+
+    // getSingleById(id) {
+    //     return new Promise((resolve, reject) => {
+    //         var query = {
+    //             _id: new ObjectId(id),
+    //             _deleted: false
+    //         };
+    //         this.getSingleByQuery(query)
+    //             .then(transferInDoc => {
+    //                 resolve(transferInDoc);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     });
+    // }
+
+    // getSingleByIdOrDefault(id) {
+    //     return new Promise((resolve, reject) => {
+    //         var query = {
+    //             _id: new ObjectId(id),
+    //             _deleted: false
+    //         };
+    //         this.getSingleByQueryOrDefault(query)
+    //             .then(transferInDoc => {
+    //                 resolve(transferInDoc);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     });
+    // }
+
+    // getSingleByQuery(query) {
+    //     return new Promise((resolve, reject) => {
+    //         this.transferInDocCollection
+    //             .single(query)
+    //             .then(transferInDoc => {
+    //                 resolve(transferInDoc);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     })
+    // }
+
+    // getSingleByQueryOrDefault(query) {
+    //     return new Promise((resolve, reject) => {
+    //         this.transferInDocCollection
+    //             .singleOrDefault(query)
+    //             .then(transferInDoc => {
+    //                 resolve(transferInDoc);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     })
+    // }
+
+    // create(transferInDoc) {
+    //     return new Promise((resolve, reject) => {
+    //         this._validate(transferInDoc)
+    //             .then(validTransferInDoc => {
+    //                 validTransferInDoc._createdDate = new Date();
+    //                 var tasks = [this.transferInDocCollection.insert(validTransferInDoc)];
+
+    //                 for (var item of validTransferInDoc.items) {
+    //                     tasks.push(this.inventoryManager.in(validTransferInDoc.destinationId, validTransferInDoc.code, item.itemId, item.quantity, item.remark));
+    //                 }
+
+    //                 Promise.all(tasks)
+    //                     .then(results => {
+    //                         var id = results[0];
+    //                         resolve(id);
+    //                     })
+    //                     .catch(e => {
+    //                         reject(e);
+    //                     })
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             })
+    //     });
+    // }
+
+    _beforeInsert(validTransferInDoc) {
+        validTransferInDoc._createdDate = new Date();
+        return Promise.resolve(validTransferInDoc);
     }
 
-    create(transferInDoc) {
-        return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    validTransferInDoc._createdDate = new Date();
-                    var tasks = [this.transferInDocCollection.insert(validTransferInDoc)];
+    _afterInsert(id) {
+        return this.getSingleById(id)
+            .then(transferInDoc => {
+                var tasks = [];
+                for (var item of transferInDoc.items) {
+                    tasks.push(this.inventoryManager.in(transferInDoc.destinationId, transferInDoc.code, item.itemId, item.quantity, item.remark));
+                }
 
-                    for (var item of validTransferInDoc.items) {
-                        tasks.push(this.inventoryManager.in(validTransferInDoc.destinationId, validTransferInDoc.code, item.itemId, item.quantity, item.remark));
-                    }
-
-                    Promise.all(tasks)
-                        .then(results => {
-                            var id = results[0];
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
+                return Promise.all([tasks])
+                    .then(result => {
+                        return id;
+                    });
+            }).catch(e => {
+                throw e;
+            })
     }
 
     update(transferInDoc) {
@@ -191,8 +234,8 @@ module.exports = class TransferInDocManager {
                     reject(e);
                 })
         });
-    } 
-    
+    }
+
     _validate(transferInDoc) {
         var errors = {};
         return new Promise((resolve, reject) => {
@@ -205,8 +248,8 @@ module.exports = class TransferInDocManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                        code: valid.code
-                    }]
+                    code: valid.code
+                }]
             });
             // 1. end: Declare promises.
 
@@ -219,7 +262,7 @@ module.exports = class TransferInDocManager {
                     getItems.push(this.itemManager.getSingleByIdOrDefault(item.itemId));
                 }
             }
-            
+
             else {
                 errors["items"] = "items is required";
             }
@@ -254,7 +297,7 @@ module.exports = class TransferInDocManager {
                     else {
                         valid.destinationId = destination._id;
                         valid.destination = destination;
-                    } 
+                    }
                     var items = results.slice(3, results.length)
                     // 2a. begin: Validate error on item level.
                     if (items.length > 0) {
@@ -286,7 +329,7 @@ module.exports = class TransferInDocManager {
                             if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
                                 itemError["quantity"] = "quantity is required";
                             }
-                            else if (parseInt(item.quantity,10) <= 0) {
+                            else if (parseInt(item.quantity, 10) <= 0) {
                                 itemError["quantity"] = "quantity must be greater than 0";
                             }
                             itemErrors.push(itemError);
