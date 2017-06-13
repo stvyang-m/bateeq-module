@@ -17,8 +17,8 @@ before('#00. connect db', function(done) {
                     testData = result;
                     storageId = testData.storages["UT-FNG"]._id.toString();
                     _storage=testData.storages["UT-FNG"];
-                    itemId = testData.items["UT-AV1"]._id.toString(); 
-                    _item= testData.items["UT-AV1"];
+                    itemId = testData.finishedGoods["UT-FG1"]._id.toString(); 
+                    _item= testData.finishedGoods["UT-FG1"];
                     done();
                 });
         })

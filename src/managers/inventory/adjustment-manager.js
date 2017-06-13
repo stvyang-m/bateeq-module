@@ -32,8 +32,8 @@ module.exports = class AdjustmentStockManager extends BaseManager {
         var ModuleManager = require('../master/module-manager');
         this.moduleManager = new ModuleManager(db, user);
 
-        var ItemManager = require('../master/item-manager');
-        this.itemManager = new ItemManager(db, user);
+        var FinishedGoodManager = require('../master/finished-goods-manager');
+        this.finishedGoodManager = new FinishedGoodManager(db, user);
     }
 
     _getQuery(paging) {
@@ -144,7 +144,7 @@ module.exports = class AdjustmentStockManager extends BaseManager {
             if (valid.items && valid.items.length > 0) {
                 for (var item of valid.items) {
                    // getInventory.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(valid.sourceId, item.itemId));
-                    getItem.push(this.itemManager.getSingleById(item.itemId));
+                    getItem.push(this.finishedGoodManager.getSingleById(item.itemId));
                 }
             }
             else {
