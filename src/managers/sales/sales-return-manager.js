@@ -242,6 +242,7 @@ module.exports = class SalesReturnManager extends BaseManager {
             var getPromos = [];
             var getReturnItems = [];
             var getReturnItemPromos = [];
+            var getPromoDocs = [];//update on 12-6-2017
 
             if (salesVM.reference && ObjectId.isValid(salesVM.reference)) {
                 getSales = this.salesManager.getSingleByIdOrDefault(salesVM.reference);
@@ -297,10 +298,19 @@ module.exports = class SalesReturnManager extends BaseManager {
             else {
                 errors["items"] = "items is required";
             }
+            //update on 12-6-2017
+            if (salesVM.salesDetail.promoDoc) {
+                for (var promoId of salesVM.salesDetail.promoDoc) {
+                    if (promoId && ObjectId.isValid(promoId)) {
+                        getPromoDocs.push(this.promoManager.getSingleByIdOrDefault(promoId));
+                    }
+                }
+            }
 
+            var countGetPromoDoc = getPromoDocs.length;
             var countGetItems = getItems.length;
             var countGetPromos = getPromos.length;
-            Promise.all([getReturnSales, getSales, getStore, getBank, getCardType, getVoucher].concat(getItems).concat(getPromos))
+            Promise.all([getReturnSales, getSales, getStore, getBank, getCardType, getVoucher].concat(getPromoDocs).concat(getItems).concat(getPromos))
                 .then(results => {
                     var _returnSales = results[0];
                     var _sales = results[1];
@@ -308,8 +318,9 @@ module.exports = class SalesReturnManager extends BaseManager {
                     var _bank = results[3];
                     var _cardType = results[4];
                     var _voucherType = results[5];
-                    var _items = results.slice(6, results.length - countGetPromos)
-                    var _promos = results.slice(results.length - countGetPromos, results.length)
+                    var _promoDocs = results.slice(6, 6 + countGetPromoDoc);
+                    var _items = results.slice(6 + countGetPromoDoc, 6 + countGetPromoDoc + countGetItems);
+                    var _promos = results.slice(6 + countGetPromoDoc + countGetItems, results.length);
 
 
                     var countGetReturnItems = getReturnItems.length;
@@ -357,7 +368,16 @@ module.exports = class SalesReturnManager extends BaseManager {
                                     errors["shift"] = "invalid shift";
                                 }
                             }
-
+                            
+                             //update on 12-6-2017
+                            if (_promoDocs) {
+                                valid.salesDetail.promoDoc = [];
+                                for (var promoDoc of _promoDocs) {
+                                    valid.salesDetail.promoDoc.push(promoDoc);
+                                }
+                            } else {
+                                valid.salesDetail.promoDoc = [];
+                            }
 
                             valid.totalProduct = 0;
                             valid.subTotal = 0;

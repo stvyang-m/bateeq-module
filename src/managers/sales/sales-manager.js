@@ -511,6 +511,10 @@ module.exports = class SalesManager extends BaseManager {
             //update on 6-6-2017
             if (sales.salesDetail.promoDoc) {
                 for (var promoId of sales.salesDetail.promoDoc) {
+                    if (promoId === Object(promoId)) {
+                        promoId = promoId._id;
+                    }
+
                     if (promoId && ObjectId.isValid(promoId)) {
                         getPromoDocs.push(this.promoManager.getSingleByIdOrDefault(promoId));
                     }

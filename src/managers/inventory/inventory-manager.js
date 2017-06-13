@@ -118,41 +118,41 @@ module.exports = class InventoryManager extends BaseManager {
         });
     }
 
-    getSingleById(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQuery(query)
-                .then(inventory => {
-                    resolve(inventory);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
+    // getSingleById(id) {
+    //     return new Promise((resolve, reject) => {
+    //         if (id === '')
+    //             resolve(null);
+    //         var query = {
+    //             _id: new ObjectId(id),
+    //             _deleted: false
+    //         };
+    //         this.getSingleByQuery(query)
+    //             .then(inventory => {
+    //                 resolve(inventory);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     });
+    // }
 
-    getSingleByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            if (id === '')
-                resolve(null);
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQueryOrDefault(query)
-                .then(inventory => {
-                    resolve(inventory);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
+    // getSingleByIdOrDefault(id) {
+    //     return new Promise((resolve, reject) => {
+    //         if (id === '')
+    //             resolve(null);
+    //         var query = {
+    //             _id: new ObjectId(id),
+    //             _deleted: false
+    //         };
+    //         this.getSingleByQueryOrDefault(query)
+    //             .then(inventory => {
+    //                 resolve(inventory);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     });
+    // }
 
     getByStorageIdAndItemId(storageId, itemId) {
         return new Promise((resolve, reject) => {
@@ -193,31 +193,31 @@ module.exports = class InventoryManager extends BaseManager {
         });
     }
 
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.collection
-                .single(query)
-                .then(inventory => {
-                    resolve(inventory);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
+    // getSingleByQuery(query) {
+    //     return new Promise((resolve, reject) => {
+    //         this.collection
+    //             .single(query)
+    //             .then(inventory => {
+    //                 resolve(inventory);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     })
+    // }
 
-    getSingleByQueryOrDefault(query) {
-        return new Promise((resolve, reject) => {
-            this.collection
-                .singleOrDefault(query)
-                .then(inventory => {
-                    resolve(inventory);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
+    // getSingleByQueryOrDefault(query) {
+    //     return new Promise((resolve, reject) => {
+    //         this.collection
+    //             .singleOrDefault(query)
+    //             .then(inventory => {
+    //                 resolve(inventory);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     })
+    // }
 
     create(inventory) {
         return new Promise((resolve, reject) => {
@@ -299,10 +299,7 @@ module.exports = class InventoryManager extends BaseManager {
                         });
                         this.create(newInventory)
                             .then(docId => {
-                                this.collection
-                                    .single({
-                                        _id: docId
-                                    })
+                                this.getSingleById(docId)
                                     .then(inventory => {
                                         resolve(inventory);
                                     })
