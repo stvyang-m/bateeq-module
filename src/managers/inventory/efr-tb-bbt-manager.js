@@ -401,7 +401,10 @@ module.exports = class TokoTerimaBarangBaruManager extends TransferInManager {
                         var ValidationError = require('module-toolkit').ValidationError;
                         reject(new ValidationError('data does not pass validation', errors));
                     }
+                    transferInDoc = new TransferInDoc(transferInDoc);
+                    transferInDoc.stamp(this.user.username, 'manager');
                     resolve(transferInDoc);
+                    
                 })
                 .catch(e => {
                     reject(e);
