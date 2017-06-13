@@ -12,7 +12,7 @@ var map = BateeqModels.map;
 var AdjustmentDoc = BateeqModels.inventory.AdjusmentDoc;
 var generateCode = require('../../utils/code-generator');
 
-const moduleId = "EFR-SO/INT";
+const moduleId = "EFR-ADJ/INT";
 module.exports = class AdjustmentStockManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
@@ -31,13 +31,22 @@ module.exports = class AdjustmentStockManager extends BaseManager {
 
         var ModuleManager = require('../master/module-manager');
         this.moduleManager = new ModuleManager(db, user);
+
+        var ItemManager = require('../master/item-manager');
+        this.itemManager = new ItemManager(db, user);
     }
 
     _getQuery(paging) {
         var deletedFilter = {
-            _deleted: false
+            _deleted: false,
+            _active:true
         }, keywordFilter = {};
-
+        var regex1 = new RegExp("", "i");
+        var filterAdj={
+            'code': {
+                '$regex': /EFR-ADJ/
+            }
+        }
         var query = {};
         if (paging.keyword) {
             var regex = new RegExp(paging.keyword, "i");
@@ -55,7 +64,7 @@ module.exports = class AdjustmentStockManager extends BaseManager {
                 '$or': [filterCode, filterStorage]
             };
         }
-        query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
+        query = { '$and': [deletedFilter, paging.filter, keywordFilter, filterAdj] }
         return query;
     }
 
@@ -63,7 +72,10 @@ module.exports = class AdjustmentStockManager extends BaseManager {
         return new Promise((resolve, reject) => {
             var itemIn = [];
             var itemOut = [];
-            var length = adjusmentDoc.items.length;
+            var length=0;
+            if(adjusmentDoc.items){
+                length = adjusmentDoc.items.length;
+            }
             for (var i = 0; i < length; i++) {
                 var item = adjusmentDoc.items[i];
                 if (item.inQty != 0 && item.outQty == 0) {
@@ -79,6 +91,7 @@ module.exports = class AdjustmentStockManager extends BaseManager {
                     var transferStok = [];
                     validAdjusmentDoc.code = generateCode(moduleId);
                     validAdjusmentDoc._createdDate = new Date();
+                    validAdjusmentDoc._active=true;
                     transferStok.push(this.collection.insert(validAdjusmentDoc));
 
                     var transferOutDoc = {};
@@ -90,6 +103,7 @@ module.exports = class AdjustmentStockManager extends BaseManager {
                         transferOutDoc.reference = validAdjusmentDoc.code;
                         transferOutDoc.source = validAdjusmentDoc.storage;
                         transferOutDoc.sourceId = validAdjusmentDoc.storageId;
+                        transferOutDoc._active=true;
                         transferStok.push(this.transferOutDocManager.create(transferOutDoc));
                     }
 
@@ -102,6 +116,7 @@ module.exports = class AdjustmentStockManager extends BaseManager {
                         transferinDoc.destinationId = validAdjusmentDoc.storageId;
                         transferinDoc.items = itemIn;
                         transferinDoc.reference = validAdjusmentDoc.code;
+                        transferinDoc._active=true;
                         transferStok.push(this.transferInDocManager.create(transferinDoc));
                     }
 
@@ -125,9 +140,11 @@ module.exports = class AdjustmentStockManager extends BaseManager {
             var valid = adjustmentDoc;
 
             var getItem = [];
+            var getInventory=[];
             if (valid.items && valid.items.length > 0) {
                 for (var item of valid.items) {
-                    getItem.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(valid.sourceId, item.itemId))
+                   // getInventory.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(valid.sourceId, item.itemId));
+                    getItem.push(this.itemManager.getSingleById(item.itemId));
                 }
             }
             else {
@@ -146,26 +163,37 @@ module.exports = class AdjustmentStockManager extends BaseManager {
                     var index = 0;
                     var inventoryQuantity = 0;
                     var items = results.slice(0, results.length);
+                    var itemErrors = [];
                     if (items.length > 0) {
-                        var itemErrors = [];
                         for (var item of valid.items) {
                             var itemError = {};
-                            if (items[index] == null) {
-                                inventoryQuantity = 0;
-                            } else {
-                                item.qtyBeforeAdjustment = items[index].quantity;
-                                item.item = items[index].item;
+                            
+                                item.qtyBeforeAdjustment = item.availableQuantity;
+                                item.item = items[index];
                                 if (item.inQty != 0 && item.outQty == 0) {
                                     item.qtyAdjustment = item.inQty;
+                                    item.type = "IN";
+                                    
                                 } else if (item.inQty == 0 && item.outQty != 0) {
                                     item.qtyAdjustment = item.outQty;
+                                    item.type = "OUT";
                                 }
-                            }
+                            
                             index++;
                             if (item.remarks == "" || !item.remarks) {
                                 itemError["remarks"] = "remarks harus diisi";
                             } else {
                                 item.remark = item.remarks;
+                            }
+                            if (item.inQty == 0 && item.outQty == 0) {
+                                itemError["inQty"] = "setidaknya IN atau OUT terisi dengan QTY";
+                                itemError["outQty"] = "setidaknya IN atau OUT terisi dengan QTY";
+                            }
+                            if(item.inQty > 0 && item.outQty > 0){
+                                itemError["code"] = "tidak diperbolehkan melakukan stok masuk dan keluar secara bersamaan";
+                            }
+                            else if(item.qtyBeforeAdjustment==0 && item.outQty > 0){
+                                itemError["code"] = "stok tidak tersedia";
                             }
                             itemErrors.push(itemError);
                         }
