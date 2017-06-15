@@ -86,7 +86,17 @@ module.exports = {
         MaterialManager: require('./src/managers/master/material-manager'),
         article: {
             ArticleMotifManager: require('./src/managers/master/article/article-motif-manager'),
-            ArticleColorManager: require('./src/managers/master/article/article-color-manager')
+            ArticleColorManager: require('./src/managers/master/article/article-color-manager'),
+            ArticleCounterManager: require('./src/managers/master/article/article-counter-manager'),
+            ArticleSubCounterManager: require('./src/managers/master/article/article-sub-counter-manager'),
+            ArticleSeasonManager: require('./src/managers/master/article/article-season-manager'),
+            ArticleMaterialManager: require('./src/managers/master/article/article-material-manager'),
+            ArticleMaterialCompositionManager: require('./src/managers/master/article/article-material-composition-manager'),
+            ArticleSubMaterialCompositionManager: require('./src/managers/master/article/article-sub-material-composition-manager'),
+            ArticleCollectionManager: require('./src/managers/master/article/article-collection-manager'),
+            ArticleSubCollectionManager: require('./src/managers/master/article/article-sub-collection-manager'),
+            ArticleProcessManager: require('./src/managers/master/article/article-process-manager'),
+            ArticleSubProcessManager: require('./src/managers/master/article/article-sub-process-manager')
         },
         ExpeditionServiceManager: require('./src/managers/master/expedition-service-manager')
     },
