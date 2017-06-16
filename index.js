@@ -27,6 +27,7 @@ inventoryMap.set("efr-tb-sab", require('./src/managers/inventory/efr-tb-sab-mana
 inventoryMap.set("efr-tb-alt", require('./src/managers/inventory/efr-tb-alt-manager'));
 inventoryMap.set("efr-hp-fng", require('./src/managers/inventory/efr-hp-fng-manager'));
 inventoryMap.set("inv-ro-report", require('./src/managers/inventory/inv-ro-report-manager'));
+inventoryMap.set("stock-opname-doc", require('./src/managers/inventory/stock-opname-doc-manager'));
 
 var merchandiserMap = new Map();
 merchandiserMap.set("efr-pk", require('./src/managers/merchandiser/efr-pk-manager'));
@@ -65,6 +66,7 @@ module.exports = {
         PusatReturTokoTerimaBarangReturManager: inventoryMap.get("efr-tb-brt"),
         FinishingTerimaKomponenManager: inventoryMap.get("efr-tb-sab"),
         TransferInDocExtManager: inventoryMap.get("transfer-in-doc-ext"),
+        StockOpnameDocManager: inventoryMap.get("stock-opname-doc"),
         map: inventoryMap
     },
     merchandiser: {
