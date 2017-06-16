@@ -81,6 +81,9 @@ module.exports = class ReturnKeUnitManager extends BaseManager {
                             spkDoc.destination = validTransferOutDoc.destination;
                             spkDoc.destinationId = validTransferOutDoc.destination._id;
                             spkDoc.items = validTransferOutDoc.items;
+                            for (var item of spkDoc.items) {
+                                item.sendQuantity = parseInt(item.quantity || 0);
+                            }
                             spkDoc.packingList = generateCode(modulePackingList);
                             PlSPK = spkDoc.packingList;
                             spkDoc.isDraft = false;
@@ -105,6 +108,9 @@ module.exports = class ReturnKeUnitManager extends BaseManager {
                                             validEkspedisiDoc = ekspedisiDoc;
                                             validEkspedisiDoc = new ExpeditionDoc(validEkspedisiDoc);
                                             validEkspedisiDoc.weight = 1;
+                                            for(var item of spkResult.items){
+                                                item.sendQuantity = item.quantity || 0;
+                                            }
                                             validEkspedisiDoc.spkDocuments.push(spkResult);
                                             validEkspedisiDoc._createdDate = date;
                                             validEkspedisiDoc.stamp(this.user.username, 'manager');
@@ -267,6 +273,34 @@ module.exports = class ReturnKeUnitManager extends BaseManager {
                 .catch(e => {
                     reject(e);
                 });
+        });
+    }
+
+    pdf(id) {
+        return new Promise((resolve, reject) => {
+            this.getSingleById(id)
+                .then(docs => {
+                    this.spkBarangManager.getByReference(docs.code)
+                        .then(spkdoc => {
+                            var getDefinition = require('../../pdf/definitions/efr-kb-rtu');
+                            var definition = getDefinition(docs, spkdoc);
+                            var generatePdf = require('../../pdf/pdf-generator');
+                            generatePdf(definition)
+                                .then(binary => {
+                                    resolve(binary);
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                });
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+                })
+                .catch(e => {
+                    reject(e);
+                });
+
         });
     }
 }; 

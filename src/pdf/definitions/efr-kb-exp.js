@@ -91,7 +91,7 @@ module.exports = function (expeditions) {
         } else {
             totalBarang = item.items[0].quantity;
         }
-        total += totalBarang;
+        total += parseInt(totalBarang);
         return [
             { text: index++, alignment: 'center' },
             { text: item.code, alignment: 'center' },

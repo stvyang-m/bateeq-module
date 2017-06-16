@@ -9,13 +9,13 @@ var BaseManager = require('module-toolkit').BaseManager;
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
-
+var TransferInManager = require('./transfer-in-doc-manager');
 var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var TransferInItem = BateeqModels.inventory.TransferInItem;
 
 const moduleId = "EFR-TB/BBT";
 
-module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
+module.exports = class TokoTerimaBarangBaruManager extends TransferInManager {
     constructor(db, user) {
         super(db, user);
         this.collection = this.db.use(map.inventory.TransferInDoc);
@@ -53,7 +53,8 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
 
         return new Promise((resolve, reject) => {
             var deleted = {
-                _deleted: false
+                _deleted: false,
+                isDraft: false
             }, keywordFilter = {};
 
             var regex = new RegExp("EFR\-PK/\PBJ|EFR\-PK/\PBR", "i");
@@ -137,70 +138,71 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
         query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
         return query;
     }
-    getById(id) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
+    // getById(id) {
+    //     return new Promise((resolve, reject) => {
+    //         var query = {
+    //             _id: new ObjectId(id),
+    //             _deleted: false
+    //         };
+    //         this.getSingleByQuery(query)
+    //             .then(transferInDoc => {
+    //                 resolve(transferInDoc);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     });
+    // }
 
-    getByIdOrDefault(id) {
-        return new Promise((resolve, reject) => {
-            var query = {
-                _id: new ObjectId(id),
-                _deleted: false
-            };
-            this.getSingleOrDefaultByQuery(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
+    // getByIdOrDefault(id) {
+    //     return new Promise((resolve, reject) => {
+    //         var query = {
+    //             _id: new ObjectId(id),
+    //             _deleted: false
+    //         };
+    //         this.getSingleOrDefaultByQuery(query)
+    //             .then(transferInDoc => {
+    //                 resolve(transferInDoc);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     });
+    // }
 
-    getSingleByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.collection
-                .single(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
+    // getSingleByQuery(query) {
+    //     return new Promise((resolve, reject) => {
+    //         this.collection
+    //             .single(query)
+    //             .then(transferInDoc => {
+    //                 resolve(transferInDoc);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     })
+    // }
 
-    getSingleOrDefaultByQuery(query) {
-        return new Promise((resolve, reject) => {
-            this.collection
-                .singleOrDefault(query)
-                .then(transferInDoc => {
-                    resolve(transferInDoc);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        })
-    }
+    // getSingleOrDefaultByQuery(query) {
+    //     return new Promise((resolve, reject) => {
+    //         this.collection
+    //             .singleOrDefault(query)
+    //             .then(transferInDoc => {
+    //                 resolve(transferInDoc);
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             });
+    //     })
+    // }
 
     getPendingSPKById(id) {
         return new Promise((resolve, reject) => {
             var query = {
                 _id: new ObjectId(id),
                 _deleted: false,
-                isReceived: false
+                isReceived: false,
+                isDraft: false
             };
             this.spkDocCollection.singleOrDefault(query)
                 .then(SPKDoc => {
@@ -214,46 +216,88 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
         });
     }
 
-    create(transferInDoc) {
-        return new Promise((resolve, reject) => {
-            this._validate(transferInDoc)
-                .then(validTransferInDoc => {
-                    validTransferInDoc.code = generateCode(moduleId);
+    // create(transferInDoc) {
+    //     return new Promise((resolve, reject) => {
+    //         this._validate(transferInDoc)
+    //             .then(validTransferInDoc => {
+    //                 validTransferInDoc.code = generateCode(moduleId);
 
-                    //kaga transfer in yang qty 0
-                    var length = validTransferInDoc.items.length;
-                    for (var i = 0; i < length;) {
-                        var item = validTransferInDoc.items[i];
-                        if (item.quantity == 0) {
-                            validTransferInDoc.items.splice(i, 1);
-                        }
-                        else {
-                            i++
-                        }
-                        length = validTransferInDoc.items.length;
+    //                 //kaga transfer in yang qty 0
+    //                 var length = validTransferInDoc.items.length;
+    //                 for (var i = 0; i < length;) {
+    //                     var item = validTransferInDoc.items[i];
+    //                     if (item.quantity == 0) {
+    //                         validTransferInDoc.items.splice(i, 1);
+    //                     }
+    //                     else {
+    //                         i++
+    //                     }
+    //                     length = validTransferInDoc.items.length;
+    //                 }
+
+    //                 this.transferInDocManager.create(validTransferInDoc)
+    //                     .then(id => {
+    //                         var reference = transferInDoc.reference;
+    //                         var updateSPK = this.spkManager.updateReceivedByPackingList(reference);
+    //                         var updateExpedition = this.expeditionManager.updateReceivedByPackingList(reference);
+
+    //                         Promise.all([updateSPK, updateExpedition]).then
+    //                             .then(result => {
+    //                                 resolve(id);
+    //                             }).catch(e => {
+    //                                 reject(e);
+    //                             });
+    //                     })
+    //                     .catch(e => {
+    //                         reject(e);
+    //                     })
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             })
+    //     });
+    // }
+
+    _beforeInsert(validTransferInDoc) {
+        return super._beforeInsert(validTransferInDoc)
+            .then(validTransferInDoc => {
+                validTransferInDoc.code = generateCode(moduleId);
+                //kaga transfer in yang qty 0
+                var length = validTransferInDoc.items.length;
+                for (var i = 0; i < length;) {
+                    var item = validTransferInDoc.items[i];
+                    if (item.quantity == 0) {
+                        validTransferInDoc.items.splice(i, 1);
                     }
+                    else {
+                        i++;
+                    }
+                    length = validTransferInDoc.items.length;
+                }
+                return Promise.resolve(validTransferInDoc);
+            }).catch(e => {
+                throw e;
+            })
+    }
 
-                    this.transferInDocManager.create(validTransferInDoc)
-                        .then(id => {
-                            var reference = transferInDoc.reference;
-                            var updateSPK = this.spkManager.updateReceivedByPackingList(reference);
-                            var updateExpedition = this.expeditionManager.updateReceivedByPackingList(reference);
+    _afterInsert(id) {
+        return super._afterInsert(id)
+            .then(id => {
+                return this.getSingleById(id)
+                    .then(transferInDoc => {
+                        var reference = transferInDoc.reference;
+                        var updateSPK = this.spkManager.updateReceivedByPackingList(reference);
+                        var updateExpedition = this.expeditionManager.updateReceivedByPackingList(reference);
 
-                            Promise.all([updateSPK, updateExpedition]).then
-                                .then(result => {
-                                    resolve(id);
-                                }).catch(e => {
-                                    reject(e);
-                                });
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
+                        return Promise.all([updateSPK, updateExpedition])
+                            .then(result => {
+                                return id;
+                            });
+                    });
+            })
+            .catch(e => {
+                throw e;
+            })
     }
 
     update(transferInDoc) {
@@ -304,9 +348,9 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                     var spkDoc = results[0];
                     var expeditionDoc = results[1];
                     if (spkDoc) {
-                        if (expeditionDoc.data.length == 0) {
-                            errors["reference"] = "this reference does not have expedition";
-                        }
+                        // if (expeditionDoc.data.length == 0) {
+                        //     errors["reference"] = "this reference does not have expedition";
+                        // }
                         if (transferInDoc.password != spkDoc.password) {
                             errors["password"] = "invalid password";
                         }
@@ -329,6 +373,7 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                         var itemErrors = [];
                         for (var item of transferInDoc.items) {
                             var itemError = {};
+                            item.quantity = item.quantity;
                             if (item.quantity < 0)
                                 itemError["quantity"] = "items should not less than 0 quantity";
                             else
@@ -356,7 +401,10 @@ module.exports = class TokoTerimaBarangBaruManager extends BaseManager {
                         var ValidationError = require('module-toolkit').ValidationError;
                         reject(new ValidationError('data does not pass validation', errors));
                     }
+                    transferInDoc = new TransferInDoc(transferInDoc);
+                    transferInDoc.stamp(this.user.username, 'manager');
                     resolve(transferInDoc);
+                    
                 })
                 .catch(e => {
                     reject(e);

@@ -7,8 +7,8 @@ var config = {
     password: 'Standar123.',
     server: 'efrata.database.windows.net',
     // database: 'efrata.pos',
-    // database: 'testefrata',
-    database:'bateeq DWH',
+    database: 'testefrata',
+    // database:'bateeq DWH',
     options: {
         encrypt: true
     },

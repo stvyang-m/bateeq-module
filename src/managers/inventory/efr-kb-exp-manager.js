@@ -9,6 +9,7 @@ require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
+var BaseManager = require('module-toolkit').BaseManager;
 var ExpeditionDoc = BateeqModels.inventory.ExpeditionDoc;
 var TransferOutDoc = BateeqModels.inventory.TransferOutDoc;
 var TransferOutItem = BateeqModels.inventory.TransferOutItem;
@@ -16,10 +17,11 @@ var SPK = BateeqModels.merchandiser.SPK;
 var generateCode = require('../../utils/code-generator');
 
 const moduleId = "EFR-KB/EXP";
-module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
+module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends BaseManager {
     constructor(db, user) {
-        this.db = db;
+        super(db, user);
         this.user = user;
+        this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
         this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);
 
         var StorageManager = require('../master/storage-manager');
@@ -76,6 +78,122 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                 .execute()
                 .then(expeditionDocs => {
                     resolve(expeditionDocs);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    readAll(paging) {
+        var _paging = Object.assign({}, paging);
+
+        return new Promise((resolve, reject) => {
+            var regexModuleId = new RegExp(moduleId, "i");
+            var filter = {
+                _deleted: false,
+                'code': {
+                    '$regex': regexModuleId
+                }
+            };
+            var query = _paging.keyword ? {
+                '$and': [filter]
+            } : filter;
+
+            if (_paging.keyword) {
+                var regex = new RegExp(_paging.keyword, "i");
+                var filterCode = {
+                    'code': {
+                        '$regex': regex
+                    }
+                };
+                var $or = {
+                    '$or': [filterCode]
+                };
+                query['$and'].push($or);
+            }
+
+
+            this.expeditionDocCollection
+                .where(query)
+                .execute()
+                .then(spkDoc => {
+                    resolve(spkDoc);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    readPackingListExp() {
+        return new Promise((resolve, reject) => {
+            this.readAll(0)
+                .then(expDocs => {
+                    var expDocTemp = expDocs.data;
+                    var packingListExp = [];
+                    for (var exp of expDocTemp) {
+                        for (var spk of exp.spkDocuments) {
+                            packingListExp.push(spk.packingList);
+                        }
+                    }
+                    resolve(packingListExp);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        })
+    }
+
+    readForPackingListReport(filter) {
+        return new Promise((resolve, reject) => {
+            this.readPackingListExp()
+                .then(pkList => {
+                    var transaksi = "";
+                    if (filter.transaction == 0) {
+                        transaksi = "EFR-KB/PLB";
+                    } else if (filter.transaction == 1) {
+                        transaksi = "EFR-KB/PLR";
+                    }
+                    var query;
+                    if (filter.storageId == "" || filter.storageId == undefined || filter.storageId == "undefined") {
+                        query = {
+                            _deleted: false,
+                            "_createdDate": {
+                                "$gt": new Date(filter.dateFrom),
+                                "$lt": new Date(filter.dateTo)
+                            },
+                            packingList: new RegExp(transaksi, "i")
+                        };
+                    } else {
+                        query = {
+                            _deleted: false,
+                            "_createdDate": {
+                                "$gt": new Date(filter.dateFrom),
+                                "$lt": new Date(filter.dateTo)
+                            },
+                            packingList: new RegExp(transaksi, "i"),
+                            "destinationId": ObjectId(filter.storageId),
+                        };
+                    }
+                    this.SPKDocCollection.where(query).select().execute()
+                        .then((results) => {
+                            var spkDocEnterExp = [];
+                            if (results.data.length > 0) {
+                                for (var data of results.data) {
+                                    var _data = pkList.find((_data) => _data === data.packingList);
+                                    if (_data && filter.packingListStatus == 1) {
+                                        spkDocEnterExp.push(data);
+                                    } else if (!_data && filter.packingListStatus == 0) {
+                                        spkDocEnterExp.push(data);
+                                    }
+                                }
+                            }
+                            resolve(spkDocEnterExp);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
                 })
                 .catch(e => {
                     reject(e);
@@ -206,7 +324,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
             //Validate Input Model
             this._validate(expeditionDoc)
                 .then(validatedExpeditionDoc => {
-                    var code = generateCode(moduleId);
+                    var expCode = generateCode(moduleId);
                     var getTransferOuts = [];
                     //Create Promise to Create Transfer Out
                     for (var spkDocument of validatedExpeditionDoc.spkDocuments) {
@@ -214,15 +332,15 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                         var f = (spkDoc, outManager) => {
                             return () => {
                                 var validTransferOutDoc = {};
-                                validTransferOutDoc.code = code;
-                                validTransferOutDoc.reference = spkDoc.packingList;
+                                validTransferOutDoc.code = generateCode(moduleId);
+                                validTransferOutDoc.reference = expCode;
                                 validTransferOutDoc.sourceId = spkDoc.sourceId;
                                 validTransferOutDoc.destinationId = spkDoc.destinationId;
                                 validTransferOutDoc.items = [];
                                 for (var item of spkDoc.items) {
                                     var newitem = {};
                                     newitem.itemId = item.itemId;
-                                    newitem.quantity = item.quantity;
+                                    newitem.quantity = item.sendQuantity;
                                     validTransferOutDoc.items.push(newitem);
                                 }
                                 return outManager.create(validTransferOutDoc)
@@ -245,11 +363,16 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                 .then(transferOutResults => {
                                     //Create Expedition Model
                                     var validExpeditionDoc = {};
-                                    validExpeditionDoc.code = code;
+                                    validExpeditionDoc.code = expCode;
                                     validExpeditionDoc.expedition = validatedExpeditionDoc.expedition;
                                     validExpeditionDoc.weight = validatedExpeditionDoc.weight;
                                     validExpeditionDoc.transferOutDocuments = [];
-                                    validExpeditionDoc.spkDocuments = validatedExpeditionDoc.spkDocuments
+                                    validExpeditionDoc.spkDocuments = [];
+                                    for (var spkDoc of validatedExpeditionDoc.spkDocuments) {
+                                        spkDoc = new SPK(spkDoc);
+                                        spkDoc.stamp(this.user.username, "manager");
+                                        validExpeditionDoc.spkDocuments.push(spkDoc);
+                                    }
                                     for (var transferOut of transferOutResults) {
                                         validExpeditionDoc.transferOutDocuments.push(transferOut);
                                     }
@@ -273,9 +396,10 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                                             //Create Promise Update SPK Data
                                                             var getUpdateSPKData = [];
                                                             for (var resultSPK of resultSPKs) {
-                                                                resultSPK.expeditionDocumentId = resultExpeditionId;
-                                                                resultSPK.expeditionDocument = resultExpedition;
-                                                                resultSPK = new SPK(resultSPK);
+                                                                var spk = validExpeditionDoc.spkDocuments.find(x => x.packingList == resultSPK.packingList);
+                                                                if (spk) {
+                                                                    resultSPK.items = spk.items;
+                                                                }
                                                                 getUpdateSPKData.push(this.spkManager.update(resultSPK));
                                                             }
                                                             //Update SPK Data
@@ -337,11 +461,17 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
             "date": {
                 "$gt": filter.dateFrom,
                 "$lt": filter.dateTo
-            },
-            // "spkDocuments.packingList": transaksi,
-            "spkDocuments.destinationId": ObjectId(filter.storageId),
-            // "spkDocuments.isReceived": filter.packingListStatus
+            }
         }
+
+        if (filter.storageId != "") {
+            query = {
+                '$and': [query, {
+                    "spkDocuments.destinationId": ObjectId(filter.storageId),
+                }]
+            }
+        }
+
         return new Promise((resolve, reject) => {
             this.expeditionDocCollection.where(query)
                 .order({ date: 1 }).execute()
@@ -425,6 +555,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager {
                                         var spkDocumentError = spkDocumentErrors[index];
 
                                         if (spkDocuments[index]) {
+                                            spkDocument._createdDate = spkDocuments[index]._createdDate;
                                             var spkspkDocumentError = spkDocumentError;
                                             if (spkDocument) {
                                                 if (!spkDocument.items || spkDocument.items.length == 0) {

@@ -179,6 +179,7 @@ function getDataPartial() {
         bank: bank,
         bankCardId: bank._id,
         bankCard: bank,
+        promoDoc: [],
         cardTypeId: cardType._id,
         cardType: cardType,
         card: 'Credit', //Debit | Credit

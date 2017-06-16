@@ -309,7 +309,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
         var errors = {};
         return new Promise((resolve, reject) => {
             var valid = spkDoc;
-            this.moduleManager.getByCode(moduleId)
+            this.moduleManager.getByCode("EFR-PK/PLB")
                 .then(module => {
                     // 1. begin: Declare promises.
                     var getSPKDoc = this.collection.singleOrDefault({
@@ -409,9 +409,13 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                         inventoryQuantity = items[index].quantity;
                                     }
                                     index++;
+                                    if (parseInt(item.quantity) <= 0) {
+                                        itemError["quantity"] = "quantity must be greater than 0";
+                                    }
                                     if (item.quantity > inventoryQuantity) {
                                         itemError["quantity"] = "Tidak bisa simpan jika Quantity Pengiriman > Quantity Stock";
                                     }
+                                    item.sendQuantity = parseInt(item.quantity || 0);
                                     itemErrors.push(itemError);
                                 }
                                 // 2a. end: Validate error on item level.
@@ -627,6 +631,9 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                         for (var spkDocument of spks.values()) {
                             var spkDocs = new Promise((resolve, reject) => {
                                 var spkDoc = spkDocument;
+                                for (var item of spkDoc.items) {
+                                    item.sendQuantity = parseInt(item.quantity || 0);
+                                }
                                 this.pkManager.getByPL(spkDoc.packingList)
                                     .then(resultItem => {
                                         if (resultItem) {
