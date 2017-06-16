@@ -219,4 +219,37 @@ module.exports = class AdjustmentStockManager extends BaseManager {
 
         });
     }
+
+    getReportAdjustment(storageId)
+{
+ return new Promise((resolve, reject) => {
+            // if (storageId === '')
+            //     resolve(null);
+            
+            var query={};
+            if(storageId && storageId!=""){
+                query = {
+                storageId: new ObjectId(storageId),
+               
+                _deleted: false
+            };
+            }
+            else{
+                query = {
+               
+                _deleted: false
+            };
+            }
+            
+            this.collection.find(query).toArray()
+                .then(inventory => {
+                    resolve(inventory);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+
+}
+
 };
