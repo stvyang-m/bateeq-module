@@ -87,30 +87,34 @@ module.exports = class StockOpnameDocManager extends BaseManager {
 
     create(valid){
         return new Promise((resolve, reject) => {
-            var dataFile = valid.dataFile;
+            var dataFile = valid.dataFile ? valid.dataFile : [];
             var errors = {};
             var data = [];
             var storageData = valid.storageId && ObjectId.isValid(valid.storageId) ? this.storageManager.getSingleByIdOrDefault(new ObjectId(valid.storageId)) : Promise.resolve(null);
             for(var a = 1; a < dataFile.length; a++){
                 data.push({"code" : dataFile[a][0], "name" : dataFile[a][1], "qty" : dataFile[a][2]});
             }
-            var valueArr = data.map(function (item) { return item.code.toString() });
-            var itemDuplicateErrors = new Array(valueArr.length);
-            valueArr.some(function (item, idx) {
-                var itemError = {
-                    "code" : valueArr[idx],
-                    "error" : ""
-                };
-                if (valueArr.indexOf(item) != idx && valueArr.indexOf(item) > idx) {
-                    itemError.error = "Barcode sudah ada";
-                }
-                itemDuplicateErrors[idx] = itemError;
-            });
             var dataItem = [];
-            for(var a = 0; a < data.length; a++){
-                if(itemDuplicateErrors[a]["error"] === "" && itemDuplicateErrors[a]["code"] !== "" )
-                    dataItem.push(this.itemManager.getSingleByQueryOrDefault({"code" : itemDuplicateErrors[a]["code"]}));
+            if(data.length > 0){
+                var valueArr = data.map(function (item) { return item.code.toString() });
+                var itemDuplicateErrors = new Array(valueArr.length);
+                valueArr.some(function (item, idx) {
+                    var itemError = {
+                        "code" : valueArr[idx],
+                        "error" : ""
+                    };
+                    if (valueArr.indexOf(item) != idx && valueArr.indexOf(item) > idx) {
+                        itemError.error = "Barcode sudah ada";
+                    }
+                    itemDuplicateErrors[idx] = itemError;
+                });
+                for(var a = 0; a < data.length; a++){
+                    if(itemDuplicateErrors[a]["error"] === "" && itemDuplicateErrors[a]["code"] !== "" )
+                        dataItem.push(this.itemManager.getSingleByQueryOrDefault({"code" : itemDuplicateErrors[a]["code"]}));
+                }
             }
+            if(dataItem.length === 0)
+                dataItem.push(Promise.resolve(null));
             Promise.all([storageData].concat(dataItem))
                 .then(results => {
                     var _storage = results[0];
@@ -152,9 +156,11 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                         }
                     }
                     if(!valid.storageId || valid.storageId.toString() === "")
-                        errors["storage"] = "storage is required";
+                        errors["storage"] = "storage harus diisi";
                     else if(!_storage)
-                        errors["storage"] = "storage is not found";
+                        errors["storage"] = "storage tidak ditemukan";
+                    if(data.length === 0)
+                        errors["file"] = "data CSV harus dipilih"
                     
                     for (var prop in errors) {
                         var ValidationError = require('module-toolkit').ValidationError;
@@ -217,9 +223,9 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                     var _storage = results[0];
                     var _dataItems = results.slice(1, results.length);
                     if(!valid.storageId || valid.storageId.toString() === "")
-                        errors["storage"] = "storage is required";
+                        errors["storage"] = "storage harus diisi";
                     else if(!_storage)
-                        errors["storage"] = "storage is not found";
+                        errors["storage"] = "storage tidak ditemukan";
                     
                     var errorItems = [];
                     var idx = 0;
@@ -230,12 +236,12 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                         }
                         var itemData = _dataItems.find(searchItem);
                         if(!a.itemId && a.itemId.toString() === "")
-                            itemError["item"] = "item is required";
+                            itemError["item"] = "item harus diisi";
                         if(!itemData)
-                            itemError["item"] = "item is required";
+                            itemError["item"] = "item tidak ditemukan";
                         
                         if(a.isAdjusted && (a.remark === "" || !a.remark))
-                            itemError["remark"] = "description is required";
+                            itemError["remark"] = "catatan harus diisi";
                         
                         errorItems.push(itemError);
                         idx++;

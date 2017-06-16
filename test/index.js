@@ -47,5 +47,6 @@ describe('#bateeq-module', function (done) {
     test('@manager/sales-manager',                      './managers/sales-manager-test');
     test('@manager/sales-return-manager',               './managers/sales-return-manager-test');
     test('@manager/adjustment-manager',                 './managers/inventory/adjustment');
+    test('@manager/stock-opname-manager',               './managers/inventory/stock-opname');
 
 })
