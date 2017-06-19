@@ -219,8 +219,7 @@ module.exports = class AdjustmentStockManager extends BaseManager {
 
         });
     }
-getReportAdjustment(storageId)
-{
+getReportAdjustment(storageId){
  return new Promise((resolve, reject) => {
             var query={};
             if(storageId && storageId!==""){
