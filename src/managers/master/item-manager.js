@@ -332,6 +332,12 @@ module.exports = class ItemManager extends BaseManager {
                                 }
                             }
 
+                            for (var items of salesReturnDoc.returnItems) {
+                                if (items.item.code === data.code) {
+                                    items.item = data;
+                                }
+                            }
+
                             salesReturnDoc._updatedDate = data._updatedDate;
                             this.salesReturnCollection.update(salesReturnDoc)
                                 .then(id => {
