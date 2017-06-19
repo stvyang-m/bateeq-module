@@ -121,6 +121,7 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                     var _storage = results[0];
                     var items = results.slice(1, results.length);
                     var dataError = [];
+                    var newDate = new Date();
                     for(var a = 0; a < data.length; a++){
                         var Error = "";
                         if(data[a]["code"] === "" || data[a]["name"] === "" || data[a]["qty"] === "")
@@ -169,7 +170,6 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                     }
                     if(dataError.length === 0){
                         var itemsData = [];
-                        var newDate = new Date();
                         for(var a of data){
                             function searchItem(params) {
                                 return params.code === a.code;
