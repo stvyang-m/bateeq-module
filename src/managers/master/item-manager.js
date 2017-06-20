@@ -252,25 +252,52 @@ module.exports = class ItemManager extends BaseManager {
         });
     }
 
-    //15-6-2017
+    //Code update on 20-6-2017
+    //for update item on sales-doc
     updateItemOnSalesDoc(data) {
+        var query = {};
+
         var filter = {
-            'items.item.code': data.code,
             'isVoid': false
         };
 
+        var filterSalesItems = {
+            'items.item.code': data.code
+        };
+
+        var filterSalesItemsReturnItems = {
+            'items.returnItems.item.code': data.code
+        }
+
+        var itemFilter = {
+            '$or': [filterSalesItems, filterSalesItemsReturnItems]
+        }
+
+        query = { '$and': [filter, itemFilter] };
+
         return new Promise((resolve, reject) => {
-            this.salesCollection.where(filter).execute()
+            this.salesCollection.where(query).execute()
                 .then(salesDocs => {
 
                     if (salesDocs.data.length > 0) {
                         for (var salesDoc of salesDocs.data) {
 
-                            for (var items of salesDoc.items) {
-                                if (items.item.code === data.code) {
-                                    items.item = data;
+                            if (salesDoc.items) {
+                                for (var items of salesDoc.items) {
+                                    if (items.item.code === data.code) {
+                                        items.item = data;
+                                    }
                                 }
                             }
+
+                            if (salesDoc.items.returnItems) {
+                                for (var items of salesDoc.items.returnItems) {
+                                    if (items.item.code === data.code) {
+                                        items.item = data;
+                                    }
+                                }
+                            }
+
                             salesDoc._updatedDate = data._updatedDate;
                             this.salesCollection.update(salesDoc)
                                 .then(id => {
@@ -291,7 +318,8 @@ module.exports = class ItemManager extends BaseManager {
         });
     }
 
-    //stil 15-6-2017
+    //Code update on 20-6-2017
+    //for update item inside sales-return-doc
     updateItemOnSalesReturnDoc(data) {
         var query = {};
 
@@ -303,12 +331,24 @@ module.exports = class ItemManager extends BaseManager {
             'salesDoc.items.item.code': data.code
         };
 
+        var filterSalesReturnItem = {
+            'salesDoc.items.returnItems.item.code': data.code
+        };
+
         var filterSalesReturn = {
             'salesDocReturn.items.item.code': data.code
         };
 
+        var filterSalesDocReturnReturnItems = {
+            'salesDocReturn.items.returnItems.item.code': data.code
+        }
+
+        var filterReturnItems = {
+            'returnItems.item.code': data.code
+        }
+
         var itemFilter = {
-            '$or': [filterSales, filterSalesReturn]
+            '$or': [filterSales, filterSalesReturnItem, filterSalesReturn, filterSalesDocReturnReturnItems, filterReturnItems]
         }
 
         query = { '$and': [filter, itemFilter] };
@@ -320,17 +360,46 @@ module.exports = class ItemManager extends BaseManager {
                     if (salesReturnDocs.data.length > 0) {
                         for (var salesReturnDoc of salesReturnDocs.data) {
 
-                            for (var items of salesReturnDoc.salesDoc.items) {
-                                if (items.item.code === data.code) {
-                                    items.item = data;
+                            if (salesReturnDoc.salesDoc.items) {
+                                for (var items of salesReturnDoc.salesDoc.items) {
+                                    if (items.item.code === data.code) {
+                                        items.item = data;
+                                    }
                                 }
                             }
 
-                            for (var items of salesReturnDoc.salesDocReturn.items) {
-                                if (items.item.code === data.code) {
-                                    items.item = data;
+                            if (salesReturnDoc.salesDoc.items.returnItems) {
+                                for (var items of salesReturnDoc.salesDoc.items.returnItems) {
+                                    if (items.item.code === data.code) {
+                                        items.item = data;
+                                    }
                                 }
                             }
+
+                            if (salesReturnDoc.salesDocReturn.items) {
+                                for (var items of salesReturnDoc.salesDocReturn.items) {
+                                    if (items.item.code === data.code) {
+                                        items.item = data;
+                                    }
+                                }
+                            }
+
+                            if (salesReturnDoc.salesDocReturn.items.returnItems) {
+                                for (var items of salesReturnDoc.salesDocReturn.items.returnItems) {
+                                    if (items.item.code === data.code) {
+                                        items.item = data;
+                                    }
+                                }
+                            }
+
+                            if (salesReturnDoc.returnItems) {
+                                for (var items of salesReturnDoc.returnItems) {
+                                    if (items.item.code === data.code) {
+                                        items.item = data;
+                                    }
+                                }
+                            }
+
 
                             salesReturnDoc._updatedDate = data._updatedDate;
                             this.salesReturnCollection.update(salesReturnDoc)

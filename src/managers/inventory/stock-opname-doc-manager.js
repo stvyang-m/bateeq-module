@@ -99,11 +99,12 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                 var valueArr = data.map(function (item) { return item.code.toString() });
                 var itemDuplicateErrors = new Array(valueArr.length);
                 valueArr.some(function (item, idx) {
+                    var index = valueArr.indexOf(item);
                     var itemError = {
                         "code" : valueArr[idx],
                         "error" : ""
                     };
-                    if (valueArr.indexOf(item) != idx && valueArr.indexOf(item) > idx) {
+                    if (index < idx) {
                         itemError.error = "Barcode sudah ada";
                     }
                     itemDuplicateErrors[idx] = itemError;
@@ -120,13 +121,14 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                     var _storage = results[0];
                     var items = results.slice(1, results.length);
                     var dataError = [];
+                    var newDate = new Date();
                     for(var a = 0; a < data.length; a++){
                         var Error = "";
                         if(data[a]["code"] === "" || data[a]["name"] === "" || data[a]["qty"] === "")
                             Error = Error + "Lengkapi data";
                         if(data[a]["code"] !== ""){ 
                             if(itemDuplicateErrors[a]["error"] !== "")
-                                Error = Error + itemDuplicateErrors[a];
+                                Error = Error + itemDuplicateErrors[a]["error"];
                             function searchItem(params) {
                                 return params ? params.code === data[a]["code"] : null;
                             }
@@ -177,7 +179,8 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                                 itemId : (new ObjectId(item._id)),
                                 item : item,
                                 qtySO : Number(a.qty),
-                                _createdDate : new Date()
+                                _createdDate : newDate,
+                                _active : true
                             });
                             itemSO.stamp(this.user.username, 'manager');
                             itemsData.push(itemSO);
@@ -188,7 +191,8 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                             storage : _storage,
                             items : itemsData,
                             isProcess : false,
-                            _createdDate : new Date()
+                            _createdDate : newDate,
+                            _active : true
                         });
                         SO.stamp(this.user.username, 'manager');
                         this.collection.insert(SO)
@@ -293,6 +297,7 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                 .then(result => {
                     var dataIn= [];
                     var dataOut = [];
+                    var newDate = new Date();
                     for(var a of result.items){
                         if(a.isAdjusted){
                             if(a.qtySO > a.qtyBeforeSO){
@@ -300,7 +305,9 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                                     itemId : new ObjectId(a.itemId),
                                     item : a.item,
                                     quantity : a.qtySO - a.qtyBeforeSO,
-                                    remark : a.remark
+                                    remark : a.remark,
+                                    _createdDate : newDate,
+                                    _active : true
                                 });
                                 inTransItem.stamp(this.user.username, 'manager');
                                 dataIn.push(inTransItem);
@@ -310,7 +317,9 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                                     itemId : new ObjectId(a.itemId),
                                     item : a.item,
                                     quantity : a.qtyBeforeSO - a.qtySO,
-                                    remark : a.remark
+                                    remark : a.remark,
+                                    _createdDate : newDate,
+                                    _active : true
                                 });
                                 outTransItem.stamp(this.user.username, 'manager');
                                 dataOut.push(outTransItem);
@@ -326,9 +335,11 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                             inDoc.sourceId = new ObjectId(result.storageId);
                             inDoc.destination = result.storage;
                             inDoc.destinationId = new ObjectId(result.storageId);
-                            inDoc.date = new Date();
+                            inDoc.date = newDate;
                             inDoc.reference = result.code;
+                            inDoc._createdDate = newDate;
                             inDoc.items = dataIn;
+                            inDoc._active = true;
                             inDoc.stamp(this.user.username, 'manager');
                         }
                         if(dataOut.length > 0){
@@ -337,9 +348,11 @@ module.exports = class StockOpnameDocManager extends BaseManager {
                             outDoc.sourceId = new ObjectId(result.storageId);
                             outDoc.destination = result.storage;
                             outDoc.destinationId = new ObjectId(result.storageId);
-                            outDoc.date = new Date();
+                            outDoc.date = newDate;
                             outDoc.reference = result.code;
-                            outDoc.items = dataIn;
+                            outDoc._createdDate = newDate;
+                            outDoc.items = dataOut;
+                            outDoc._active = true;
                             outDoc.stamp(this.user.username, 'manager');
                         }
                         if(dataIn.length > 0 && dataOut.length <= 0){

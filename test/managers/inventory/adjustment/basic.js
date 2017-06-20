@@ -68,32 +68,32 @@ it("#02. should success when create new data with inQty", function(done) {
     })
 });
 
-it("#03. should success when create new data with outQty", function(done) {
-    var data={
-        storage :_storage,
-        storageId :storageId,
-        items :[{
-            itemId: itemId,
-            item:_item,
-            availableQuantity:10,
-            inQty : 0,
-            outQty:5,
-            remarks : 'data for unit test'
-        }]
-    };
-     instanceManager.create(data)
-    .then(id => {
-        id.should.be.Object();
-        createdId = id;
-        done();
-    })
-    .catch(e => {
-        done(e);
-    })
-});
+// it("#03. should success when create new data with outQty", function(done) {
+//     var data={
+//         storage :_storage,
+//         storageId :storageId,
+//         items :[{
+//             itemId: itemId,
+//             item:_item,
+//             availableQuantity:10,
+//             inQty : 0,
+//             outQty:5,
+//             remarks : 'data for unit test'
+//         }]
+//     };
+//      instanceManager.create(data)
+//     .then(id => {
+//         id.should.be.Object();
+//         createdId = id;
+//         done();
+//     })
+//     .catch(e => {
+//         done(e);
+//     })
+// });
 
 var createdData;
-it("#04. should success when get created data with id", function(done) {
+it("#03. should success when get created data with id", function(done) {
     instanceManager.getSingleByQuery({
         _id: createdId
     })
@@ -107,7 +107,7 @@ it("#04. should success when get created data with id", function(done) {
     })
 });
 
-it("#05. should error when create new data with inQty>0 and outQty>0", function(done) {
+it("#04. should error when create new data with inQty>0 and outQty>0", function(done) {
     var data={
         storage :_storage,
         storageId :storageId,
@@ -135,7 +135,7 @@ it("#05. should error when create new data with inQty>0 and outQty>0", function(
         });
 });
 
-it("#06. should error when create new data with inQty=0 and outQty=0", function(done) {
+it("#05. should error when create new data with inQty=0 and outQty=0", function(done) {
     var data={
         storage :_storage,
         storageId :storageId,
@@ -163,7 +163,7 @@ it("#06. should error when create new data with inQty=0 and outQty=0", function(
         });
 });
 
-it("#07. should error when create new data with availableQuantity=0 and outQty>0", function(done) {
+it("#06. should error when create new data with availableQuantity=0 and outQty>0", function(done) {
     var data={
         storage :_storage,
         storageId :storageId,
@@ -191,7 +191,7 @@ it("#07. should error when create new data with availableQuantity=0 and outQty>0
         });
 });
 
-it("#08. should error when create new data without remarks", function(done) {
+it("#07. should error when create new data without remarks", function(done) {
     var data={
         storage :_storage,
         storageId :storageId,
