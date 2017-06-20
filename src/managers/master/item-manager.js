@@ -284,16 +284,15 @@ module.exports = class ItemManager extends BaseManager {
 
                             if (salesDoc.items) {
                                 for (var items of salesDoc.items) {
+
                                     if (items.item.code === data.code) {
                                         items.item = data;
                                     }
-                                }
-                            }
 
-                            if (salesDoc.items.returnItems) {
-                                for (var items of salesDoc.items.returnItems) {
-                                    if (items.item.code === data.code) {
-                                        items.item = data;
+                                    for (var returnItem of items.returnItems) {
+                                        if (returnItem.item.code === data.code) {
+                                            returnItem.item = data;
+                                        }
                                     }
                                 }
                             }
@@ -362,32 +361,30 @@ module.exports = class ItemManager extends BaseManager {
 
                             if (salesReturnDoc.salesDoc.items) {
                                 for (var items of salesReturnDoc.salesDoc.items) {
+
                                     if (items.item.code === data.code) {
                                         items.item = data;
                                     }
-                                }
-                            }
 
-                            if (salesReturnDoc.salesDoc.items.returnItems) {
-                                for (var items of salesReturnDoc.salesDoc.items.returnItems) {
-                                    if (items.item.code === data.code) {
-                                        items.item = data;
+                                    for (var returnItem of items.returnItems) {
+                                        if (returnItem.item.code === data.code) {
+                                            returnItem.item = data;
+                                        }
                                     }
                                 }
                             }
 
                             if (salesReturnDoc.salesDocReturn.items) {
                                 for (var items of salesReturnDoc.salesDocReturn.items) {
+
                                     if (items.item.code === data.code) {
                                         items.item = data;
                                     }
-                                }
-                            }
 
-                            if (salesReturnDoc.salesDocReturn.items.returnItems) {
-                                for (var items of salesReturnDoc.salesDocReturn.items.returnItems) {
-                                    if (items.item.code === data.code) {
-                                        items.item = data;
+                                    for (var returnItem of items.returnItems) {
+                                        if (returnItem.item.code === data.code) {
+                                            returnItem.item = data;
+                                        }
                                     }
                                 }
                             }
