@@ -539,4 +539,23 @@ module.exports = class InventoryManager extends BaseManager {
                 });
         });
     }
+    getInventoryByItem(itemId) {
+        
+    return new Promise((resolve, reject) => {
+       var query={}
+          if(itemId && itemId!==""){
+                query = {
+                itemId: new ObjectId(itemId),
+                _deleted: false
+            };
+            }
+            else{
+               resolve(null)
+            }
+            this.collection.find(query)
+                .toArray().then(result=>
+                resolve(result));
+
+                });
+    }
 };
