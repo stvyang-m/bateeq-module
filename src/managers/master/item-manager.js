@@ -12,6 +12,7 @@ var BateeqModels = require('bateeq-models');
 var Item = BateeqModels.master.Item;
 var FinishedGoods = BateeqModels.master.FinishedGoods;
 var Material = BateeqModels.master.Material;
+var Sales = BateeqModels.sales.Sales;
 var map = BateeqModels.map;
 
 
@@ -19,6 +20,8 @@ module.exports = class ItemManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
         this.collection = this.db.use(map.master.Item);
+        this.salesCollection = this.db.use(map.sales.SalesDoc);
+        this.salesReturnCollection = this.db.use(map.sales.SalesReturnDoc);
         this.componentHelper = new ComponentHelper(this);
     }
 
@@ -100,13 +103,26 @@ module.exports = class ItemManager extends BaseManager {
         });
     }
 
+    //update 15-6-2017
     update(data) {
         return new Promise((resolve, reject) => {
             this._validate(data)
                 .then(validData => {
                     this.collection.update(validData)
                         .then(id => {
-                            resolve(id);
+                            this.updateItemOnSalesDoc(validData)
+                                .then(salesDocUpdate => {
+                                    this.updateItemOnSalesReturnDoc(validData)
+                                        .then(salesReturnUpDate => {
+                                            resolve(id);
+                                        })
+                                        .catch(e => {
+                                            reject(e);
+                                        })
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                })
                         })
                         .catch(e => {
                             reject(e);
@@ -234,5 +250,110 @@ module.exports = class ItemManager extends BaseManager {
                     reject(e);
                 })
         });
+    }
+
+    //15-6-2017
+    updateItemOnSalesDoc(data) {
+        var filter = {
+            'items.item.code': data.code,
+            'isVoid': false
+        };
+
+        return new Promise((resolve, reject) => {
+            this.salesCollection.where(filter).execute()
+                .then(salesDocs => {
+
+                    if (salesDocs.data.length > 0) {
+                        for (var salesDoc of salesDocs.data) {
+
+                            for (var items of salesDoc.items) {
+                                if (items.item.code === data.code) {
+                                    items.item = data;
+                                }
+                            }
+                            salesDoc._updatedDate = data._updatedDate;
+                            this.salesCollection.update(salesDoc)
+                                .then(id => {
+                                    resolve();
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                })
+                        }
+                    } else {
+                        resolve();
+                    }
+
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
+    }
+
+    //stil 15-6-2017
+    updateItemOnSalesReturnDoc(data) {
+        var query = {};
+
+        var filter = {
+            'isVoid': false
+        };
+
+        var filterSales = {
+            'salesDoc.items.item.code': data.code
+        };
+
+        var filterSalesReturn = {
+            'salesDocReturn.items.item.code': data.code
+        };
+
+        var itemFilter = {
+            '$or': [filterSales, filterSalesReturn]
+        }
+
+        query = { '$and': [filter, itemFilter] };
+
+        return new Promise((resolve, reject) => [
+            this.salesReturnCollection.where(query).execute()
+                .then(salesReturnDocs => {
+
+                    if (salesReturnDocs.data.length > 0) {
+                        for (var salesReturnDoc of salesReturnDocs.data) {
+
+                            for (var items of salesReturnDoc.salesDoc.items) {
+                                if (items.item.code === data.code) {
+                                    items.item = data;
+                                }
+                            }
+
+                            for (var items of salesReturnDoc.salesDocReturn.items) {
+                                if (items.item.code === data.code) {
+                                    items.item = data;
+                                }
+                            }
+
+                            for (var items of salesReturnDoc.returnItems) {
+                                if (items.item.code === data.code) {
+                                    items.item = data;
+                                }
+                            }
+
+                            salesReturnDoc._updatedDate = data._updatedDate;
+                            this.salesReturnCollection.update(salesReturnDoc)
+                                .then(id => {
+                                    resolve();
+                                })
+                                .catch(e => {
+                                    reject(e);
+                                })
+                        }
+                    } else {
+                        resolve();
+                    }
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        ]);
     }
 };

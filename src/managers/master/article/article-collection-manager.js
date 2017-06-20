@@ -7,14 +7,13 @@ var ObjectId = require('mongodb').ObjectId;
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
+var ArticleCollection = BateeqModels.master.article.ArticleCollection;
 var BaseManager = require('module-toolkit').BaseManager;
 
-var ArticleMotif = BateeqModels.master.article.ArticleMotif;
-
-module.exports = class ArticleMotifManager extends BaseManager {
+module.exports = class ArticleCollectionManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
-        this.collection = this.db.use(map.master.article.ArticleMotif);
+        this.collection = this.db.use(map.master.article.ArticleCollection);
     }
 
     _getQuery(paging) {
@@ -44,11 +43,13 @@ module.exports = class ArticleMotifManager extends BaseManager {
         return query;
     }
 
-    _validate(articleMotif) {
+
+    _validate(articleCollection) {
         var errors = {};
         return new Promise((resolve, reject) => {
-            var valid = articleMotif;
-            var getArticleMotif = this.collection.singleOrDefault({
+            var valid = articleCollection;
+            // 1. begin: Declare promises.
+            var getArticleCollection = this.collection.singleOrDefault({
                 "$and": [{
                     _id: {
                         '$ne': new ObjectId(valid._id)
@@ -57,24 +58,27 @@ module.exports = class ArticleMotifManager extends BaseManager {
                     code: valid.code
                 }]
             });
+            // 1. end: Declare promises.
 
-            Promise.all([getArticleMotif])
+            // 2. begin: Validation.
+            Promise.all([getArticleCollection])
                 .then(results => {
-                    var _articleMotif = results[0];
+                    var _articleCollection = results[0];
 
                     if (!valid.code || valid.code == '')
                         errors["code"] = "code is required";
-                    else if (_articleMotif) {
+                    else if (_articleCollection) {
                         errors["code"] = "code already exists";
                     }
                     if (!valid.name || valid.name == '')
                         errors["name"] = "name is required";
 
+                    // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
                         var ValidationError = require('module-toolkit').ValidationError;
                         reject(new ValidationError('data does not pass validation', errors));
                     }
-                    valid = new ArticleMotif(articleMotif);
+                    valid = new ArticleCollection(articleCollection);
                     valid._active = true;
                     valid.stamp(this.user.username, 'manager');
                     resolve(valid);
@@ -87,14 +91,14 @@ module.exports = class ArticleMotifManager extends BaseManager {
 
     _createIndexes() {
         var dateIndex = {
-            name: `ix_${map.master.article.ArticleMotif}__updatedDate`,
+            name: `ix_${map.master.article.ArticleCollection}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         };
 
         var codeIndex = {
-            name: `ix_${map.master.article.ArticleMotif}_code`,
+            name: `ix_${map.master.article.ArticleCollection}_code`,
             key: {
                 code: 1
             },
