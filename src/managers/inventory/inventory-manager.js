@@ -419,4 +419,140 @@ module.exports = class InventoryManager extends BaseManager {
                 });
         });
     }
+     getInventoryByItem(itemId) {
+        
+        
+
+        return new Promise((resolve, reject) => {
+        var query={
+                "itemId" : (new ObjectId(itemId)) 
+            }
+      
+    
+    
+            this.collection.find(query)
+                .toArray().then(result=>
+                resolve(result));
+        })
+    }
+    out(storageId, refNo, itemId, quantity, remark) {
+        var absQuantity = Math.abs(quantity);
+        return this.move(storageId, refNo, 'OUT', itemId, absQuantity * -1, remark);
+    }
+
+    in(storageId, refNo, itemId, quantity, remark) {
+        var absQuantity = Math.abs(quantity);
+        return this.move(storageId, refNo, 'IN', itemId, absQuantity, remark);
+    }
+
+    move(storageId, refNo, type, itemId, quantity, remark) {
+        return new Promise((resolve, reject) => {
+            this.getInventory(storageId, itemId)
+                .then(inventory => {
+                    var originQuantity = inventory.quantity;
+                    var movement = new InventoryMovement({
+                        inventoryId: inventory._id,
+                        data: new Date(),
+                        reference: refNo,
+                        type: type,
+                        storageId: inventory.storageId,
+                        itemId: inventory.itemId,
+                        before: originQuantity,
+                        quantity: quantity,
+                        after: originQuantity + quantity,
+                        remark: remark
+                    });
+
+                    inventory.quantity += quantity;
+
+                    var updateInventory = this.update(inventory);
+                    var createMovement = this.inventoryMovementManager.create(movement);
+
+                    Promise.all([createMovement, updateInventory])
+                        .then(results => {
+                            var movementId = results[0];
+                            var inventoryId = results[1];
+
+                            resolve(movementId);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
+    _validate(inventory) {
+        var errors = {};
+        return new Promise((resolve, reject) => {
+            var valid = new Inventory(inventory);
+            var getStorage = this.storageManager.getSingleById(inventory.storageId);
+            var getItem = this.itemManager.getSingleById(inventory.itemId);
+
+            Promise.all([getStorage, getItem])
+                .then(results => {
+                    var storage = results[0];
+                    var item = results[1];
+
+                    if (!valid.storageId || valid.storageId == '')
+                        errors["storageId"] = "storageId is required";
+                    if (!storage) {
+                        errors["storageId"] = "storageId not found";
+                    }
+                    else {
+                        valid.storageId = storage._id;
+                        valid.storage = storage;
+                    }
+                    if (!valid.itemId || valid.itemId == '')
+                        errors["itemId"] = "itemId is required";
+                    if (!item) {
+                        errors["itemId"] = "itemId not found";
+                    }
+                    else {
+                        valid.itemId = item._id;
+                        valid.item = item;
+                    }
+
+                    if (valid.quantity == undefined || (valid.quantity && valid.quantity == '')) {
+                        errors["quantity"] = "quantity is required";
+                    }
+                    else if (parseInt(valid.quantity) < 0) {
+                        errors["quantity"] = "quantity must be greater than 0";
+                    }
+
+                    // 2c. begin: check if data has any error, reject if it has.
+                    for (var prop in errors) {
+                        var ValidationError = require('../../validation-error');
+                        reject(new ValidationError('data does not pass validation', errors));
+                    }
+                    valid.stamp(this.user.username, 'manager');
+                    resolve(valid)
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+    getInventoryByItem(itemId) {
+        
+    return new Promise((resolve, reject) => {
+       var query={}
+          if(itemId && itemId!==""){
+                query = {
+                itemId: new ObjectId(itemId),
+                _deleted: false
+            };
+            }
+            else{
+               resolve(null)
+            }
+            this.collection.find(query)
+                .toArray().then(result=>
+                resolve(result));
+
+                });
+    }
 };

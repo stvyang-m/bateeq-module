@@ -142,7 +142,23 @@ module.exports = class FinishedGoodsManager extends ItemManager {
     //     // });
     // }
 
-    updateImage(colorCode, articleColor, products, imagePath, motifPath) {
+    // updateImage(colorCode, articleColor, products, imagePath, motifPath)
+    updateImage(data) {
+        var colorCode = data.colorCode;
+        var articleColor = data.articleColor;
+        var products = data.products;
+        var imagePath = data.imagePath;
+        var motifPath = data.motifPath;
+        var realizationOrderName = data.realizationOrderName;
+        var processDoc = data.processDoc;
+        var motifDoc = data.motifDoc;
+        var materialDoc = data.materialDoc;
+        var materialCompositionDoc = data.materialCompositionDoc;
+        var collectionDoc = data.collectionDoc;
+        var counterDoc = data.counterDoc;
+        var styleDoc = data.styleDoc;
+        var seasonDoc = data.seasonDoc;
+
         return new Promise((resolve, reject) => {
             var dataError = {};
             if (colorCode === "") {
@@ -164,7 +180,7 @@ module.exports = class FinishedGoodsManager extends ItemManager {
 
             var motifManager = new ArticleMotifManager(this.db, this.user);
             var getMotif = motifManager.getSingleByQueryOrDefault({
-                "code": articleMotifCode
+                "code": motifDoc.code
             })
 
             var colorManager = new ArticleColorManager(this.db, this.user);
@@ -180,7 +196,7 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                         motif["filePath"] = motifPath;
                         var updateMotif = motifManager.update(motif);
 
-
+                        //20-6-2017
                         var updateItem = [];
                         for (var i = 2; i < results.length; i++) {
                             var item = results[i];
@@ -189,6 +205,15 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                             item["motifDoc"] = motif;
                             item["colorCode"] = colorCode;
                             item["colorDoc"] = color;
+                            item["motifDoc"] = motifDoc;
+                            item["realizationOrderName"] = realizationOrderName;
+                            item["processDoc"] = processDoc;
+                            item["materialDoc"] = materialDoc;
+                            item["materialCompositionDoc"] = materialCompositionDoc;
+                            item["collectionDoc"] = collectionDoc;
+                            item["seasonDoc"] = seasonDoc;
+                            item["counterDoc"] = counterDoc;
+                            item["styleDoc"] = styleDoc;
                             updateItem.push(this.update(item));
                         }
 
@@ -209,8 +234,6 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                         if (!results[1]) {
                             dataError["color"] = "article color tidak ditemukan";
                         }
-
-
                         for (var prop in dataError) {
                             var ValidationError = require('module-toolkit').ValidationError;
                             reject(new ValidationError('data does not pass validation', dataError));
