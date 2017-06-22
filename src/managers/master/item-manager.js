@@ -278,20 +278,20 @@ module.exports = class ItemManager extends BaseManager {
         return new Promise((resolve, reject) => {
             this.salesCollection.where(query).execute()
                 .then(salesDocs => {
-
                     if (salesDocs.data.length > 0) {
                         for (var salesDoc of salesDocs.data) {
 
-                            if (salesDoc.items) {
+                            if (salesDoc.items.length > 0) {
                                 for (var items of salesDoc.items) {
 
                                     if (items.item.code === data.code) {
                                         items.item = data;
                                     }
-
-                                    for (var returnItem of items.returnItems) {
-                                        if (returnItem.item.code === data.code) {
-                                            returnItem.item = data;
+                                    if (items.returnItems.length > 0) {
+                                        for (var returnItem of items.returnItems) {
+                                            if (returnItem.item.code === data.code) {
+                                                returnItem.item = data;
+                                            }
                                         }
                                     }
                                 }
@@ -359,37 +359,37 @@ module.exports = class ItemManager extends BaseManager {
                     if (salesReturnDocs.data.length > 0) {
                         for (var salesReturnDoc of salesReturnDocs.data) {
 
-                            if (salesReturnDoc.salesDoc.items) {
+                            if (salesReturnDoc.salesDoc.items.length > 0) {
                                 for (var items of salesReturnDoc.salesDoc.items) {
-
                                     if (items.item.code === data.code) {
                                         items.item = data;
                                     }
-
-                                    for (var returnItem of items.returnItems) {
-                                        if (returnItem.item.code === data.code) {
-                                            returnItem.item = data;
+                                    if (items.returnItems.length > 0) {
+                                        for (var returnItem of items.returnItems) {
+                                            if (returnItem.item.code === data.code) {
+                                                returnItem.item = data;
+                                            }
                                         }
                                     }
                                 }
                             }
 
-                            if (salesReturnDoc.salesDocReturn.items) {
+                            if (salesReturnDoc.salesDocReturn.items.length > 0) {
                                 for (var items of salesReturnDoc.salesDocReturn.items) {
-
                                     if (items.item.code === data.code) {
                                         items.item = data;
                                     }
-
-                                    for (var returnItem of items.returnItems) {
-                                        if (returnItem.item.code === data.code) {
-                                            returnItem.item = data;
+                                    if (items.returnItems.length > 0) {
+                                        for (var returnItem of items.returnItems) {
+                                            if (returnItem.item.code === data.code) {
+                                                returnItem.item = data;
+                                            }
                                         }
                                     }
                                 }
                             }
-
-                            if (salesReturnDoc.returnItems) {
+                            
+                            if (salesReturnDoc.returnItems.length > 0) {
                                 for (var items of salesReturnDoc.returnItems) {
                                     if (items.item.code === data.code) {
                                         items.item = data;
