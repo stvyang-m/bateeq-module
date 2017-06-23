@@ -12,7 +12,7 @@ var BateeqModels = require('bateeq-models');
 var Item = BateeqModels.master.Item;
 var FinishedGoods = BateeqModels.master.FinishedGoods;
 var Material = BateeqModels.master.Material;
-var Sales = BateeqModels.sales.Sales;
+// var Sales = BateeqModels.sales.Sales;
 var map = BateeqModels.map;
 
 
@@ -20,8 +20,8 @@ module.exports = class ItemManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
         this.collection = this.db.use(map.master.Item);
-        this.salesCollection = this.db.use(map.sales.SalesDoc);
-        this.salesReturnCollection = this.db.use(map.sales.SalesReturnDoc);
+        // this.salesCollection = this.db.use(map.sales.SalesDoc);
+        // this.salesReturnCollection = this.db.use(map.sales.SalesReturnDoc);
         this.componentHelper = new ComponentHelper(this);
     }
 
@@ -103,33 +103,34 @@ module.exports = class ItemManager extends BaseManager {
         });
     }
 
-    //update 15-6-2017
+    //update 23-6-2017
     update(data) {
         return new Promise((resolve, reject) => {
             this._validate(data)
                 .then(validData => {
                     this.collection.update(validData)
                         .then(id => {
-                            this.updateItemOnSalesDoc(validData)
-                                .then(salesDocUpdate => {
-                                    this.updateItemOnSalesReturnDoc(validData)
-                                        .then(salesReturnUpDate => {
-                                            resolve(id);
-                                        })
-                                        .catch(e => {
-                                            reject(e);
-                                        })
-                                })
-                                .catch(e => {
-                                    reject(e);
-                                })
+                            // this.updateItemOnSalesDoc(validData)
+                            //     .then(salesDocUpdate => {
+                            //         this.updateItemOnSalesReturnDoc(validData)
+                            //             .then(salesReturnUpDate => {
+                            resolve(id);
+                            //                         })
+                            //                         .catch(e => {
+                            //                             reject(e);
+                            //                         })
+                            //                 })
+                            //                 .catch(e => {
+                            //                     reject(e);
+                            //                 })
+                            //         })
+                            //         .catch(e => {
+                            //             reject(e);
+                            //         })
                         })
                         .catch(e => {
                             reject(e);
                         })
-                })
-                .catch(e => {
-                    reject(e);
                 })
         });
     }
@@ -252,168 +253,168 @@ module.exports = class ItemManager extends BaseManager {
         });
     }
 
-    //Code update on 20-6-2017
-    //for update item on sales-doc
-    updateItemOnSalesDoc(data) {
-        var query = {};
+    // //Code update on 20-6-2017
+    // //for update item on sales-doc
+    // updateItemOnSalesDoc(data) {
+    //     return new Promise((resolve, reject) => {
+    //         var query = {};
 
-        var filter = {
-            'isVoid': false
-        };
+    //         var filter = {
+    //             'isVoid': false
+    //         };
 
-        var filterSalesItems = {
-            'items.item.code': data.code
-        };
+    //         var filterSalesItems = {
+    //             'items.item.code': data.code
+    //         };
 
-        var filterSalesItemsReturnItems = {
-            'items.returnItems.item.code': data.code
-        }
+    //         var filterSalesItemsReturnItems = {
+    //             'items.returnItems.item.code': data.code
+    //         }
 
-        var itemFilter = {
-            '$or': [filterSalesItems, filterSalesItemsReturnItems]
-        }
+    //         var itemFilter = {
+    //             '$or': [filterSalesItems, filterSalesItemsReturnItems]
+    //         }
 
-        query = { '$and': [filter, itemFilter] };
+    //         query = { '$and': [filter, itemFilter] };
 
-        return new Promise((resolve, reject) => {
-            this.salesCollection.where(query).execute()
-                .then(salesDocs => {
-                    if (salesDocs.data.length > 0) {
-                        for (var salesDoc of salesDocs.data) {
+    //         this.salesCollection.where(query).execute()
+    //             .then(salesDocs => {
+    //                 if (salesDocs.data.length > 0) {
+    //                     for (var salesDoc of salesDocs.data) {
 
-                            if (salesDoc.items.length > 0) {
-                                for (var items of salesDoc.items) {
+    //                         if (salesDoc.items.length > 0) {
+    //                             for (var items of salesDoc.items) {
 
-                                    if (items.item.code === data.code) {
-                                        items.item = data;
-                                    }
-                                    if (items.returnItems.length > 0) {
-                                        for (var returnItem of items.returnItems) {
-                                            if (returnItem.item.code === data.code) {
-                                                returnItem.item = data;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+    //                                 if (items.item.code === data.code) {
+    //                                     items.item = data;
+    //                                 }
+    //                                 if (items.returnItems.length > 0) {
+    //                                     for (var returnItem of items.returnItems) {
+    //                                         if (returnItem.item.code === data.code) {
+    //                                             returnItem.item = data;
+    //                                         }
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
 
-                            salesDoc._updatedDate = data._updatedDate;
-                            this.salesCollection.update(salesDoc)
-                                .then(id => {
-                                    resolve();
-                                })
-                                .catch(e => {
-                                    reject(e);
-                                })
-                        }
-                    } else {
-                        resolve();
-                    }
+    //                         salesDoc._updatedDate = data._updatedDate;
+    //                         this.salesCollection.update(salesDoc)
+    //                             .then(id => {
+    //                                 resolve();
+    //                             })
+    //                             .catch(e => {
+    //                                 reject(e);
+    //                             })
+    //                     }
+    //                 } else {
+    //                     resolve();
+    //                 }
 
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
-    }
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             })
+    //     });
+    // }
 
-    //Code update on 20-6-2017
-    //for update item inside sales-return-doc
-    updateItemOnSalesReturnDoc(data) {
-        var query = {};
+    // //Code update on 20-6-2017
+    // //for update item inside sales-return-doc
+    // updateItemOnSalesReturnDoc(data) {
+    //     return new Promise((resolve, reject) => {
+    //         var query = {};
 
-        var filter = {
-            'isVoid': false
-        };
+    //         var filter = {
+    //             'isVoid': false
+    //         };
 
-        var filterSales = {
-            'salesDoc.items.item.code': data.code
-        };
+    //         var filterSales = {
+    //             'salesDoc.items.item.code': data.code
+    //         };
 
-        var filterSalesReturnItem = {
-            'salesDoc.items.returnItems.item.code': data.code
-        };
+    //         var filterSalesReturnItem = {
+    //             'salesDoc.items.returnItems.item.code': data.code
+    //         };
 
-        var filterSalesReturn = {
-            'salesDocReturn.items.item.code': data.code
-        };
+    //         var filterSalesReturn = {
+    //             'salesDocReturn.items.item.code': data.code
+    //         };
 
-        var filterSalesDocReturnReturnItems = {
-            'salesDocReturn.items.returnItems.item.code': data.code
-        }
+    //         var filterSalesDocReturnReturnItems = {
+    //             'salesDocReturn.items.returnItems.item.code': data.code
+    //         }
 
-        var filterReturnItems = {
-            'returnItems.item.code': data.code
-        }
+    //         var filterReturnItems = {
+    //             'returnItems.item.code': data.code
+    //         }
 
-        var itemFilter = {
-            '$or': [filterSales, filterSalesReturnItem, filterSalesReturn, filterSalesDocReturnReturnItems, filterReturnItems]
-        }
+    //         var itemFilter = {
+    //             '$or': [filterSales, filterSalesReturnItem, filterSalesReturn, filterSalesDocReturnReturnItems, filterReturnItems]
+    //         }
 
-        query = { '$and': [filter, itemFilter] };
+    //         query = { '$and': [filter, itemFilter] };
 
-        return new Promise((resolve, reject) => [
-            this.salesReturnCollection.where(query).execute()
-                .then(salesReturnDocs => {
+    //         this.salesReturnCollection.where(query).execute()
+    //             .then(salesReturnDocs => {
 
-                    if (salesReturnDocs.data.length > 0) {
-                        for (var salesReturnDoc of salesReturnDocs.data) {
+    //                 if (salesReturnDocs.data.length > 0) {
+    //                     for (var salesReturnDoc of salesReturnDocs.data) {
 
-                            if (salesReturnDoc.salesDoc.items.length > 0) {
-                                for (var items of salesReturnDoc.salesDoc.items) {
-                                    if (items.item.code === data.code) {
-                                        items.item = data;
-                                    }
-                                    if (items.returnItems.length > 0) {
-                                        for (var returnItem of items.returnItems) {
-                                            if (returnItem.item.code === data.code) {
-                                                returnItem.item = data;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+    //                         if (salesReturnDoc.salesDoc.items.length > 0) {
+    //                             for (var items of salesReturnDoc.salesDoc.items) {
+    //                                 if (items.item.code === data.code) {
+    //                                     items.item = data;
+    //                                 }
+    //                                 if (items.returnItems.length > 0) {
+    //                                     for (var returnItem of items.returnItems) {
+    //                                         if (returnItem.item.code === data.code) {
+    //                                             returnItem.item = data;
+    //                                         }
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
 
-                            if (salesReturnDoc.salesDocReturn.items.length > 0) {
-                                for (var items of salesReturnDoc.salesDocReturn.items) {
-                                    if (items.item.code === data.code) {
-                                        items.item = data;
-                                    }
-                                    if (items.returnItems.length > 0) {
-                                        for (var returnItem of items.returnItems) {
-                                            if (returnItem.item.code === data.code) {
-                                                returnItem.item = data;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            
-                            if (salesReturnDoc.returnItems.length > 0) {
-                                for (var items of salesReturnDoc.returnItems) {
-                                    if (items.item.code === data.code) {
-                                        items.item = data;
-                                    }
-                                }
-                            }
+    //                         if (salesReturnDoc.salesDocReturn.items.length > 0) {
+    //                             for (var items of salesReturnDoc.salesDocReturn.items) {
+    //                                 if (items.item.code === data.code) {
+    //                                     items.item = data;
+    //                                 }
+    //                                 if (items.returnItems.length > 0) {
+    //                                     for (var returnItem of items.returnItems) {
+    //                                         if (returnItem.item.code === data.code) {
+    //                                             returnItem.item = data;
+    //                                         }
+    //                                     }
+    //                                 }
+    //                             }
+    //                         }
+
+    //                         if (salesReturnDoc.returnItems.length > 0) {
+    //                             for (var items of salesReturnDoc.returnItems) {
+    //                                 if (items.item.code === data.code) {
+    //                                     items.item = data;
+    //                                 }
+    //                             }
+    //                         }
 
 
-                            salesReturnDoc._updatedDate = data._updatedDate;
-                            this.salesReturnCollection.update(salesReturnDoc)
-                                .then(id => {
-                                    resolve();
-                                })
-                                .catch(e => {
-                                    reject(e);
-                                })
-                        }
-                    } else {
-                        resolve();
-                    }
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        ]);
-    }
+    //                         salesReturnDoc._updatedDate = data._updatedDate;
+    //                         this.salesReturnCollection.update(salesReturnDoc)
+    //                             .then(id => {
+    //                                 resolve();
+    //                             })
+    //                             .catch(e => {
+    //                                 reject(e);
+    //                             })
+    //                     }
+    //                 } else {
+    //                     resolve();
+    //                 }
+    //             })
+    //             .catch(e => {
+    //                 reject(e);
+    //             })
+    //     });
+    // }
 };
