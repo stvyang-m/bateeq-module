@@ -195,6 +195,7 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                         var color = results[1];
                         motif["filePath"] = motifPath;
                         var updateMotif = motifManager.update(motif);
+                        motifDoc["filePath"] = motifPath;
 
                         //20-6-2017
                         var updateItem = [];
