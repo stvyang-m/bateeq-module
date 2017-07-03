@@ -17,6 +17,7 @@ module.exports = class RangeDiscProductManager extends BaseManager{
     }
 
     _getQuery(paging) {
+        
         // basic filter -> soft delete = false, paging.filter -> in case the search is {}, keywordFilter -> filter by code or name
         var basicFilter = {
             _deleted: false
