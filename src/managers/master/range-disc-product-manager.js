@@ -76,10 +76,13 @@ module.exports = class RangeDiscProductManager extends BaseManager{
                     }
                     if (!valid.name || valid.name == '')
                         errors["name"] = "Masukkan nama";
-                    if (!valid.discFrom || valid.discFrom == "")
+                    if (!valid.discFrom || valid.discFrom == null)
                         errors["discFrom"] = "Masukkan diskon dari";
-                    if (!valid.discTo || valid.discTo == "  ")
+                    if (!valid.discTo || valid.discTo == null) {
                         errors["discTo"] = "Masukkan diskon sampai";
+                    } else if (valid.discTo <= valid.discFrom) {
+                        errors["discTo"] = "Diskon sampai harus lebih kecil dari diskon dari";
+                    }      
 
                     // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {

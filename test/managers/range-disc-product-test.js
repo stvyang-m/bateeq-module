@@ -12,7 +12,9 @@ function getData() {
 
     rangeDiscProduct.code = code;
     rangeDiscProduct.name = `name[${code}]`;
-    rangeDiscProduct.description = `description for ${code}`; 
+    rangeDiscProduct.description = `description for ${code}`;
+    rangeDiscProduct.discFrom = 10;
+    rangeDiscProduct.discTo = 20;
 
     return rangeDiscProduct;
 }
