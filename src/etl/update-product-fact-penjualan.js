@@ -58,7 +58,8 @@ module.exports = class UpdateProductFactPenjualan {
                                 summary: {
                                     extract: moment(exctractDate).diff(moment(startedDate), "minutes") + " minutes",
                                     transform: moment(transformDate).diff(moment(exctractDate), "minutes") + " minutes",
-                                    load: moment(finishedDate).diff(moment(transformDate), "minutes") + " minutes"
+                                    load: moment(finishedDate).diff(moment(transformDate), "minutes") + " minutes",
+                                    items: `${result.count} items`
                                 }
                             };
                             this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
@@ -255,7 +256,7 @@ module.exports = class UpdateProductFactPenjualan {
                                             if (err)
                                                 reject(err);
                                             else
-                                                resolve(results);
+                                                resolve({ "results": results, "count": count });
                                         });
                                     }).catch((error) => {
                                         transaction.rollback((err) => {
