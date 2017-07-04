@@ -115,7 +115,7 @@ module.exports = class UpdateProductFactPenjualan {
 
     lastETLDate() {
         return new Promise((resolve, reject) => {
-            this.migrationLog.find({ "migration": migrationNameETLFactPenjualan, status: "success" }).sort({ "_createdDate": -1 }).limit(1).toArray()
+            this.migrationLog.find({ "migration": migrationName, status: "success" }).sort({ "_createdDate": -1 }).limit(1).toArray()
                 .then((result) => {
                     resolve(result[0] || { _createdDate: new Date("1970-01-01") });
                 }).catch((err) => {
