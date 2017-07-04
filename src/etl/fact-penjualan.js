@@ -315,6 +315,40 @@ module.exports = class FactPenjualan {
         return discount;
     }
 
+    totalDiscountPercent(item) {
+        var totalDiscount = item.discount1 + item.discount2 + item.specialDiscount;
+        return totalDiscount;
+    }
+
+    pricePcsBeforeMargin(item) {
+        var priceStart = item.price;
+        var priceAfterD1 = priceStart - (priceStart * item.discount1 / 100);
+        var priceAfterD2 = priceAfterD1 - (priceAfterD1 * item.discount2 / 100);
+        var priceAfterDiscNominal = priceAfterD2 - item.discountNominal;
+        var priceAfterDiscSpec = priceAfterDiscNominal - (priceAfterDiscNominal * item.specialDiscount / 100);
+        return priceAfterDiscSpec;
+    }
+
+    priceProducBeforeMargin(item) {
+
+        var priceStart = item.price * item.quantity;
+        var priceAfterD1 = priceStart - (priceStart * item.discount1 / 100);
+        var priceAfterD2 = priceAfterD1 - (priceAfterD1 * item.discount2 / 100);
+        var priceAfterDiscNominal = priceAfterD2 - item.discountNominal;
+        var priceAfterDiscSpec = priceAfterDiscNominal - (priceAfterDiscNominal * item.specialDiscount / 100);
+        return priceAfterDiscSpec;
+    }
+
+    replaceUrl(path, id) {
+        var templatePath = "https://bateeq-core-api-dev.mybluemix.net/v1/master/items/finished-goods/image";
+        return path.replace(path, templatePath + "/" + id);
+    }
+
+    replaceMotif(path, id) {
+        var templatePath = "https://bateeq-core-api-dev.mybluemix.net/v1/master/items/finished-goods/motif-image";
+        return path.replace(path, templatePath + "/" + id);
+    }
+
     transform(data) {
         return new Promise((resolve, reject) => {
             Promise.all([this.getArticles(), this.getExcludedItem()]).then((x) => {
@@ -348,14 +382,36 @@ module.exports = class FactPenjualan {
                                         hd_voucher_amount: sale.salesDetail.voucher ? `'${this.getDBValidString(sale.salesDetail.voucher.value)}'` : `'0'`,
                                         hd_cash_amount: sale.salesDetail.cashAmount ? `'${this.getDBValidString(sale.salesDetail.cashAmount)}'` : `'0'`,
                                         hd_card_amount: sale.salesDetail.cardAmount ? `'${this.getDBValidString(sale.salesDetail.cardAmount)}'` : `'0'`,
+
+                                        hd_promo_type1: `'${(sale.salesDetail.promoDoc != undefined) ? ((sale.salesDetail.promoDoc.length > 0) ? this.getDBValidString(sale.salesDetail.promoDoc[0].name) : "") : ""}'`,
+                                        hd_promo_type2: `'${(sale.salesDetail.promoDoc != undefined) ? ((sale.salesDetail.promoDoc.length > 1) ? this.getDBValidString(sale.salesDetail.promoDoc[1].name) : "") : ""}'`,
+                                        dt_ro_number: `'${item.item.article.realizationOrder ? this.getDBValidString(item.item.article.realizationOrder) : ""}'`,
+                                        dt_ro_name: `'${item.item.article.realizationOrderName ? this.getDBValidString(item.item.article.realizationOrderName) : ""}'`,
+                                        dt_image_path: `'${this.getDBValidString(item.item.imagePath ? this.replaceUrl(item.item.imagePath, item.item._id.toString()) : null)}'`, 
+                                        dt_motif_path: `'${this.getDBValidString(item.item.motifPath ? this.replaceMotif(item.item.motifPath, item.item._id.toString()) : null)}'`,
+                                        dt_counter_name: `'${item.item.counterDoc != undefined ? this.getDBValidString(item.item.counterDoc.name) : ""}'`,
+                                        dt_subcounter_name: `'${item.item.styleDoc != undefined ? this.getDBValidString(item.item.styleDoc.name) : ""}'`,
+                                        dt_size_name: `'${item.item.size ? this.getDBValidString(item.item.size) : ""}'`,
+                                        dt_process_name: `'${item.item.processDoc != undefined ? this.getDBValidString(item.item.processDoc.name) : ""}'`,
+                                        dt_material_name: `'${item.item.materialDoc != undefined ? this.getDBValidString(item.item.materialDoc.name) : ""}'`,
+                                        dt_material_composition_name: `'${item.item.materialCompositionDoc != undefined ? this.getDBValidString(item.item.materialCompositionDoc.name) : ""}'`,
+                                        dt_color_code: `'${item.item.colorCode ? this.getDBValidString(item.item.colorCode) : ""}'`,
+                                        dt_color_name: `'${item.item.colorDoc != undefined ? this.getDBValidString(item.item.colorDoc.name) : ""}'`,
+                                        dt_motif_name: `'${item.item.motifDoc != undefined ? this.getDBValidString(item.item.motifDoc.name) : ""}'`,
+                                        dt_collection_name: `'${item.item.collectionDoc != undefined ? this.getDBValidString(item.item.collectionDoc.name) : ""}'`,
+                                        dt_season_name: `'${item.item.seasonDoc != undefined ? this.getDBValidString(item.item.seasonDoc.name) : ""}'`,
+                                        dt_items_total_discounts_percentage: `'${this.totalDiscountPercent(item)}'`,
+                                        dt_price_per_pcs_before_margin: `'${this.pricePcsBeforeMargin(item)}'`,
+                                        dt_total_price_per_product_before_margin: `'${this.priceProducBeforeMargin(item)}'`,
+
                                         dt_item_name: `'${this.getDBValidString(item.item.name)}'`,
                                         dt_item_quantity: `'${this.getDBValidString(item.quantity)}'`,
                                         dt_barcode: `'${this.getDBValidString(item.item.code)}'`,
-                                        dt_motif_name: `'${this.getDBValidString(this.getMotif(item.item.code))}'`,
-                                        dt_counter_name: `'${this.getDBValidString(this.getCounter(item.item.code))}'`,
-                                        dt_subcounter_name: `'${this.getDBValidString(this.getSubCounter(item.item.code))}'`,
-                                        dt_material_name: `'${this.getDBValidString(this.getMaterial(item.item.code))}'`,
-                                        dt_size_name: `'${this.getDBValidString(this.getSize(item.item.code))}'`,
+                                        // dt_motif_name: `'${this.getDBValidString(this.getMotif(item.item.code))}'`,
+                                        // dt_counter_name: `'${this.getDBValidString(this.getCounter(item.item.code))}'`,
+                                        // dt_subcounter_name: `'${this.getDBValidString(this.getSubCounter(item.item.code))}'`,
+                                        // dt_material_name: `'${this.getDBValidString(this.getMaterial(item.item.code))}'`,
+                                        // dt_size_name: `'${this.getDBValidString(this.getSize(item.item.code))}'`,
                                         dt_mainsalesprice: `'${this.getDBValidString(parseInt(item.item.domesticCOGS || 0) * parseInt(item.quantity || 0))}'`,
                                         dt_item_price: `'${this.getDBValidString(item.price)}'`,
                                         dt_is_discount_percentage: `'${(item.discountNominal > 0) ? '0' : '1'}'`,
@@ -447,19 +503,37 @@ module.exports = class FactPenjualan {
                         for (var item of data) {
                             if (item) {
                                 count++;
-                                var queryString = `INSERT INTO [BTQ_FactPenjualan_Temp] ([timekey],[countdays],[store_code],[hd_transaction_number],[hd_shift],[hd_subtotal],[hd_sales_discount_percentage],[hd_grandtotal],[hd_payment_type],[hd_card],[hd_card_type],[hd_bank_name],[hd_card_number],[hd_voucher_amount],[hd_cash_amount],[hd_card_amount],[dt_item_name],[dt_item_quantity],[dt_barcode],[dt_motif_name],[dt_counter_name],[dt_subcounter_name],[dt_material_name],[dt_size_name],[dt_mainsalesprice],[dt_item_price],[dt_is_discount_percentage],[dt_fixed_discount_amount],[dt_discount_product_percentage],[dt_discount_product_percentage_additional],[dt_special_discount_product_percentage],[dt_margin_percentage],[dt_total_price_per_product],[store_name],[store_city],[store_open_date],[store_close_date],[store_area],[store_status],[store_wide],[store_offline_online],[store_sales_category],[store_monthly_total_cost],[store_category],[store_montly_omzet_target],[hd_pos],[hd_bank_card],[hd_is_void],[hd_transaction_date],[hd_is_return],[hd_updated_date]		,[hd_updated_by],[dt_is_return],[dt_margin_nominal],[hd_grandtotal_before_margin],[dt_item_bruto],[dt_item_hpp],[dt_discount_product_nominal],[dt_discount_product_nominal_additional],[dt_special_discount_product_nominal],[hd_items_total_discounts_nominal],[hd_sales_discount_nominal]) values(${item.timekey},${item.countdays},${item.store_code},${item.hd_transaction_number},${item.hd_shift},${item.hd_subtotal},${item.hd_sales_discount_percentage},${item.hd_grandtotal},${item.hd_payment_type},${item.hd_card},${item.hd_card_type},${item.hd_bank_name},${item.hd_card_number},${item.hd_voucher_amount},${item.hd_cash_amount},${item.hd_card_amount},${item.dt_item_name},${item.dt_item_quantity},${item.dt_barcode},${item.dt_motif_name},${item.dt_counter_name},${item.dt_subcounter_name},${item.dt_material_name},${item.dt_size_name},${item.dt_mainsalesprice},${item.dt_item_price},${item.dt_is_discount_percentage},${item.dt_fixed_discount_amount},${item.dt_discount_product_percentage},${item.dt_discount_product_percentage_additional},${item.dt_special_discount_product_percentage},${item.dt_margin_percentage},${item.dt_total_price_per_product},${item.store_name},${item.store_city},${item.store_open_date},${item.store_close_date},${item.store_area},${item.store_status},${item.store_wide},${item.store_offline_online},${item.store_sales_category},${item.store_monthly_total_cost},${item.store_category},${item.store_montly_omzet_target},${item.hd_pos},${item.hd_bank_card},${item.hd_is_void},${item.hd_transaction_date},${item.hd_is_return},${item.hd_updated_date},${item.hd_updated_by},${item.dt_is_return},${item.dt_margin_nominal},${item.hd_grandtotal_before_margin},${item.dt_item_bruto},${item.dt_item_hpp},${item.dt_discount_product_nominal},${item.dt_discount_product_nominal_additional},${item.dt_special_discount_product_nominal},${item.hd_items_total_discounts_nominal},${item.hd_sales_discount_nominal})\n`;
+                                // [dt_motif_name],[dt_counter_name],[dt_subcounter_name],[dt_material_name],[dt_size_name],
+                                //   ${item.dt_motif_name}, ${item.dt_counter_name}, ${item.dt_subcounter_name}, ${item.dt_material_name}, ${item.dt_size_name}, 
+                                var queryString = `INSERT INTO [BTQ_FactPenjualan_Temp] ([timekey],[countdays],[store_code],[hd_transaction_number],[hd_shift],[hd_subtotal],[hd_sales_discount_percentage],[hd_grandtotal],[hd_payment_type],[hd_card],[hd_card_type],[hd_bank_name],[hd_card_number],[hd_voucher_amount],[hd_cash_amount],[hd_card_amount],
+                                
+                                [hd_promo_type1],[hd_promo_type2], [dt_ro_number],[dt_ro_name],[dt_image_path],[dt_motif_path],[dt_counter_name],[dt_subcounter_name],[dt_size_name],[dt_process_name],[dt_material_name],[dt_material_composition_name],[dt_color_code],[dt_color_name],[dt_motif_name],[dt_collection_name],[dt_season_name],[dt_items_total_discounts_percentage],[dt_price_per_pcs_before_margin],[dt_total_price_per_product_before_margin],
+                                
+                                [dt_item_name],[dt_item_quantity],[dt_barcode],
+                               
+                                [dt_mainsalesprice],[dt_item_price],[dt_is_discount_percentage],[dt_fixed_discount_amount],[dt_discount_product_percentage],[dt_discount_product_percentage_additional],[dt_special_discount_product_percentage],[dt_margin_percentage],[dt_total_price_per_product],[store_name],[store_city],[store_open_date],[store_close_date],[store_area],[store_status],[store_wide],[store_offline_online],[store_sales_category],[store_monthly_total_cost],[store_category],[store_montly_omzet_target],[hd_pos],[hd_bank_card],[hd_is_void],[hd_transaction_date],[hd_is_return],[hd_updated_date]		,[hd_updated_by],[dt_is_return],[dt_margin_nominal],[hd_grandtotal_before_margin],[dt_item_bruto],[dt_item_hpp],[dt_discount_product_nominal],[dt_discount_product_nominal_additional],[dt_special_discount_product_nominal],[hd_items_total_discounts_nominal],[hd_sales_discount_nominal]) values(${item.timekey},${item.countdays},${item.store_code},${item.hd_transaction_number},${item.hd_shift},${item.hd_subtotal},${item.hd_sales_discount_percentage},${item.hd_grandtotal},${item.hd_payment_type},${item.hd_card},${item.hd_card_type},${item.hd_bank_name},${item.hd_card_number},${item.hd_voucher_amount},${item.hd_cash_amount},${item.hd_card_amount},
+                                
+                                ${item.hd_promo_type1},${item.hd_promo_type2},${item.dt_ro_number},${item.dt_ro_name},${item.dt_image_path},${item.dt_motif_path},${item.dt_counter_name},${item.dt_subcounter_name},${item.dt_size_name},${item.dt_process_name},${item.dt_material_name},
+                                ${item.dt_material_composition_name},${item.dt_color_code},${item.dt_color_name},${item.dt_motif_name},${item.dt_collection_name},${item.dt_season_name},${item.dt_items_total_discounts_percentage},${item.dt_price_per_pcs_before_margin},
+                                ${item.dt_total_price_per_product_before_margin},
+
+                                ${item.dt_item_name}, ${item.dt_item_quantity}, ${item.dt_barcode}, 
+                                
+                               
+                                
+                                ${item.dt_mainsalesprice}, ${item.dt_item_price}, ${item.dt_is_discount_percentage}, ${item.dt_fixed_discount_amount}, ${item.dt_discount_product_percentage}, ${item.dt_discount_product_percentage_additional}, ${item.dt_special_discount_product_percentage}, ${item.dt_margin_percentage}, ${item.dt_total_price_per_product}, ${item.store_name}, ${item.store_city}, ${item.store_open_date}, ${item.store_close_date}, ${item.store_area}, ${item.store_status}, ${item.store_wide}, ${item.store_offline_online}, ${item.store_sales_category}, ${item.store_monthly_total_cost}, ${item.store_category}, ${item.store_montly_omzet_target}, ${item.hd_pos}, ${item.hd_bank_card}, ${item.hd_is_void}, ${item.hd_transaction_date}, ${item.hd_is_return}, ${item.hd_updated_date}, ${item.hd_updated_by}, ${item.dt_is_return}, ${item.dt_margin_nominal}, ${item.hd_grandtotal_before_margin}, ${item.dt_item_bruto}, ${item.dt_item_hpp}, ${item.dt_discount_product_nominal}, ${item.dt_discount_product_nominal_additional}, ${item.dt_special_discount_product_nominal}, ${item.hd_items_total_discounts_nominal}, ${item.hd_sales_discount_nominal}) \n`;
                                 sqlQuery = sqlQuery.concat(queryString);
                                 allSqlQuery = allSqlQuery.concat(queryString);
                                 if (count % 1000 == 0) {
                                     command.push(this.insertQuery(request, sqlQuery));
                                     sqlQuery = "";
                                 }
-                                // console.log(`add data to query  : ${count}`);
+                                // console.log(`add data to query  : ${count } `);
                             }
                         }
 
                         if (sqlQuery != "")
-                            command.push(this.insertQuery(request, `${sqlQuery}`));
+                            command.push(this.insertQuery(request, `${sqlQuery} `));
 
                         request.multiple = true;
 
