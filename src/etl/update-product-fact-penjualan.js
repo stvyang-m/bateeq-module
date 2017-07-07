@@ -10,7 +10,6 @@ var ItemManager = require('../../src/managers/master/item-manager');
 // internal deps 
 require('mongodb-toolkit');
 const migrationName = "ETL-Update-Produk-Fact-Penjualan";
-const migrationNameETLFactPenjualan = "ETL-FactPenjualan";
 
 module.exports = class UpdateProductFactPenjualan {
     constructor(db, user, sql) {
@@ -120,8 +119,8 @@ module.exports = class UpdateProductFactPenjualan {
                     resolve(result[0] || { _createdDate: new Date("1970-01-01") });
                 }).catch((err) => {
                     reject(err);
-                })
-        })
+                });
+        });
     }
 
     extract(date) {
@@ -155,8 +154,8 @@ module.exports = class UpdateProductFactPenjualan {
                 return {
                     dt_id: `'${this.getDBValidString(item._id.toString())}'`,
                     dt_code: `'${this.getDBValidString(item.code)}'`,
-                    dt_ro_number: `'${this.getDBValidString(item.article.realizationOrder ? item.article.realizationOrder : null)}'`,
-                    dt_ro_name: `'${this.getDBValidString(item.article.realizationOrderName ? item.article.realizationOrderName : null)}'`,
+                    dt_ro_number: `'${this.getDBValidString(item.article ? item.article.realizationOrder : null)}'`,
+                    dt_ro_name: `'${this.getDBValidString(item.article ? item.article.realizationOrderName : null)}'`,
                     dt_image_path: `'${this.getDBValidString(item.imagePath ? this.replaceUrl(item.imagePath, item._id.toString()) : null)}'`,
                     dt_motif_path: `'${this.getDBValidString(item.motifPath ? this.replaceMotif(item.motifPath, item._id.toString()) : null)}'`,
                     dt_counter_name: `'${this.getDBValidString(item.counterDoc ? item.counterDoc.name : null)}'`,
@@ -177,12 +176,12 @@ module.exports = class UpdateProductFactPenjualan {
     }
 
     replaceUrl(path, id) {
-        var templatePath = "https://bateeq-core-api-dev.mybluemix.net/v1/master/items/finished-goods/image";
+        var templatePath = "https://bateeq-core-api.mybluemix.net/v1/master/items/finished-goods/image";
         return path.replace(path, templatePath + "/" + id);
     }
 
     replaceMotif(path, id) {
-        var templatePath = "https://bateeq-core-api-dev.mybluemix.net/v1/master/items/finished-goods/motif-image";
+        var templatePath = "https://bateeq-core-api.mybluemix.net/v1/master/items/finished-goods/motif-image";
         return path.replace(path, templatePath + "/" + id);
     }
 
