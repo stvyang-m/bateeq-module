@@ -78,6 +78,7 @@ module.exports = function (expeditions) {
     var thead = [
         { text: "No", style: 'tableHeader' },
         { text: "Packing List", style: 'tableHeader' },
+        { text: "Password", style: 'tableHeader'},
         { text: "Berat (Kg)", style: 'tableHeader' },
         { text: "Total Barang", style: 'tableHeader' }
     ]
@@ -104,6 +105,7 @@ module.exports = function (expeditions) {
         return [
             { text: index++, alignment: 'center' },
             { text: item.code, alignment: 'center' },
+            { text: item.password, alignment: 'center'},
             { text: item.weight || 0, alignment: 'center' },
             { text: totalBarang || 0, alignment: 'center' }
         ]
@@ -116,10 +118,10 @@ module.exports = function (expeditions) {
     var data2 = {
         table: {
             headerRows: 1,
-            widths: ['15%', '35%', '25%', '25%'],
+            widths: ['5%', '45%', '30%', '10%', '10%'],
             body: [].concat([thead], tbody)
         },
-        style: ['marginTop20']
+        style: ['marginTop20', 'size10']
     }
 
     var data3 = {
