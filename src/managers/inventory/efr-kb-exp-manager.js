@@ -329,24 +329,26 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                     //Create Promise to Create Transfer Out
                     for (var spkDocument of validatedExpeditionDoc.spkDocuments) {
                         //getTransferOuts.push(this.transferOutDocManager.create(validTransferOutDoc));
-                        var f = (spkDoc, outManager) => {
-                            return () => {
-                                var validTransferOutDoc = {};
-                                validTransferOutDoc.code = generateCode(moduleId);
-                                validTransferOutDoc.reference = expCode;
-                                validTransferOutDoc.sourceId = spkDoc.sourceId;
-                                validTransferOutDoc.destinationId = spkDoc.destinationId;
-                                validTransferOutDoc.items = [];
-                                for (var item of spkDoc.items) {
-                                    var newitem = {};
-                                    newitem.itemId = item.itemId;
-                                    newitem.quantity = item.sendQuantity;
-                                    validTransferOutDoc.items.push(newitem);
+                        if (spkDocument._id && spkDocument._id != "" && spkDocument._id != undefined) {
+                            var f = (spkDoc, outManager) => {
+                                return () => {
+                                    var validTransferOutDoc = {};
+                                    validTransferOutDoc.code = generateCode(moduleId);
+                                    validTransferOutDoc.reference = expCode;
+                                    validTransferOutDoc.sourceId = spkDoc.sourceId;
+                                    validTransferOutDoc.destinationId = spkDoc.destinationId;
+                                    validTransferOutDoc.items = [];
+                                    for (var item of spkDoc.items) {
+                                        var newitem = {};
+                                        newitem.itemId = item.itemId;
+                                        newitem.quantity = item.sendQuantity;
+                                        validTransferOutDoc.items.push(newitem);
+                                    }
+                                    return outManager.create(validTransferOutDoc)
                                 }
-                                return outManager.create(validTransferOutDoc)
-                            }
-                        };
-                        getTransferOuts.push(f(spkDocument, this.transferOutDocManager));
+                            };
+                            getTransferOuts.push(f(spkDocument, this.transferOutDocManager));
+                        }
                     }
                     //Create Transfer Out
                     //Promise.all(getTransferOuts)
@@ -388,7 +390,9 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                                                     var getSPKData = [];
                                                     //Create Promise get SPK Data for update
                                                     for (var spkDocument of validExpeditionDoc.spkDocuments) {
-                                                        getSPKData.push(this.spkManager.getSingleByIdOrDefault(spkDocument._id));
+                                                        if (spkDocument._id && spkDocument._id != "" && spkDocument._id != undefined) {
+                                                            getSPKData.push(this.spkManager.getSingleByIdOrDefault(spkDocument._id));
+                                                        }
                                                     }
                                                     //Get SPK Data
                                                     Promise.all(getSPKData)
@@ -505,34 +509,36 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                         var spkDocumentDestinationId = "";
                         expeditionDoc.weight = 0;
                         for (var spkDocument of valid.spkDocuments) {
-                            expeditionDoc.weight += parseInt(spkDocument.weight || 0);
-                            var spkDocumentError = {};
-                            if (!spkDocument._id || spkDocument._id == "") {
-                                spkDocumentError["code"] = "packing list harus diisi";
-                                getPromise.push(Promise.resolve(null));
-                            }
-                            else {
-                                for (var i = valid.spkDocuments.indexOf(spkDocument) + 1; i < valid.spkDocuments.length; i++) {
-                                    var otherItem = valid.spkDocuments[i];
-                                    if (spkDocument._id == otherItem._id) {
-                                        spkDocumentError["code"] = "duplikat packing list";
+                            if (spkDocument._id && spkDocument._id != "" && spkDocument._id != undefined) {
+                                expeditionDoc.weight += parseInt(spkDocument.weight || 0);
+                                var spkDocumentError = {};
+                                if (!spkDocument._id || spkDocument._id == "") {
+                                    spkDocumentError["code"] = "packing list harus diisi";
+                                    getPromise.push(Promise.resolve(null));
+                                }
+                                else {
+                                    for (var i = valid.spkDocuments.indexOf(spkDocument) + 1; i < valid.spkDocuments.length; i++) {
+                                        var otherItem = valid.spkDocuments[i];
+                                        if (spkDocument._id == otherItem._id) {
+                                            spkDocumentError["code"] = "duplikat packing list";
+                                        }
                                     }
+
+                                    getPromise.push(this.spkManager.getSingleByIdOrDefault(spkDocument._id));
                                 }
 
-                                getPromise.push(this.spkManager.getSingleByIdOrDefault(spkDocument._id));
-                            }
+                                validateSPKisExist.push(this.getBySpk(spkDocument.code));
 
-                            validateSPKisExist.push(this.getBySpk(spkDocument.code));
+                                if (spkDocumentDestinationId == "")
+                                    spkDocumentDestinationId = spkDocument.destinationId;
+                                else if (spkDocument.destinationId != spkDocumentDestinationId)
+                                    spkDocumentError["code"] = "packing list harus memiliki tujuan yang sama";
 
-                            if (spkDocumentDestinationId == "")
-                                spkDocumentDestinationId = spkDocument.destinationId;
-                            else if (spkDocument.destinationId != spkDocumentDestinationId)
-                                spkDocumentError["code"] = "packing list harus memiliki tujuan yang sama";
+                                spkDocumentErrors.push(spkDocumentError);
 
-                            spkDocumentErrors.push(spkDocumentError);
-
-                            for (var item of spkDocument.items) {
-                                getStock.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(spkDocument.sourceId, item.itemId));
+                                for (var item of spkDocument.items) {
+                                    getStock.push(this.inventoryManager.getByStorageIdAndItemIdOrDefault(spkDocument.sourceId, item.itemId));
+                                }
                             }
                         }
                         for (var spkDocumentError of spkDocumentErrors) {
@@ -552,73 +558,75 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                                     var index = 0;
                                     var inventory = spkDocuments.filter(x => x._type === 'inventory')
                                     for (var spkDocument of valid.spkDocuments) {
-                                        var spkDocumentError = spkDocumentErrors[index];
+                                        if (spkDocument._id && spkDocument._id != "" && spkDocument._id != undefined) {
+                                            var spkDocumentError = spkDocumentErrors[index];
 
-                                        if (spkDocuments[index]) {
-                                            spkDocument._createdDate = spkDocuments[index]._createdDate;
-                                            var spkspkDocumentError = spkDocumentError;
-                                            if (spkDocument) {
-                                                if (!spkDocument.items || spkDocument.items.length == 0) {
-                                                    spkspkDocumentError["items"] = "items is required";
-                                                }
-                                                else {
-                                                    var itemErrors = [];
-                                                    for (var item of spkDocument.items) {
-                                                        var itemError = {};
-                                                        var quantityStock = inventory.find(x => x.itemId == item.itemId && x.storageId == spkDocument.sourceId);
-                                                        if (item.sendQuantity > quantityStock.quantity) {
-                                                            itemError["sendQuantity"] = "stok tidak tersedia";
-                                                        }
-                                                        if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
-                                                            itemError["quantity"] = "kuantitas harus diisi";
-                                                        }
-                                                        else if (parseInt(item.quantity) <= 0) {
-                                                            itemError["quantity"] = "kuantitas harus lebih besar dari 0";
-                                                        }
-                                                        if (item.sendQuantity == undefined || (item.sendQuantity && item.sendQuantity == '')) {
-                                                            itemError["sendQuantity"] = "kuantitas pengiriman harus diisi";
-                                                        }
-                                                        else if (parseInt(item.sendQuantity) <= 0) {
-                                                            itemError["sendQuantity"] = "kuantitas pengiriman harus lebih besar dari 0";
-                                                        }
-
-                                                        if (item.sendQuantity > item.quantity) {
-                                                            itemError["sendQuantity"] = "kuantitas pengiriman tidak boleh lebih besar dari kuantitas packing list";
-                                                        }
-                                                        if (item.sendQuantity != item.quantity && (!item.remark || item.remark == '')) {
-                                                            itemError["remark"] = "catatan harus diisi";
-                                                        }
-
-                                                        itemErrors.push(itemError);
+                                            if (spkDocuments[index]) {
+                                                spkDocument._createdDate = spkDocuments[index]._createdDate;
+                                                var spkspkDocumentError = spkDocumentError;
+                                                if (spkDocument) {
+                                                    if (!spkDocument.items || spkDocument.items.length == 0) {
+                                                        spkspkDocumentError["items"] = "items is required";
                                                     }
-                                                    for (var itemError of itemErrors) {
-                                                        for (var prop in itemError) {
-                                                            spkspkDocumentError.items = itemErrors;
-                                                            break;
+                                                    else {
+                                                        var itemErrors = [];
+                                                        for (var item of spkDocument.items) {
+                                                            var itemError = {};
+                                                            var quantityStock = inventory.find(x => x.itemId == item.itemId && x.storageId == spkDocument.sourceId);
+                                                            if (item.sendQuantity > quantityStock.quantity) {
+                                                                itemError["sendQuantity"] = "stok tidak tersedia";
+                                                            }
+                                                            if (item.quantity == undefined || (item.quantity && item.quantity == '')) {
+                                                                itemError["quantity"] = "kuantitas harus diisi";
+                                                            }
+                                                            else if (parseInt(item.quantity) <= 0) {
+                                                                itemError["quantity"] = "kuantitas harus lebih besar dari 0";
+                                                            }
+                                                            if (item.sendQuantity == undefined || (item.sendQuantity && item.sendQuantity == '')) {
+                                                                itemError["sendQuantity"] = "kuantitas pengiriman harus diisi";
+                                                            }
+                                                            else if (parseInt(item.sendQuantity) <= 0) {
+                                                                itemError["sendQuantity"] = "kuantitas pengiriman harus lebih besar dari 0";
+                                                            }
+
+                                                            if (item.sendQuantity > item.quantity) {
+                                                                itemError["sendQuantity"] = "kuantitas pengiriman tidak boleh lebih besar dari kuantitas packing list";
+                                                            }
+                                                            if (item.sendQuantity != item.quantity && (!item.remark || item.remark == '')) {
+                                                                itemError["remark"] = "catatan harus diisi";
+                                                            }
+
+                                                            itemErrors.push(itemError);
                                                         }
-                                                        if (spkspkDocumentError.items)
-                                                            break;
+                                                        for (var itemError of itemErrors) {
+                                                            for (var prop in itemError) {
+                                                                spkspkDocumentError.items = itemErrors;
+                                                                break;
+                                                            }
+                                                            if (spkspkDocumentError.items)
+                                                                break;
+                                                        }
                                                     }
+
+                                                    if ((spkDocument.weight || 0) == 0)
+                                                        spkspkDocumentError["weight"] = "berat harus diisi";
                                                 }
 
-                                                if ((spkDocument.weight || 0) == 0)
-                                                    spkspkDocumentError["weight"] = "berat harus diisi";
+                                                for (var prop in spkspkDocumentError) {
+                                                    spkDocumentError = spkspkDocumentError;
+                                                    break;
+                                                }
+
+                                                if (validateSPKisExistResult[index].count > 0)
+                                                    spkDocumentError.code = "packing list sudah memiliki ekspedisi";
+
+                                                spkDocument = spkDocuments[index];
                                             }
-
-                                            for (var prop in spkspkDocumentError) {
-                                                spkDocumentError = spkspkDocumentError;
-                                                break;
+                                            else {
+                                                spkDocumentError.code = "packing list tidak ditemukan";
                                             }
-
-                                            if (validateSPKisExistResult[index].count > 0)
-                                                spkDocumentError.code = "packing list sudah memiliki ekspedisi";
-
-                                            spkDocument = spkDocuments[index];
+                                            index++;
                                         }
-                                        else {
-                                            spkDocumentError.code = "packing list tidak ditemukan";
-                                        }
-                                        index++;
                                     }
                                     for (var spkDocumentError of spkDocumentErrors) {
                                         for (var prop in spkDocumentError) {
