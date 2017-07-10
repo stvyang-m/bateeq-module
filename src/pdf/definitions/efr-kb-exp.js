@@ -84,7 +84,16 @@ module.exports = function (expeditions) {
 
     var index = 1;
     var total = 0;
-    var tbody = expeditions.spkDocuments.map(item => {
+
+    var spkDocuments = [];
+
+    for (var spkDocument of expeditions.spkDocuments ) {
+        if (spkDocument.code !== "") {
+            spkDocuments.push(spkDocument);
+        }
+    }
+
+    var tbody = spkDocuments.map(item => {
         var totalBarang = 0;
         if (item.items.length > 1) {
             totalBarang = item.items.reduce((prev, curr) => prev.quantity + curr.quantity);
