@@ -97,11 +97,11 @@ module.exports = function (expeditions) {
     var tbody = spkDocuments.map(item => {
         var totalBarang = 0;
         if (item.items.length > 1) {
-            totalBarang = item.items.reduce((prev, curr) => prev.quantity + curr.quantity);
+            totalBarang = item.items.reduce((acc, currValue, currIndex, quantities) => {return acc + parseInt(currValue.quantity)}, 0);
         } else {
-            totalBarang = item.items[0].quantity;
+            totalBarang = parseInt(item.items[0].quantity);
         }
-        total += parseInt(totalBarang);
+        total += totalBarang;
         return [
             { text: index++, alignment: 'center' },
             { text: item.code, alignment: 'center' },
