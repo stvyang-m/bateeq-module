@@ -104,7 +104,7 @@ module.exports = function (expeditions) {
         total += totalBarang;
         return [
             { text: index++, alignment: 'center' },
-            { text: item.code, alignment: 'center' },
+            { text: item.packingList, alignment: 'center' },
             { text: item.password, alignment: 'center'},
             { text: item.weight || 0, alignment: 'center' },
             { text: totalBarang || 0, alignment: 'center' }
