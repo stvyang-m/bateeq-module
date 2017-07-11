@@ -36,6 +36,7 @@ describe('#bateeq-module', function (done) {
     test('@ARTICLE/ARTICLE-SUB-MATERIAL-COMPOSITION',   './article/article-material-composition');
     test('@ARTICLE/ARTICLE-PROCESS',                    './article/article-process');
     test('@ARTICLE/ARTICLE-SUB-PROCESS',                './article/article-sub-process');
+    test('@ARTICLE/ARTICLE-CATEGORY',                   './article/article-category');
 
     //transaction
     test('@manager/transfer-in-doc-manager',            './managers/transfer-in-doc-manager-test');

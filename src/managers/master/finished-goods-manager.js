@@ -9,7 +9,7 @@ var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 var ItemManager = require('./item-manager');
 var FinishedGoods = BateeqModels.master.FinishedGoods;
-var ArticleMotifManager = require('./article/article-motif-manager');
+// var ArticleMotifManager = require('./article/article-motif-manager');
 var ArticleColorManager = require('./article/article-color-manager');
 
 module.exports = class FinishedGoodsManager extends ItemManager {
@@ -148,16 +148,19 @@ module.exports = class FinishedGoodsManager extends ItemManager {
         var articleColor = data.articleColor;
         var products = data.products;
         var imagePath = data.imagePath;
-        var motifPath = data.motifPath;
-        var realizationOrderName = data.realizationOrderName;
+        // var motifPath = data.motifPath;
+        // var realizationOrderName = data.realizationOrderName;
         var processDoc = data.processDoc;
-        var motifDoc = data.motifDoc;
+        // var motifDoc = data.motifDoc;
         var materialDoc = data.materialDoc;
         var materialCompositionDoc = data.materialCompositionDoc;
         var collectionDoc = data.collectionDoc;
         var counterDoc = data.counterDoc;
         var styleDoc = data.styleDoc;
         var seasonDoc = data.seasonDoc;
+        var categoryDoc = data.categoryDoc;
+        var ro = data.ro;
+
 
         return new Promise((resolve, reject) => {
             var dataError = {};
@@ -178,36 +181,40 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                 getItems.push(this.getByCode(item.code));
             }
 
-            var motifManager = new ArticleMotifManager(this.db, this.user);
-            var getMotif = motifManager.getSingleByQueryOrDefault({
-                "code": motifDoc.code
-            })
+            // var motifManager = new ArticleMotifManager(this.db, this.user);
+            // var getMotif = motifManager.getSingleByQueryOrDefault({
+            //     "code": motifDoc.code
+            // })
 
             var colorManager = new ArticleColorManager(this.db, this.user);
             var getColor = colorManager.getSingleByIdOrDefault(articleColor._id);
 
 
-            Promise.all([getMotif, getColor].concat(getItems))
+            // Promise.all([getMotif, getColor].concat(getItems))
+            Promise.all([getColor].concat(getItems))
                 .then(results => {
-                    if (results[0] && results[1] && results.length > 2) {
-
-                        var motif = results[0];
-                        var color = results[1];
-                        motif["filePath"] = motifPath;
-                        var updateMotif = motifManager.update(motif);
-                        motifDoc["filePath"] = motifPath;
+                    // if (results[0] && results[1] && results.length > 2) {
+                    if (results[0] && results.length > 1) {
+                        // var motif = results[0];
+                        var color = results[0];
+                        // motif["filePath"] = motifPath;
+                        // var updateMotif = motifManager.update(motif);
+                        // motifDoc["filePath"] = motifPath;
 
                         //20-6-2017
                         var updateItem = [];
-                        for (var i = 2; i < results.length; i++) {
+                        for (var i = 1; i < results.length; i++) {
                             var item = results[i];
                             item["imagePath"] = imagePath;
-                            item["motifPath"] = motifPath;
-                            item["motifDoc"] = motif;
+                            // item["motifPath"] = motifPath;
+                            // item["motifDoc"] = motif;
                             item["colorCode"] = colorCode;
                             item["colorDoc"] = color;
-                            item["motifDoc"] = motifDoc;
-                            item["article"]["realizationOrderName"] = realizationOrderName;
+                            // item["motifDoc"] = motifDoc;
+                            if (ro != "") {
+                                item["article"]["realizationOrder"] = ro;
+                            }
+                            // item["article"]["realizationOrderName"] = realizationOrderName;
                             item["processDoc"] = processDoc;
                             item["materialDoc"] = materialDoc;
                             item["materialCompositionDoc"] = materialCompositionDoc;
@@ -215,10 +222,12 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                             item["seasonDoc"] = seasonDoc;
                             item["counterDoc"] = counterDoc;
                             item["styleDoc"] = styleDoc;
+                            item["categoryDoc"] = categoryDoc;
                             updateItem.push(this.update(item));
                         }
 
-                        Promise.all([updateMotif].concat(updateItem))
+                        // Promise.all([updateMotif].concat(updateItem))
+                        Promise.all([].concat(updateItem))
                             .then(updateResults => {
                                 resolve(updateResults);
                             })

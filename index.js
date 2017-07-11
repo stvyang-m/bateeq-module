@@ -87,7 +87,7 @@ module.exports = {
         FinishedGoodsManager: require('./src/managers/master/finished-goods-manager'),
         MaterialManager: require('./src/managers/master/material-manager'),
         RangeDiscProductManager: require('./src/managers/master/range-disc-product-manager'),
-        
+
         article: {
             ArticleMotifManager: require('./src/managers/master/article/article-motif-manager'),
             ArticleColorManager: require('./src/managers/master/article/article-color-manager'),
@@ -100,7 +100,8 @@ module.exports = {
             ArticleCollectionManager: require('./src/managers/master/article/article-collection-manager'),
             ArticleSubCollectionManager: require('./src/managers/master/article/article-sub-collection-manager'),
             ArticleProcessManager: require('./src/managers/master/article/article-process-manager'),
-            ArticleSubProcessManager: require('./src/managers/master/article/article-sub-process-manager')
+            ArticleSubProcessManager: require('./src/managers/master/article/article-sub-process-manager'),
+            ArticleCategoryManager: require('./src/managers/master/article/article-category-manager')
         },
         ExpeditionServiceManager: require('./src/managers/master/expedition-service-manager')
     },
