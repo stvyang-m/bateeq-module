@@ -86,6 +86,8 @@ module.exports = {
         StorageManager: require('./src/managers/master/storage-manager'),
         FinishedGoodsManager: require('./src/managers/master/finished-goods-manager'),
         MaterialManager: require('./src/managers/master/material-manager'),
+        RangeDiscProductManager: require('./src/managers/master/range-disc-product-manager'),
+        
         article: {
             ArticleMotifManager: require('./src/managers/master/article/article-motif-manager'),
             ArticleColorManager: require('./src/managers/master/article/article-color-manager'),
