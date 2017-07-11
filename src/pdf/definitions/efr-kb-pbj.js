@@ -18,20 +18,20 @@ module.exports = function (spkDocs) {
         // },
         {
             columns: [
-                { width: '30%', text: "No Packing List", style: ['size12', 'bold'], alignment: 'left' },
-                { width: '70%', text: spkDocs.packingList, style: ['size12'], alignment: 'left' }
+                { width: '30%', text: "No Packing List", style: ['size08', 'bold'], alignment: 'left' },
+                { width: '70%', text: spkDocs.packingList, style: ['size08'], alignment: 'left' }
             ]
         },
         {
             columns: [
-                { width: '30%', text: "Password", style: ['size12', 'bold'], alignment: 'left' },
-                { width: '70%', text: spkDocs.password, style: ['size12'], alignment: 'left' }
+                { width: '30%', text: "Password", style: ['size08', 'bold'], alignment: 'left' },
+                { width: '70%', text: spkDocs.password, style: ['size08'], alignment: 'left' }
             ]
         },
         {
             columns: [
-                { width: '30%', text: "Tanggal", style: ['size12', 'bold'], alignment: 'left' },
-                { width: '70%', text: `${moment(spkDocs._createdDate).format(locale.date.format)}`, style: ['size12'], alignment: 'left' }
+                { width: '30%', text: "Tanggal", style: ['size08', 'bold'], alignment: 'left' },
+                { width: '70%', text: `${moment(spkDocs._createdDate).format(locale.date.format)}`, style: ['size08'], alignment: 'left' }
             ]
         }
     ]
@@ -39,32 +39,32 @@ module.exports = function (spkDocs) {
     var table2 = [
         {
             columns: [
-                { width: '40%', text: "Dari", style: ['size12', 'bold'] },
-                { width: '80%', text: spkDocs.source.name, style: ['size12'] }
+                { width: '40%', text: "Dari", style: ['size08', 'bold'] },
+                { width: '80%', text: spkDocs.source.name, style: ['size08'] }
             ]
         },
         {
             columns: [
-                { width: '40%', text: "Tujuan", style: ['size12', 'bold'] },
-                { width: '80%', text: spkDocs.destination.name, style: ['size12'] }
+                { width: '40%', text: "Tujuan", style: ['size08', 'bold'] },
+                { width: '80%', text: spkDocs.destination.name, style: ['size08'] }
             ]
         },
         {
             columns: [
-                { width: '40%', text: "Tanggal Kirim", style: ['size12', 'bold'] },
-                { width: '80%', text: `${moment(spkDocs.date).format(locale.date.format)}`, style: ['size12'] }
+                { width: '40%', text: "Tanggal Kirim", style: ['size08', 'bold'] },
+                { width: '80%', text: `${moment(spkDocs.date).format(locale.date.format)}`, style: ['size08'] }
             ]
         },
         {
             columns: [
-                { width: '40%', text: "Nomor Referensi", style: ['size12', 'bold'] },
-                { width: '80%', text: spkDocs.reference, style: ['size12'] }
+                { width: '40%', text: "Nomor Referensi", style: ['size08', 'bold'] },
+                { width: '80%', text: spkDocs.reference, style: ['size08'] }
             ]
         },
         {
             columns: [
-                { width: '40%', text: "Keterangan", style: ['size12', 'bold'] },
-                { width: '80%', text: "", style: ['size12'] }
+                { width: '40%', text: "Keterangan", style: ['size08', 'bold'] },
+                { width: '80%', text: "", style: ['size08'] }
             ]
         }
     ];
@@ -74,10 +74,10 @@ module.exports = function (spkDocs) {
             {
                 width: "50%",
                 stack: [
-                    { text: "PT EFRATA RETAILINDO", style: ['size12', 'bold'] },
+                    { text: "PT EFRATA RETAILINDO", style: ['size08', 'bold'] },
                     {
                         text: "Kel. Banaran, Kec. Grogol, Kab.Sukoharjo 57193 Jawa Tengah, Indonesia",
-                        style: ['size12']
+                        style: ['size08']
                     }
                 ]
             },
@@ -100,12 +100,12 @@ module.exports = function (spkDocs) {
     };
 
     var thead = [
-        { text: "No", style: 'tableHeader' },
-        { text: "Produk", style: 'tableHeader' },
-        { text: "Nama Produk", style: 'tableHeader' },
-        { text: "Kuantitas", style: 'tableHeader' }
+        { text: "No", style: ['tableHeader', 'size09'] },
+        { text: "Produk", style: ['tableHeader', 'size09'] },
+        { text: "Nama Produk", style: ['tableHeader', 'size09'] },
+        { text: "Kuantitas", style: ['tableHeader', 'size09'] }
         ,
-        { text: "Harga", style: 'tableHeader' }
+        { text: "Harga", style: ['tableHeader', 'size09'] }
     ]
 
     var index = 1;
@@ -135,7 +135,7 @@ module.exports = function (spkDocs) {
             widths: ['10%', '20%', '25%', '25%', '20%'],
             body: [].concat([thead], tbody)
         },
-        style: ['marginTop20']
+        style: ['marginTop20', 'size08']
     }
 
     var data3 = {
@@ -143,9 +143,9 @@ module.exports = function (spkDocs) {
             headerRows: 0,
             widths: ['56%', '25%', '19%'],
             body: [
-                [{ text: 'Total', style: ['bold', 'size12'], alignment: 'center' },
-                { text: total, style: ['bold', 'size12'], alignment: 'center' },
-                { text: totalHarga.toLocaleString(), style: ['bold', 'size12'], alignment: 'right' }]
+                [{ text: 'Total', style: ['bold', 'size08'], alignment: 'center' },
+                { text: total, style: ['bold', 'size08'], alignment: 'center' },
+                { text: totalHarga.toLocaleString(), style: ['bold', 'size08'], alignment: 'right' }]
             ]
         },
         style: ['marginTop20']
