@@ -45,7 +45,7 @@ module.exports = class UpdateProductFactPenjualan {
                         this.load(transformData).then(result => {
                             var finishedDate = new Date();
                             var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
-                            console.log("load :" + spentTime + " minutes")
+                            console.log("load :" + spentTime + " minutes");
 
                             var updateLog = {
                                 migration: migrationName,

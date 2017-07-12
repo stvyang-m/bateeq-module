@@ -108,7 +108,7 @@ module.exports = class FactPenjualan {
                         console.log(err);
                         reject(err);
                     });
-            })
+            }) 
         });
     }
 
