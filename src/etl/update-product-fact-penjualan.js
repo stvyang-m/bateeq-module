@@ -155,9 +155,9 @@ module.exports = class UpdateProductFactPenjualan {
                     dt_id: `'${this.getDBValidString(item._id.toString())}'`,
                     dt_code: `'${this.getDBValidString(item.code)}'`,
                     dt_ro_number: `'${this.getDBValidString(item.article ? item.article.realizationOrder : null)}'`,
-                    dt_ro_name: `'${this.getDBValidString(item.article ? item.article.realizationOrderName : null)}'`,
+                    //dt_ro_name: `'${this.getDBValidString(item.article ? item.article.realizationOrderName : null)}'`,
                     dt_image_path: `'${this.getDBValidString(item.imagePath ? this.replaceUrl(item.imagePath, item._id.toString()) : null)}'`,
-                    dt_motif_path: `'${this.getDBValidString(item.motifPath ? this.replaceMotif(item.motifPath, item._id.toString()) : null)}'`,
+                    //dt_motif_path: `'${this.getDBValidString(item.motifPath ? this.replaceMotif(item.motifPath, item._id.toString()) : null)}'`,
                     dt_counter_name: `'${this.getDBValidString(item.counterDoc ? item.counterDoc.name : null)}'`,
                     dt_subcounter_name: `'${this.getDBValidString(item.styleDoc ? item.styleDoc.name : null)}'`,
                     dt_size_name: `'${this.getDBValidString(item.size ? item.size : null)}'`,
@@ -166,9 +166,10 @@ module.exports = class UpdateProductFactPenjualan {
                     dt_material_composition_name: `'${this.getDBValidString(item.materialCompositionDoc ? item.materialCompositionDoc.name : null)}'`,
                     dt_color_code: `'${this.getDBValidString(item.colorCode ? item.colorCode : null)}'`,
                     dt_color_name: `'${this.getDBValidString(item.colorDoc ? item.colorDoc.name : null)}'`,
-                    dt_motif_name: `'${this.getDBValidString(item.motifDoc ? item.motifDoc.name : null)}'`,
+                    //dt_motif_name: `'${this.getDBValidString(item.motifDoc ? item.motifDoc.name : null)}'`,
                     dt_collection_name: `'${this.getDBValidString(item.collectionDoc ? item.collectionDoc.name : null)}'`,
-                    dt_season_name: `'${this.getDBValidString(item.seasonDoc ? item.seasonDoc.name : null)}'`
+                    dt_season_name: `'${this.getDBValidString(item.seasonDoc ? item.seasonDoc.name : null)}'`,
+                    dt_category_name: `'${this.getDBValidString(item.categoryDoc ? item.categoryDoc.name : null)}'`
                 }
             });
             resolve([].concat.apply([], result));
@@ -215,7 +216,7 @@ module.exports = class UpdateProductFactPenjualan {
                         for (var item of data) {
                             if (item) {
                                 count++;
-                                var queryString = `INSERT INTO [BTQ_UpdateItem_Temp] ([dt_id], [dt_code], [dt_ro_number], [dt_ro_name], [dt_image_path], [dt_motif_path], [dt_process_name], [dt_material_composition_name], [dt_color_code], [dt_color_name], [dt_collection_name], [dt_season_name], [dt_counter_name], [dt_subcounter_name], [dt_size_name], [dt_material_name], [dt_motif_name]) values(${item.dt_id}, ${item.dt_code}, ${item.dt_ro_number}, ${item.dt_ro_name}, ${item.dt_image_path}, ${item.dt_motif_path}, ${item.dt_process_name}, ${item.dt_material_composition_name}, ${item.dt_color_code}, ${item.dt_color_name}, ${item.dt_collection_name}, ${item.dt_season_name},${item.dt_counter_name}, ${item.dt_subcounter_name}, ${item.dt_size_name}, ${item.dt_material_name}, ${item.dt_motif_name})\n`;
+                                var queryString = `INSERT INTO [BTQ_UpdateItem_Temp] ([dt_id], [dt_code], [dt_ro_number], [dt_image_path], [dt_process_name], [dt_material_composition_name], [dt_color_code], [dt_color_name], [dt_collection_name], [dt_season_name], [dt_counter_name], [dt_subcounter_name], [dt_size_name], [dt_material_name], [dt_category_name]) values(${item.dt_id}, ${item.dt_code}, ${item.dt_ro_number}, ${item.dt_image_path}, ${item.dt_process_name}, ${item.dt_material_composition_name}, ${item.dt_color_code}, ${item.dt_color_name}, ${item.dt_collection_name}, ${item.dt_season_name},${item.dt_counter_name}, ${item.dt_subcounter_name}, ${item.dt_size_name}, ${item.dt_material_name}, ${item.dt_category_name})\n`;
                                 sqlQuery = sqlQuery.concat(queryString);
                                 if (count % 1000 == 0) {
                                     command.push(this.insertQuery(request, sqlQuery));
