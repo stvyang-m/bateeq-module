@@ -12,14 +12,14 @@ module.exports = function (expeditions) {
     var table1 = [
         {
             columns: [
-                { width: '30%', text: "No Bon", style: ['size12', 'bold'], alignment: 'left' },
-                { width: '70%', text: expeditions.code, style: ['size12'], alignment: 'left' }
+                { width: '30%', text: "No Bon", style: ['size08', 'bold'], alignment: 'left' },
+                { width: '70%', text: expeditions.code, style: ['size08'], alignment: 'left' }
             ]
         },
         {
             columns: [
-                { width: '30%', text: "Tanggal", style: ['size12', 'bold'], alignment: 'left' },
-                { width: '70%', text: `${moment(expeditions._createdDate).format(locale.date.format)}`, style: ['size12'], alignment: 'left' }
+                { width: '30%', text: "Tanggal", style: ['size08', 'bold'], alignment: 'left' },
+                { width: '70%', text: `${moment(expeditions._createdDate).format(locale.date.format)}`, style: ['size08'], alignment: 'left' }
             ]
         }
     ]
@@ -27,20 +27,20 @@ module.exports = function (expeditions) {
     var table2 = [
         {
             columns: [
-                { width: '40%', text: "Tujuan", style: ['size12', 'bold'] },
-                { width: '60%', text: expeditions.spkDocuments[0].destination.name || "", style: ['size12'] }
+                { width: '40%', text: "Tujuan", style: ['size08', 'bold'] },
+                { width: '60%', text: expeditions.spkDocuments[0].destination.name || "", style: ['size08'] }
             ]
         },
         {
             columns: [
-                { width: '40%', text: "Ekspedisi", style: ['size12', 'bold'] },
-                { width: '60%', text: expeditions.expedition.name || expeditions.expedition, style: ['size12'] }
+                { width: '40%', text: "Ekspedisi", style: ['size08', 'bold'] },
+                { width: '60%', text: expeditions.expedition.name || expeditions.expedition, style: ['size08'] }
             ]
         },
         {
             columns: [
-                { width: '40%', text: "Total Berat (Kg)", style: ['size12', 'bold'] },
-                { width: '60%', text: expeditions.weight, style: ['size12'] }
+                { width: '40%', text: "Total Berat (Kg)", style: ['size08', 'bold'] },
+                { width: '60%', text: expeditions.weight, style: ['size08'] }
             ]
         }
     ];
@@ -50,10 +50,10 @@ module.exports = function (expeditions) {
             {
                 width: "50%",
                 stack: [
-                    { text: "PT EFRATA RETAILINDO", style: ['size12', 'bold'] },
+                    { text: "PT EFRATA RETAILINDO", style: ['size08', 'bold'] },
                     {
                         text: "Kel. Banaran, Kec. Grogol, Kab.Sukoharjo 57193 Jawa Tengah, Indonesia",
-                        style: ['size12']
+                        style: ['size08']
                     }
                 ]
             },
@@ -76,11 +76,11 @@ module.exports = function (expeditions) {
     };
 
     var thead = [
-        { text: "No", style: 'tableHeader' },
-        { text: "Packing List", style: 'tableHeader' },
-        { text: "Password", style: 'tableHeader'},
-        { text: "Berat (Kg)", style: 'tableHeader' },
-        { text: "Total Barang", style: 'tableHeader' }
+        { text: "No", style: ['tableHeader', 'size09'] },
+        { text: "Packing List", style: ['tableHeader', 'size09'] },
+        { text: "Password", style: ['tableHeader', 'size09']},
+        { text: "Berat (Kg)", style: ['tableHeader', 'size09'] },
+        { text: "Total Barang", style: ['tableHeader', 'size09'] }
     ]
 
     var index = 1;
@@ -97,14 +97,14 @@ module.exports = function (expeditions) {
     var tbody = spkDocuments.map(item => {
         var totalBarang = 0;
         if (item.items.length > 1) {
-            totalBarang = item.items.reduce((prev, curr) => prev.quantity + curr.quantity);
+            totalBarang = item.items.reduce((acc, currValue, currIndex, quantities) => {return acc + parseInt(currValue.quantity)}, 0);
         } else {
-            totalBarang = item.items[0].quantity;
+            totalBarang = parseInt(item.items[0].quantity);
         }
-        total += parseInt(totalBarang);
+        total += totalBarang;
         return [
             { text: index++, alignment: 'center' },
-            { text: item.code, alignment: 'center' },
+            { text: item.packingList, alignment: 'center' },
             { text: item.password, alignment: 'center'},
             { text: item.weight || 0, alignment: 'center' },
             { text: totalBarang || 0, alignment: 'center' }
@@ -121,7 +121,7 @@ module.exports = function (expeditions) {
             widths: ['5%', '45%', '30%', '10%', '10%'],
             body: [].concat([thead], tbody)
         },
-        style: ['marginTop20', 'size10']
+        style: ['marginTop20', 'size08']
     }
 
     var data3 = {
@@ -129,8 +129,8 @@ module.exports = function (expeditions) {
             headerRows: 0,
             widths: ['75%', '25%'],
             body: [
-                [{ text: 'Total', style: ['bold', 'size12'], alignment: 'center' },
-                { text: total, style: ['bold', 'size12'], alignment: 'center' }]
+                [{ text: 'Total', style: ['bold', 'size08'], alignment: 'center' },
+                { text: total, style: ['bold', 'size08'], alignment: 'center' }]
             ]
         },
         style: ['marginTop20']

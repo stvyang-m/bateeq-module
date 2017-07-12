@@ -23,6 +23,7 @@ describe('#bateeq-module', function (done) {
     test('@manager/bank-manager',                       './managers/bank-manager-test');
     test('@manager/card-type-manager',                  './managers/card-type-manager-test');
     test('@manager/promo-manager',                      './managers/promo-manager-test');
+    test('@manager/range-disc-product-manager',         './managers/range-disc-product-test');
 
     test('@ARTICLE/ARTICLE-MOTIF',                      './article/article-motif');
     test('@ARTICLE/ARTICLE-COUNTER',                    './article/article-counter');
@@ -35,6 +36,7 @@ describe('#bateeq-module', function (done) {
     test('@ARTICLE/ARTICLE-SUB-MATERIAL-COMPOSITION',   './article/article-material-composition');
     test('@ARTICLE/ARTICLE-PROCESS',                    './article/article-process');
     test('@ARTICLE/ARTICLE-SUB-PROCESS',                './article/article-sub-process');
+    test('@ARTICLE/ARTICLE-CATEGORY',                   './article/article-category');
 
     //transaction
     test('@manager/transfer-in-doc-manager',            './managers/transfer-in-doc-manager-test');
