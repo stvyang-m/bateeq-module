@@ -108,7 +108,7 @@ module.exports = class FactPenjualan {
                         console.log(err);
                         reject(err);
                     });
-            }) 
+            })
         });
     }
 
@@ -387,7 +387,7 @@ module.exports = class FactPenjualan {
                                         hd_promo_type2: `'${(sale.salesDetail.promoDoc != undefined) ? ((sale.salesDetail.promoDoc.length > 1) ? this.getDBValidString(sale.salesDetail.promoDoc[1].name) : "") : ""}'`,
                                         dt_ro_number: `'${item.item.article.realizationOrder ? this.getDBValidString(item.item.article.realizationOrder) : ""}'`,
                                         //dt_ro_name: `'${item.item.article.realizationOrderName ? this.getDBValidString(item.item.article.realizationOrderName) : ""}'`,
-                                        dt_image_path: `'${this.getDBValidString(item.item.imagePath ? this.replaceUrl(item.item.imagePath, item.item._id.toString()) : null)}'`, 
+                                        dt_image_path: `'${this.getDBValidString(item.item.imagePath ? this.replaceUrl(item.item.imagePath, item.item._id.toString()) : null)}'`,
                                         //dt_motif_path: `'${this.getDBValidString(item.item.motifPath ? this.replaceMotif(item.item.motifPath, item.item._id.toString()) : null)}'`,
                                         dt_counter_name: `'${item.item.counterDoc != undefined ? this.getDBValidString(item.item.counterDoc.name) : ""}'`,
                                         dt_subcounter_name: `'${item.item.styleDoc != undefined ? this.getDBValidString(item.item.styleDoc.name) : ""}'`,
@@ -414,7 +414,8 @@ module.exports = class FactPenjualan {
                                         // dt_size_name: `'${this.getDBValidString(this.getSize(item.item.code))}'`,
                                         dt_mainsalesprice: `'${this.getDBValidString(parseInt(item.item.domesticCOGS || 0) * parseInt(item.quantity || 0))}'`,
                                         dt_item_price: `'${this.getDBValidString(item.price)}'`,
-                                        dt_is_discount_percentage: `'${(item.discountNominal > 0) ? '0' : '1'}'`,
+                                        dt_is_discount_percentage: null,
+                                        //dt_is_discount_percentage: `'${(item.discountNominal > 0) ? '0' : '1'}'`,
                                         dt_fixed_discount_amount: `'${this.getDBValidString(item.discountNominal)}'`,
                                         dt_discount_product_percentage: `'${this.getDBValidString(item.discount1)}'`,
                                         dt_discount_product_percentage_additional: `'${this.getDBValidString(item.discount2)}'`,
