@@ -25,6 +25,33 @@ module.exports = class ItemManager extends BaseManager {
         this.componentHelper = new ComponentHelper(this);
     }
 
+    readAll(paging) {
+        return new Promise((resolve, reject) => {
+            var deleted = {
+                _deleted: false,
+
+            };
+            var type = { _type: 'finished-goods' };
+            var query = {
+                $and: [
+                    deleted,
+                    type,
+                    paging.filter
+                ]
+            }
+
+            this.collection
+                .where(query)
+                .execute()
+                .then(results => {
+                    resolve(results);
+                })
+                .catch(e => {
+                    reject(e);
+                });
+        });
+    }
+
     upsertComponents(data) {
         return new Promise((resolve, reject) => {
             var tag = `#${data.code}`;
