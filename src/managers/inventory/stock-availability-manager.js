@@ -70,7 +70,6 @@ module.exports = class StockAvailabilityManager extends BaseManager {
         });
     }
 
-
     getNearestStock(inventoryId) {
         let id = new ObjectId(inventoryId);
         let inventory = new Promise((resolve, reject) => {
@@ -101,7 +100,7 @@ module.exports = class StockAvailabilityManager extends BaseManager {
         });
         return new Promise((resolve, reject) => {
             Promise.all([inventoryDb, storeDb, invMovementDb])
-                .then(array => {
+                .then((array) => {
                     let inventoryArray = array[0];
                     let storeArray = array[1];
                     let invMovementArray = array[2];
@@ -145,11 +144,10 @@ module.exports = class StockAvailabilityManager extends BaseManager {
                     lodash_.remove(sameCityInventory, { _id: id });
                     resolve(sameCityInventory);
                 })
-                .catch(e => {
-                    reject(e);
-                });
+                // .catch(e => {
+                //     reject(e);
+                // });
         });
-
 
         // MONGODB STYLE, BUT $LOOKUP IS BAD FOR PERFORMANCE
 
