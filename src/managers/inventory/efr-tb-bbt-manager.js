@@ -349,7 +349,7 @@ module.exports = class TokoTerimaBarangBaruManager extends TransferInManager {
                     var expeditionDoc = results[1];
                     if (spkDoc) {
                         if (expeditionDoc.data.length == 0) {
-                            errors["reference"] = "this reference does not have expedition";
+                            errors["reference"] = "Packing List belum ada di Ekspedisi";
                         }
                         if (transferInDoc.password != spkDoc.password) {
                             errors["password"] = "invalid password";
