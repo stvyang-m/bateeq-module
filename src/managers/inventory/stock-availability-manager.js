@@ -64,7 +64,7 @@ module.exports = class StockAvailabilityManager extends BaseManager {
             var find = { "storage._id": id };
             var sort = { quantity: 1 };
             this.collection.find(find).sort(sort)
-                .toArray((err, result) => {
+                .toArray(result => {
                     resolve(result);
                 })
         });
@@ -74,33 +74,33 @@ module.exports = class StockAvailabilityManager extends BaseManager {
         let id = new ObjectId(inventoryId);
         let inventory = new Promise((resolve, reject) => {
             this.collection.find({ _id: id })
-                .toArray((err, result) => {
+                .toArray(result => {
                     resolve(result);
                 });
         });
         let inventoryDb = new Promise((resolve, reject) => {
             inventory.then(result => {
                 this.collection.find({ "item.code": result[0].item.code })
-                    .toArray((err, result) => {
+                    .toArray(result => {
                         resolve(result);
                     })
             })
         });
         let storeDb = new Promise((resolve, reject) => {
             this.storeCollection.find()
-                .toArray((err, result) => {
+                .toArray(result => {
                     resolve(result);
                 });
         });
         let invMovementDb = new Promise((resolve, reject) => {
             this.invMovementCollection.find()
-                .toArray((err, result) => {
+                .toArray(result => {
                     resolve(result);
                 });
         });
         return new Promise((resolve, reject) => {
             Promise.all([inventoryDb, storeDb, invMovementDb])
-                .then((array) => {
+                .then(array => {
                     let inventoryArray = array[0];
                     let storeArray = array[1];
                     let invMovementArray = array[2];
