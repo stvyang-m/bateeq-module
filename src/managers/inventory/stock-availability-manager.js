@@ -100,10 +100,10 @@ module.exports = class StockAvailabilityManager extends BaseManager {
         });
         return new Promise((resolve, reject) => {
             Promise.all([inventoryDb, storeDb, invMovementDb])
-                .then(array => {
-                    let inventoryArray = array[0];
-                    let storeArray = array[1];
-                    let invMovementArray = array[2];
+                .then(result => {
+                    let inventoryArray = result[0];
+                    let storeArray = result[1];
+                    let invMovementArray = result[2];
                     let data = [];
                     let uniqueStorage = [];
                     for (let inventory of inventoryArray) {
