@@ -22,7 +22,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
         super(db, user);
         this.user = user;
         this.SPKDocCollection = this.db.use(map.merchandiser.SPKDoc);
-        this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);
+        this.collection = this.db.use(map.inventory.ExpeditionDoc);
 
         var StorageManager = require('../master/storage-manager');
         this.storageManager = new StorageManager(db, user);
@@ -40,49 +40,26 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
         this.moduleManager = new ModuleManager(db, user);
     }
 
-    read(paging) {
-        var _paging = Object.assign({}, paging);
+    _getQuery(paging) {
+        var deletedFilter = {
+            _deleted: false
+        }, keywordFilter = {};
 
-        return new Promise((resolve, reject) => {
-            var regexModuleId = new RegExp(moduleId, "i");
-            var filter = {
-                _deleted: false,
-                _createdBy: this.user.username,
+        var query = {};
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
+
+            var filterCode = {
                 'code': {
-                    '$regex': regexModuleId
+                    '$regex': regex
                 }
             };
-            var query = _paging.keyword ? {
-                '$and': [filter]
-            } : filter;
-
-            if (_paging.keyword) {
-                var regex = new RegExp(_paging.keyword, "i");
-                var filterCode = {
-                    'code': {
-                        '$regex': regex
-                    }
-                };
-                var $or = {
-                    '$or': [filterCode]
-                };
-
-                query['$and'].push($or);
-            }
-
-
-            this.expeditionDocCollection
-                .where(query)
-                .page(_paging.page, _paging.size)
-                .order(_paging.order)
-                .execute()
-                .then(expeditionDocs => {
-                    resolve(expeditionDocs);
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
+            keywordFilter = {
+                '$or': [filterCode]
+            };
+        }
+        query = { '$and': [deletedFilter, paging.filter, keywordFilter] }
+        return query;
     }
 
     readAll(paging) {
@@ -114,7 +91,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
             }
 
 
-            this.expeditionDocCollection
+            this.collection
                 .where(query)
                 .execute()
                 .then(spkDoc => {
@@ -235,7 +212,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
 
     getSingleByQuery(query) {
         return new Promise((resolve, reject) => {
-            this.expeditionDocCollection
+            this.collection
                 .single(query)
                 .then(expeditionDoc => {
                     resolve(expeditionDoc);
@@ -248,7 +225,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
 
     getSingleByQueryOrDefault(query) {
         return new Promise((resolve, reject) => {
-            this.expeditionDocCollection
+            this.collection
                 .singleOrDefault(query)
                 .then(expeditionDoc => {
                     resolve(expeditionDoc);
@@ -262,7 +239,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
     getBySpk(code) {
         var query = { "spkDocuments.code": code };
         return new Promise((resolve, reject) => {
-            this.expeditionDocCollection
+            this.collection
                 .where(query)
                 .execute()
                 .then(expeditionDocs => {
@@ -277,7 +254,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
     getByPackingList(packingList) {
         var query = { "spkDocuments.packingList": packingList };
         return new Promise((resolve, reject) => {
-            this.expeditionDocCollection
+            this.collection
                 .where(query)
                 .execute()
                 .then(expeditionDocs => {
@@ -302,7 +279,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                         }
                         expedition._updatedDate = new Date();
                         expedition._updatedBy = this.user.username;
-                        this.expeditionDocCollection.update(expedition).then(id => {
+                        this.collection.update(expedition).then(id => {
                             resolve(id);
                         })
                             .catch(e => {
@@ -382,7 +359,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                                     validExpeditionDoc._createdDate = new Date();
                                     validExpeditionDoc.stamp(this.user.username, 'manager');
                                     //Create Promise Expedition 
-                                    this.expeditionDocCollection.insert(validExpeditionDoc)
+                                    this.collection.insert(validExpeditionDoc)
                                         .then(resultExpeditionId => {
                                             //Get Expedition Data
                                             this.getSingleByIdOrDefault(resultExpeditionId)
@@ -477,7 +454,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
         }
 
         return new Promise((resolve, reject) => {
-            this.expeditionDocCollection.where(query)
+            this.collection.where(query)
                 .order({ date: 1 }).execute()
                 .then(expeditionDocs => {
                     resolve(expeditionDocs)
