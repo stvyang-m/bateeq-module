@@ -78,8 +78,9 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
         var _paging = Object.assign({
             page: 1,
             size: 20,
-            order: '_id',
-            asc: true
+            order: {},
+            filter: {},
+            select: []
         }, paging);
 
         return new Promise((resolve, reject) => {
@@ -108,6 +109,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
             }
             this.collection
                 .where(query)
+                .select(_paging.select)
                 .page(_paging.page, _paging.size)
                 .order(_paging.order)
                 .execute()
