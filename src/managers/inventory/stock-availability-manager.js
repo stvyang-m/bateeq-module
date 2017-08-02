@@ -118,7 +118,6 @@ module.exports = class StockAvailabilityManager extends BaseManager {
                                 dates.push(invMovement._createdDate);
                             }
                         }
-                        // let latestDate = new Date(Math.max.apply(null, dates));
                         let latestDateFormatted = dateFormat(new Date(Math.max.apply(null, dates)), "mm/dd/yyyy");
                         inventory.latestDate = latestDateFormatted;
                         data.push(inventory);
