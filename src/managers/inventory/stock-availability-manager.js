@@ -105,7 +105,6 @@ module.exports = class StockAvailabilityManager extends BaseManager {
                     let storeArray = result[1];
                     let invMovementArray = result[2];
                     let data = [];
-                    let uniqueStorage = [];
                     for (let inventory of inventoryArray) {
                         let dates = [];
                         for (let store of storeArray) {
@@ -119,18 +118,9 @@ module.exports = class StockAvailabilityManager extends BaseManager {
                                 dates.push(invMovement._createdDate);
                             }
                         }
-                        let latestDate = new Date(Math.max.apply(null, dates));
-                        let latestDateFormatted = dateFormat(latestDate, "mm/dd/yyyy");
+                        // let latestDate = new Date(Math.max.apply(null, dates));
+                        let latestDateFormatted = dateFormat(new Date(Math.max.apply(null, dates)), "mm/dd/yyyy");
                         inventory.latestDate = latestDateFormatted;
-                        // if (!uniqueStorage.includes(inventory.storage.code)){
-                        //     uniqueStorage.push(inventory.storage.code);
-                        //     data.push(inventory);
-                        // } else {
-                        //     let uniqueInventory = data.find((inv) => {
-                        //         return inv.storage.code == inventory.storage.code;
-                        //     })
-                        //     uniqueInventory.quantity += inventory.quantity;
-                        // }
                         data.push(inventory);
                     }
                     let thisInventory = lodash_.find(data, { _id: id });
