@@ -63,7 +63,7 @@ module.exports = class FactPenjualan {
                                 this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
                                 resolve(result);
                             })
-                                .catch((err) => {
+                                .catch((err, error) => {
                                     var finishedDate = new Date();
                                     var spentTime = moment(finishedDate).diff(moment(startedDate), "minutes");
                                     var updateLog = {
@@ -72,7 +72,8 @@ module.exports = class FactPenjualan {
                                         _createdDate: startedDate,
                                         _end: finishedDate,
                                         executionTime: spentTime + " minutes",
-                                        status: err
+                                        status: err,
+                                        execResult_error: error
                                     };
                                     this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
                                     console.log(err);
@@ -340,12 +341,12 @@ module.exports = class FactPenjualan {
     }
 
     replaceUrl(path, id) {
-        var templatePath = "https://bateeq-core-api-dev.mybluemix.net/v1/master/items/finished-goods/image";
+        var templatePath = "https://bateeq-core-api.mybluemix.net/v1/master/items/finished-goods/image";
         return path.replace(path, templatePath + "/" + id);
     }
 
     replaceMotif(path, id) {
-        var templatePath = "https://bateeq-core-api-dev.mybluemix.net/v1/master/items/finished-goods/motif-image";
+        var templatePath = "https://bateeq-core-api.mybluemix.net/v1/master/items/finished-goods/motif-image";
         return path.replace(path, templatePath + "/" + id);
     }
 
@@ -569,7 +570,7 @@ module.exports = class FactPenjualan {
                                     }).catch((error) => {
                                         transaction.rollback((err) => {
                                             if (err)
-                                                reject(err)
+                                                reject(err, error);
                                             else
                                                 reject(error);
                                         });
