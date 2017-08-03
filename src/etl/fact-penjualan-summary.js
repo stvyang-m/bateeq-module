@@ -71,9 +71,13 @@ module.exports = class FactPenjualanSummary {
                                         _createdDate: startedDate,
                                         _end: finishedDate,
                                         executionTime: spentTime + " minutes",
-                                        status: err,
-                                        execResult_error: error
+                                        status: err   
                                     };
+
+                                    if (error) {
+                                        updateLog.execResult_error = error
+                                    }
+
                                     this.migrationLog.updateOne({ _createdDate: startedDate }, updateLog);
                                     console.log(err);
                                     reject(err);
@@ -477,7 +481,7 @@ module.exports = class FactPenjualanSummary {
                             .catch((error) => {
                                 transaction.rollback((err) => {
                                     if (err)
-                                        reject(err)
+                                        reject(err, error);
                                     else
                                         reject(error);
                                 });
