@@ -28,8 +28,7 @@ module.exports = class ItemManager extends BaseManager {
     readAll(paging) {
         return new Promise((resolve, reject) => {
             var deleted = {
-                _deleted: false,
-
+                _deleted: false
             };
             var type = { _type: 'finished-goods' };
             var query = {

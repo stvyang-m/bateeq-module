@@ -61,52 +61,50 @@ module.exports = class StockAvailabilityManager extends BaseManager {
         // });
         return new Promise((resolve, reject) => {
             let id = new ObjectId(storageId);
-            var find = { "storage._id": id };
+            var find = { "storage._id": id, _deleted: false };
             var sort = { quantity: 1 };
             this.collection.find(find).sort(sort)
-                .toArray((err, result) => {
+                .toArray(result => {
                     resolve(result);
                 })
         });
     }
 
-
     getNearestStock(inventoryId) {
         let id = new ObjectId(inventoryId);
         let inventory = new Promise((resolve, reject) => {
-            this.collection.find({ _id: id })
-                .toArray((err, result) => {
+            this.collection.find({ _id: id, _deleted: false })
+                .toArray(result => {
                     resolve(result);
                 });
         });
         let inventoryDb = new Promise((resolve, reject) => {
             inventory.then(result => {
                 this.collection.find({ "item.code": result[0].item.code })
-                    .toArray((err, result) => {
+                    .toArray(result => {
                         resolve(result);
                     })
             })
         });
         let storeDb = new Promise((resolve, reject) => {
-            this.storeCollection.find()
-                .toArray((err, result) => {
+            this.storeCollection.find({ _deleted: false })
+                .toArray(result => {
                     resolve(result);
                 });
         });
         let invMovementDb = new Promise((resolve, reject) => {
-            this.invMovementCollection.find()
-                .toArray((err, result) => {
+            this.invMovementCollection.find({ _deleted: false })
+                .toArray(result => {
                     resolve(result);
                 });
         });
         return new Promise((resolve, reject) => {
             Promise.all([inventoryDb, storeDb, invMovementDb])
-                .then(array => {
-                    let inventoryArray = array[0];
-                    let storeArray = array[1];
-                    let invMovementArray = array[2];
+                .then(result => {
+                    let inventoryArray = result[0];
+                    let storeArray = result[1];
+                    let invMovementArray = result[2];
                     let data = [];
-                    let uniqueStorage = [];
                     for (let inventory of inventoryArray) {
                         let dates = [];
                         for (let store of storeArray) {
@@ -120,18 +118,8 @@ module.exports = class StockAvailabilityManager extends BaseManager {
                                 dates.push(invMovement._createdDate);
                             }
                         }
-                        let latestDate = new Date(Math.max.apply(null, dates));
-                        let latestDateFormatted = dateFormat(latestDate, "mm/dd/yyyy");
+                        let latestDateFormatted = dateFormat(new Date(Math.max.apply(null, dates)), "mm/dd/yyyy");
                         inventory.latestDate = latestDateFormatted;
-                        // if (!uniqueStorage.includes(inventory.storage.code)){
-                        //     uniqueStorage.push(inventory.storage.code);
-                        //     data.push(inventory);
-                        // } else {
-                        //     let uniqueInventory = data.find((inv) => {
-                        //         return inv.storage.code == inventory.storage.code;
-                        //     })
-                        //     uniqueInventory.quantity += inventory.quantity;
-                        // }
                         data.push(inventory);
                     }
                     let thisInventory = lodash_.find(data, { _id: id });
@@ -149,7 +137,6 @@ module.exports = class StockAvailabilityManager extends BaseManager {
                     reject(e);
                 });
         });
-
 
         // MONGODB STYLE, BUT $LOOKUP IS BAD FOR PERFORMANCE
 
