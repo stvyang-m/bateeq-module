@@ -61,7 +61,7 @@ module.exports = class StockAvailabilityManager extends BaseManager {
         // });
         return new Promise((resolve, reject) => {
             let id = new ObjectId(storageId);
-            var find = { "storage._id": id };
+            var find = { "storage._id": id, _deleted: false };
             var sort = { quantity: 1 };
             this.collection.find(find).sort(sort)
                 .toArray(result => {
@@ -73,7 +73,7 @@ module.exports = class StockAvailabilityManager extends BaseManager {
     getNearestStock(inventoryId) {
         let id = new ObjectId(inventoryId);
         let inventory = new Promise((resolve, reject) => {
-            this.collection.find({ _id: id })
+            this.collection.find({ _id: id, _deleted: false })
                 .toArray(result => {
                     resolve(result);
                 });
@@ -87,13 +87,13 @@ module.exports = class StockAvailabilityManager extends BaseManager {
             })
         });
         let storeDb = new Promise((resolve, reject) => {
-            this.storeCollection.find()
+            this.storeCollection.find({ _deleted: false })
                 .toArray(result => {
                     resolve(result);
                 });
         });
         let invMovementDb = new Promise((resolve, reject) => {
-            this.invMovementCollection.find()
+            this.invMovementCollection.find({ _deleted: false })
                 .toArray(result => {
                     resolve(result);
                 });
