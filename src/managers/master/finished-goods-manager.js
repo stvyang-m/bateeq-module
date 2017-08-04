@@ -38,8 +38,14 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                 }
             };
 
+            var filterRO = {
+                'article.realizationOrder': {
+                    '$regex': regex
+                }
+            };
+
             keywordFilter = {
-                '$or': [filterCode, filterName]
+                '$or': [filterCode, filterName, filterRO]
             };
         }
         query = { '$and': [basicFilter, paging.filter, keywordFilter] };
