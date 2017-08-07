@@ -16,17 +16,20 @@ require('mongodb-toolkit');
 const migrationName = "ETL-FactPenjualan-Summary";
 
 module.exports = class FactPenjualanSummary {
-    constructor(db, user, sql) {
+    constructor(db, user, sql, startDate, endDate) {
         this.db = db;
         this.sql = sql;
         this.SalesManager = new SalesManager(db, user);
         this.migrationLog = db.collection("migration.log");
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 
     run() {
         var startedDate = new Date();
         return new Promise((resolve, reject) => {
             this.lastETLDate().then(lastMigration => {
+                var rangeDate = {};
 
                 this.migrationLog.insert({
                     migration: migrationName,
@@ -34,7 +37,12 @@ module.exports = class FactPenjualanSummary {
                     _createdDate: startedDate
                 })
 
-                this.extract(lastMigration._createdDate)
+                if (this.startDate && this.endDate) {
+                    rangeDate.startDate = new Date(this.startDate);
+                    rangeDate.endDate = new Date(this.endDate);
+                }
+
+                this.extract(lastMigration._createdDate, rangeDate)
                     .then((data) => {
                         var exctractDate = new Date();
                         console.log("extract :" + moment(exctractDate).diff(moment(startedDate), "minutes") + " minutes")
@@ -71,7 +79,7 @@ module.exports = class FactPenjualanSummary {
                                         _createdDate: startedDate,
                                         _end: finishedDate,
                                         executionTime: spentTime + " minutes",
-                                        status: err   
+                                        status: err
                                     };
 
                                     if (error) {
@@ -130,13 +138,25 @@ module.exports = class FactPenjualanSummary {
 
     extract(date) {
         var timestamp = date || new Date("1970-01-01");
-        return this.SalesManager.collection.find({
-            _deleted: false,
-            _updatedDate: {
-                "$gt": timestamp
-            },
-            "code": { "$regex": new RegExp("/.*sales.*/") }
-        }).toArray();
+
+        if (rangeDate.startDate & rangeDate.endDate) {
+            return this.SalesManager.collection.find({
+                _deleted: false,
+                _updatedDate: {
+                    "$gt": rangeDate.startDate,
+                    "$lt": rangeDate.endDate
+                },
+                "code": { "$regex": new RegExp("/.*sales.*/") }
+            }).toArray();
+        } else {
+            return this.SalesManager.collection.find({
+                _deleted: false,
+                _updatedDate: {
+                    "$gt": timestamp
+                },
+                "code": { "$regex": new RegExp("/.*sales.*/") }
+            }).toArray();
+        }
     }
 
     getDBValidString(str) {
@@ -334,7 +354,7 @@ module.exports = class FactPenjualanSummary {
                         for (var promoDoc of sale.salesDetail.promoDoc) {
                             if (indexPromo === 0) {
                                 promoOne = promoDoc.name;
-                            } else if (promoDoc && indexPromo === 1 ) {
+                            } else if (promoDoc && indexPromo === 1) {
                                 promoTwo = promoDoc.name;
                             }
                             indexPromo++;
@@ -383,8 +403,8 @@ module.exports = class FactPenjualanSummary {
                             hd_nominal_margin: `'${this.getDBValidString(discount.sumMargin)}'`,
                             hd_items_total_discounts_nominal: `'${this.getDBValidString(discount.sumDiscount)}'`,
                             hd_sales_discount_nominal: `'${this.getDBValidString(discount.sumSalesDiscountNominal)}'`,
-                            hd_promo_type1 : `'${this.getDBValidString(promoOne ? promoOne : null)}'`, 
-                            hd_promo_type2 : `'${this.getDBValidString(promoTwo ? promoTwo : null)}'`
+                            hd_promo_type1: `'${this.getDBValidString(promoOne ? promoOne : null)}'`,
+                            hd_promo_type2: `'${this.getDBValidString(promoTwo ? promoTwo : null)}'`
                         }
                 });
                 resolve([].concat.apply([], result));
