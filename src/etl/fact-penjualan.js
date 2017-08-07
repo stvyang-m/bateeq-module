@@ -16,17 +16,20 @@ require('mongodb-toolkit');
 const migrationName = "ETL-FactPenjualan";
 
 module.exports = class FactPenjualan {
-    constructor(db, user, sql) {
+    constructor(db, user, sql, startDate, endDate) {
         this.db = db;
         this.sql = sql;
         this.SalesManager = new SalesManager(db, user);
         this.migrationLog = db.collection("migration.log");
+        this.startDate = startDate;
+        this.endDate = endDate;
     }
 
     run() {
         var startedDate = new Date();
         return new Promise((resolve, reject) => {
             this.lastETLDate().then(lastMigration => {
+                var rangeDate = {};
 
                 this.migrationLog.insert({
                     migration: migrationName,
@@ -34,7 +37,12 @@ module.exports = class FactPenjualan {
                     _createdDate: startedDate
                 })
 
-                this.extract(lastMigration._createdDate)
+                if (this.startDate && this.endDate) {
+                    rangeDate.startDate = new Date(this.startDate);
+                    rangeDate.endDate = new Date(this.endDate);
+                }
+
+                this.extract(lastMigration._createdDate, rangeDate)
                     .then((data) => {
                         var exctractDate = new Date();
                         console.log("extract :" + moment(exctractDate).diff(moment(startedDate), "minutes") + " minutes")
@@ -128,15 +136,27 @@ module.exports = class FactPenjualan {
         })
     }
 
-    extract(date) {
+    extract(date, rangeDate) {
         var timestamp = date || new Date("1970-01-01");
-        return this.SalesManager.collection.find({
-            _deleted: false,
-            _updatedDate: {
-                "$gt": timestamp
-            },
-            "code": { "$regex": new RegExp("/.*sales.*/") }
-        }).toArray();
+
+        if (rangeDate.startDate && rangeDate.endDate) {
+            return this.SalesManager.collection.find({
+                _deleted: false,
+                _updatedDate: {
+                    "$gt": rangeDate.startDate, 
+                    "$lt": rangeDate.endDate
+                },
+                "code": { "$regex": new RegExp("/.*sales.*/") }
+            }).toArray();
+        } else {
+            return this.SalesManager.collection.find({
+                _deleted: false,
+                _updatedDate: {
+                    "$gt": timestamp
+                },
+                "code": { "$regex": new RegExp("/.*sales.*/") }
+            }).toArray();
+        }
     }
 
     getDBValidString(str) {
