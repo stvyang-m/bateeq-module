@@ -136,7 +136,7 @@ module.exports = class FactPenjualanSummary {
     }
 
 
-    extract(date) {
+    extract(date, rangeDate) {
         var timestamp = date || new Date("1970-01-01");
 
         if (rangeDate.startDate & rangeDate.endDate) {
