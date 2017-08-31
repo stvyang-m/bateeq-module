@@ -13,6 +13,16 @@ var TransferInDoc = BateeqModels.inventory.TransferInDoc;
 var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
 
+// constant
+const STANDALONE = "stand alone";
+const VVIP = "penjualan vvip";
+const KONSINYASI = "konsinyasi";
+const FO = "factory outlet";
+const MARKETPLACE = "market place";
+const DEPTSTORE = "dept store";
+const ONLINE = "online";
+const OFFLINE = "offline";
+
 module.exports = class SalesManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
@@ -116,6 +126,117 @@ module.exports = class SalesManager extends BaseManager {
         ]
 
         return this.collection.aggregate(aggregate);
+    }
+
+    omsetReportAll(dateFrom, dateTo) {
+        let category = [
+            {
+                $match: {
+                    date: {
+                        $gte: new Date(dateFrom),
+                        $lte: new Date(dateTo)
+                    },
+                    isVoid: false
+                }
+            },
+            {
+                $group: {
+                    _id: {
+                        salesCategory: "$store.salesCategory",
+                        storeCategory: "$store.storeCategory",
+                        onlineoffline: "$store.online-offline"
+                    },
+                    grandTotal: { $sum: "$grandTotal" },
+                    count: { $sum: "$totalProduct" }
+                }
+            },
+            { $sort: { "grandTotal": -1 } }
+        ]
+        let data = [
+            {
+                $match: {
+                    date: {
+                        $gte: new Date(dateFrom),
+                        $lte: new Date(dateTo)
+                    },
+                    isVoid: false
+                }
+            },
+            {
+                $group: {
+                    _id: { "storeId": "$store._id" },
+                    store: { "$min": "$store" },
+                    grandTotal: { $sum: "$grandTotal" },
+                    count: { $sum: "$totalProduct" }
+                }
+            },
+            { $sort: { "grandTotal": -1 } }
+        ]
+        let categoryQuery = this.collection.aggregate(category).toArray();
+        let dataQuery = this.collection.aggregate(data).toArray();
+        return new Promise((resolve, reject) => {
+            Promise.all([categoryQuery, dataQuery])
+                .then(queryResult => {
+                    let result = {};
+                    // result.foC = {};
+                    // result.standaloneC = {};
+                    // result.bateeqshopC = {};
+                    // result.vvipC = {};
+                    // result.on_konsinyasiC = {};
+                    // result.off_konsinyasiC = {};
+                    for (let c of queryResult[0]){
+                        if (c._id.salesCategory.toLowerCase() == STANDALONE && c._id.storeCategory.toLowerCase() == FO && c._id.onlineoffline.toLowerCase() == OFFLINE){
+                            result.foC = c;
+                        }
+                        else if (c._id.salesCategory.toLowerCase() == STANDALONE && c._id.storeCategory.toLowerCase() == STANDALONE && c._id.onlineoffline.toLowerCase() == OFFLINE){
+                            result.standaloneC = c;
+                        }
+                        else if (c._id.salesCategory.toLowerCase() == STANDALONE && c._id.storeCategory.toLowerCase() == STANDALONE && c._id.onlineoffline.toLowerCase() == ONLINE){
+                            result.bateeqshopC = c;
+                        }
+                        else if (c._id.salesCategory.toLowerCase() == VVIP && c._id.storeCategory.toLowerCase() == FO && c._id.onlineoffline.toLowerCase() == OFFLINE){
+                            result.vvipC = c;
+                        }
+                        else if (c._id.salesCategory.toLowerCase() == KONSINYASI && c._id.storeCategory.toLowerCase() == MARKETPLACE && c._id.onlineoffline.toLowerCase() == ONLINE){
+                            result.on_konsinyasiC = c;
+                        }
+                        else if (c._id.salesCategory.toLowerCase() == KONSINYASI && c._id.storeCategory.toLowerCase() == DEPTSTORE && c._id.onlineoffline.toLowerCase() == OFFLINE){
+                            result.off_konsinyasiC = c;
+                        }
+                    }
+
+                    result.fo = [];
+                    result.standalone = [];
+                    result.bateeqshop = [];
+                    result.vvip = [];
+                    result.on_konsinyasi = [];
+                    result.off_konsinyasi = [];
+                    for (let d of queryResult[1]){
+                        if (d.store.salesCategory.toLowerCase() == STANDALONE && d.store.storeCategory.toLowerCase() == FO && d.store['online-offline'].toLowerCase() == OFFLINE){
+                            result.fo.push(d);
+                        }
+                        else if (d.store.salesCategory.toLowerCase() == STANDALONE && d.store.storeCategory.toLowerCase() == STANDALONE && d.store['online-offline'].toLowerCase() == OFFLINE){
+                            result.standalone.push(d);
+                        }
+                        else if (d.store.salesCategory.toLowerCase() == STANDALONE && d.store.storeCategory.toLowerCase() == STANDALONE && d.store['online-offline'].toLowerCase() == ONLINE){
+                            result.bateeqshop.push(d);
+                        }
+                        else if (d.store.salesCategory.toLowerCase() == VVIP && d.store.storeCategory.toLowerCase() == FO && d.store['online-offline'].toLowerCase() == OFFLINE){
+                            result.vvip.push(d);
+                        }
+                        else if (d.store.salesCategory.toLowerCase() == KONSINYASI && d.store.storeCategory.toLowerCase() == MARKETPLACE && d.store['online-offline'].toLowerCase() == ONLINE){
+                            result.on_konsinyasi.push(d);
+                        }
+                        else if (d.store.salesCategory.toLowerCase() == KONSINYASI && d.store.storeCategory.toLowerCase() == DEPTSTORE && d.store['online-offline'].toLowerCase() == OFFLINE){
+                            result.off_konsinyasi.push(d);
+                        }
+                    }
+                    resolve(result);
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        });
     }
 
     productsReport(dateFrom, dateTo, skip, limit) {
