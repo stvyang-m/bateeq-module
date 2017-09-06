@@ -14,14 +14,14 @@ var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
 
 // constant
-const STANDALONE = "stand alone";
-const VVIP = "penjualan vvip";
-const KONSINYASI = "konsinyasi";
-const FO = "factory outlet";
-const MARKETPLACE = "market place";
-const DEPTSTORE = "dept store";
-const ONLINE = "online";
-const OFFLINE = "offline";
+const STANDALONE = "STAND ALONE";
+const VVIP = "PENJUALAN VVIP";
+const KONSINYASI = "KONSINYASI";
+const FO = "FACTORY OUTLET";
+const MARKETPLACE = "MARKET PLACE";
+const DEPTSTORE = "DEPT STORE";
+const ONLINE = "ONLINE";
+const OFFLINE = "OFFLINE";
 
 module.exports = class SalesManager extends BaseManager {
     
