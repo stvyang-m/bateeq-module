@@ -80,6 +80,7 @@ module.exports = {
     },
     master: {
         ModuleManager: require('./src/managers/master/module-manager'),
+        UnitManager: require('./src/managers/master/unit-manager'),
         BankManager: require('./src/managers/master/bank-manager'),
         CardTypeManager: require('./src/managers/master/card-type-manager'),
         StoreManager: require('./src/managers/master/store-manager'),

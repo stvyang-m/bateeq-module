@@ -14,19 +14,21 @@ var map = BateeqModels.map;
 var generateCode = require('../../utils/code-generator');
 
 // constant
-const STANDALONE = "stand alone";
-const VVIP = "penjualan vvip";
-const KONSINYASI = "konsinyasi";
-const FO = "factory outlet";
-const MARKETPLACE = "market place";
-const DEPTSTORE = "dept store";
-const ONLINE = "online";
-const OFFLINE = "offline";
+const STANDALONE = "STAND ALONE";
+const VVIP = "PENJUALAN VVIP";
+const KONSINYASI = "KONSINYASI";
+const FO = "FACTORY OUTLET";
+const MARKETPLACE = "MARKET PLACE";
+const DEPTSTORE = "DEPT STORE";
+const ONLINE = "ONLINE";
+const OFFLINE = "OFFLINE";
 
 module.exports = class SalesManager extends BaseManager {
+    
     constructor(db, user) {
         super(db, user);
         this.collection = this.db.use(map.sales.SalesDoc);
+        this.storeCollection = this.db.use(map.master.Store);
 
         var ItemManager = require('../master/finished-goods-manager');
         this.itemManager = new ItemManager(db, user);
@@ -152,85 +154,92 @@ module.exports = class SalesManager extends BaseManager {
             },
             { $sort: { "grandTotal": -1 } }
         ]
-        let data = [
-            {
-                $match: {
-                    date: {
-                        $gte: new Date(dateFrom),
-                        $lte: new Date(dateTo)
-                    },
-                    isVoid: false
-                }
-            },
-            {
-                $group: {
-                    _id: { "storeId": "$store._id" },
-                    store: { "$min": "$store" },
-                    grandTotal: { $sum: "$grandTotal" },
-                    count: { $sum: "$totalProduct" }
-                }
-            },
-            { $sort: { "grandTotal": -1 } }
-        ]
+        let queryCategory = (salesCategory, storeCategory, onlineoffline) => {
+            return [
+                {
+                    $match: {
+                        date: {
+                            $gte: new Date(dateFrom),
+                            $lte: new Date(dateTo)
+                        },
+                        isVoid: false,
+                        "store.salesCategory": salesCategory,
+                        "store.storeCategory": storeCategory,
+                        "store.online-offline": onlineoffline
+                    }
+                },
+                {
+                    $group: {
+                        _id: { "storeId": "$store._id" },
+                        store: { "$min": "$store" },
+                        grandTotal: { $sum: "$grandTotal" },
+                        count: { $sum: "$totalProduct" }
+                    }
+                },
+                { $sort: { "grandTotal": -1 } }
+            ]
+        } // callback function for function reuse
         let categoryQuery = this.collection.aggregate(category).toArray();
-        let dataQuery = this.collection.aggregate(data).toArray();
+        let storeQuery = this.storeCollection.find({ status: "OPEN" }).toArray();
+        let foQuery = this.collection.aggregate(queryCategory(STANDALONE, FO, OFFLINE)).toArray();
+        let standaloneQuery = this.collection.aggregate(queryCategory(STANDALONE, STANDALONE, OFFLINE)).toArray();
+        let bateeqshopQuery = this.collection.aggregate(queryCategory(STANDALONE, STANDALONE, ONLINE)).toArray();
+        let vvipQuery = this.collection.aggregate(queryCategory(VVIP, FO, OFFLINE)).toArray();
+        let on_konsinyasiQuery = this.collection.aggregate(queryCategory(KONSINYASI, MARKETPLACE, ONLINE)).toArray();
+        let off_konsinyasiQuery = this.collection.aggregate(queryCategory(KONSINYASI, DEPTSTORE, OFFLINE)).toArray();
         return new Promise((resolve, reject) => {
-            Promise.all([categoryQuery, dataQuery])
+            Promise.all([categoryQuery, storeQuery, foQuery, standaloneQuery, bateeqshopQuery, vvipQuery, on_konsinyasiQuery, off_konsinyasiQuery])
                 .then(queryResult => {
+                    let categories = queryResult[0];
+                    let stores = queryResult[1];
+                    let foOmzet = queryResult[2];
+                    let standaloneOmzet = queryResult[3];
+                    let bateeqshopOmzet = queryResult[4];
+                    let vvipOmzet = queryResult[5];
+                    let on_konsinyasiOmzet = queryResult[6];
+                    let off_konsinyasiOmzet = queryResult[7];
                     let result = {};
-                    // result.foC = {};
-                    // result.standaloneC = {};
-                    // result.bateeqshopC = {};
-                    // result.vvipC = {};
-                    // result.on_konsinyasiC = {};
-                    // result.off_konsinyasiC = {};
-                    for (let c of queryResult[0]){
-                        if (c._id.salesCategory.toLowerCase() == STANDALONE && c._id.storeCategory.toLowerCase() == FO && c._id.onlineoffline.toLowerCase() == OFFLINE){
-                            result.foC = c;
+                    result.data = {};
+                    result.category = {};
+                    for (let c of categories) {
+                        if (c._id.salesCategory == STANDALONE && c._id.storeCategory == FO && c._id.onlineoffline == OFFLINE) {
+                            result.category.fo = c;
                         }
-                        else if (c._id.salesCategory.toLowerCase() == STANDALONE && c._id.storeCategory.toLowerCase() == STANDALONE && c._id.onlineoffline.toLowerCase() == OFFLINE){
-                            result.standaloneC = c;
+                        else if (c._id.salesCategory == STANDALONE && c._id.storeCategory == STANDALONE && c._id.onlineoffline == OFFLINE) {
+                            result.category.standalone = c;
                         }
-                        else if (c._id.salesCategory.toLowerCase() == STANDALONE && c._id.storeCategory.toLowerCase() == STANDALONE && c._id.onlineoffline.toLowerCase() == ONLINE){
-                            result.bateeqshopC = c;
+                        else if (c._id.salesCategory == STANDALONE && c._id.storeCategory == STANDALONE && c._id.onlineoffline == ONLINE) {
+                            result.category.bateeqshop = c;
                         }
-                        else if (c._id.salesCategory.toLowerCase() == VVIP && c._id.storeCategory.toLowerCase() == FO && c._id.onlineoffline.toLowerCase() == OFFLINE){
-                            result.vvipC = c;
+                        else if (c._id.salesCategory == VVIP && c._id.storeCategory == FO && c._id.onlineoffline == OFFLINE) {
+                            result.category.vvip = c;
                         }
-                        else if (c._id.salesCategory.toLowerCase() == KONSINYASI && c._id.storeCategory.toLowerCase() == MARKETPLACE && c._id.onlineoffline.toLowerCase() == ONLINE){
-                            result.on_konsinyasiC = c;
+                        else if (c._id.salesCategory == KONSINYASI && c._id.storeCategory == MARKETPLACE && c._id.onlineoffline == ONLINE) {
+                            result.category.on_konsinyasi = c;
                         }
-                        else if (c._id.salesCategory.toLowerCase() == KONSINYASI && c._id.storeCategory.toLowerCase() == DEPTSTORE && c._id.onlineoffline.toLowerCase() == OFFLINE){
-                            result.off_konsinyasiC = c;
+                        else if (c._id.salesCategory == KONSINYASI && c._id.storeCategory == DEPTSTORE && c._id.onlineoffline == OFFLINE) {
+                            result.category.off_konsinyasi = c;
                         }
                     }
-
-                    result.fo = [];
-                    result.standalone = [];
-                    result.bateeqshop = [];
-                    result.vvip = [];
-                    result.on_konsinyasi = [];
-                    result.off_konsinyasi = [];
-                    for (let d of queryResult[1]){
-                        if (d.store.salesCategory.toLowerCase() == STANDALONE && d.store.storeCategory.toLowerCase() == FO && d.store['online-offline'].toLowerCase() == OFFLINE){
-                            result.fo.push(d);
+                    let omzetCombination = (withOmzet, allStores) => {
+                        for (let store of allStores) {
+                            if (!withOmzet.find(sales => { return sales.store.code === store.code})){
+                                let zero_omset = {
+                                    grandTotal: 0,
+                                    count: 0
+                                }
+                                zero_omset.store = store;
+                                withOmzet.push(zero_omset);
+                            }
                         }
-                        else if (d.store.salesCategory.toLowerCase() == STANDALONE && d.store.storeCategory.toLowerCase() == STANDALONE && d.store['online-offline'].toLowerCase() == OFFLINE){
-                            result.standalone.push(d);
-                        }
-                        else if (d.store.salesCategory.toLowerCase() == STANDALONE && d.store.storeCategory.toLowerCase() == STANDALONE && d.store['online-offline'].toLowerCase() == ONLINE){
-                            result.bateeqshop.push(d);
-                        }
-                        else if (d.store.salesCategory.toLowerCase() == VVIP && d.store.storeCategory.toLowerCase() == FO && d.store['online-offline'].toLowerCase() == OFFLINE){
-                            result.vvip.push(d);
-                        }
-                        else if (d.store.salesCategory.toLowerCase() == KONSINYASI && d.store.storeCategory.toLowerCase() == MARKETPLACE && d.store['online-offline'].toLowerCase() == ONLINE){
-                            result.on_konsinyasi.push(d);
-                        }
-                        else if (d.store.salesCategory.toLowerCase() == KONSINYASI && d.store.storeCategory.toLowerCase() == DEPTSTORE && d.store['online-offline'].toLowerCase() == OFFLINE){
-                            result.off_konsinyasi.push(d);
-                        }
+                        return withOmzet;
                     }
+                    result.data.fo = omzetCombination(foOmzet, stores);
+                    result.data.standalone = omzetCombination(standaloneOmzet, stores);
+                    result.data.bateeqshop = omzetCombination(bateeqshopOmzet, stores);
+                    result.data.vvip = omzetCombination(vvipOmzet, stores);
+                    result.data.on_konsinyasi = omzetCombination(on_konsinyasiOmzet, stores);
+                    result.data.off_konsinyasi = omzetCombination(off_konsinyasiOmzet, stores);
                     resolve(result);
                 })
                 .catch(e => {
