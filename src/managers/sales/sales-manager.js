@@ -22,6 +22,7 @@ const MARKETPLACE = "MARKET PLACE";
 const DEPTSTORE = "DEPT STORE";
 const ONLINE = "ONLINE";
 const OFFLINE = "OFFLINE";
+const PUBLIC = "PENJUALAN UMUM";
 
 module.exports = class SalesManager extends BaseManager {
     
@@ -155,6 +156,9 @@ module.exports = class SalesManager extends BaseManager {
             { $sort: { "grandTotal": -1 } }
         ]
         let queryCategory = (salesCategory, storeCategory, onlineoffline) => {
+            let slC = salesCategory !== null ? salesCategory : { $ne: null };
+            let stC = storeCategory !== null ? storeCategory : { $ne: null };
+            let onOff = onlineoffline !== null ? onlineoffline : { $ne : null };
             return [
                 {
                     $match: {
@@ -163,9 +167,9 @@ module.exports = class SalesManager extends BaseManager {
                             $lte: new Date(dateTo)
                         },
                         isVoid: false,
-                        "store.salesCategory": salesCategory,
-                        "store.storeCategory": storeCategory,
-                        "store.online-offline": onlineoffline
+                        "store.salesCategory": slC,
+                        "store.storeCategory": stC,
+                        "store.online-offline": onOff
                     }
                 },
                 {
@@ -186,9 +190,10 @@ module.exports = class SalesManager extends BaseManager {
         let bateeqshopQuery = this.collection.aggregate(queryCategory(STANDALONE, STANDALONE, ONLINE)).toArray();
         let vvipQuery = this.collection.aggregate(queryCategory(VVIP, FO, OFFLINE)).toArray();
         let on_konsinyasiQuery = this.collection.aggregate(queryCategory(KONSINYASI, MARKETPLACE, ONLINE)).toArray();
-        let off_konsinyasiQuery = this.collection.aggregate(queryCategory(KONSINYASI, DEPTSTORE, OFFLINE)).toArray();
+        let off_konsinyasiQuery = this.collection.aggregate(queryCategory(KONSINYASI, null, OFFLINE)).toArray();
+        let publicQuery = this.collection.aggregate(queryCategory(PUBLIC, null, null)).toArray();
         return new Promise((resolve, reject) => {
-            Promise.all([categoryQuery, storeQuery, foQuery, standaloneQuery, bateeqshopQuery, vvipQuery, on_konsinyasiQuery, off_konsinyasiQuery])
+            Promise.all([categoryQuery, storeQuery, foQuery, standaloneQuery, bateeqshopQuery, vvipQuery, on_konsinyasiQuery, off_konsinyasiQuery, publicQuery])
                 .then(queryResult => {
                     let categories = queryResult[0];
                     let stores = queryResult[1];
@@ -198,9 +203,17 @@ module.exports = class SalesManager extends BaseManager {
                     let vvipOmzet = queryResult[5];
                     let on_konsinyasiOmzet = queryResult[6];
                     let off_konsinyasiOmzet = queryResult[7];
+                    let publicOmzet = queryResult[8];
                     let result = {};
                     result.data = {};
                     result.category = {};
+                    let foStores = [];
+                    let standaloneStores = [];
+                    let bateeqshopStores = [];
+                    let vvipStores = [];
+                    let on_konsinyasiStores = [];
+                    let off_konsinyasiStores = [];
+                    let publicStores = [];
                     for (let c of categories) {
                         if (c._id.salesCategory == STANDALONE && c._id.storeCategory == FO && c._id.onlineoffline == OFFLINE) {
                             result.category.fo = c;
@@ -217,8 +230,34 @@ module.exports = class SalesManager extends BaseManager {
                         else if (c._id.salesCategory == KONSINYASI && c._id.storeCategory == MARKETPLACE && c._id.onlineoffline == ONLINE) {
                             result.category.on_konsinyasi = c;
                         }
-                        else if (c._id.salesCategory == KONSINYASI && c._id.storeCategory == DEPTSTORE && c._id.onlineoffline == OFFLINE) {
+                        else if (c._id.salesCategory == KONSINYASI && c._id.onlineoffline == OFFLINE) {
                             result.category.off_konsinyasi = c;
+                        }
+                        else if (c._id.salesCategory == PUBLIC){
+                            result.category.public = c;
+                        }
+                    }
+                    for(let s of stores){
+                        if (s.salesCategory == STANDALONE && s.storeCategory == FO && s["online-offline"] == OFFLINE) {
+                            foStores.push(s);
+                        }
+                        else if (s.salesCategory == STANDALONE && s.storeCategory == STANDALONE && s["online-offline"] == OFFLINE) {
+                            standaloneStores.push(s);
+                        }
+                        else if (s.salesCategory == STANDALONE && s.storeCategory == STANDALONE && s["online-offline"] == ONLINE) {
+                            bateeqshopStores.push(s);
+                        }
+                        else if (s.salesCategory == VVIP && s.storeCategory == FO && s["online-offline"] == OFFLINE) {
+                            vvipStores.push(s);
+                        }
+                        else if (s.salesCategory == KONSINYASI && s.storeCategory == MARKETPLACE && s["online-offline"] == ONLINE) {
+                            on_konsinyasiStores.push(s);
+                        }
+                        else if (s.salesCategory == KONSINYASI && s["online-offline"] == OFFLINE) {
+                            off_konsinyasiStores.push(s);
+                        }
+                        else if (s.salesCategory == PUBLIC){
+                            publicStores.push(s);
                         }
                     }
                     let omzetCombination = (withOmzet, allStores) => {
@@ -234,12 +273,13 @@ module.exports = class SalesManager extends BaseManager {
                         }
                         return withOmzet;
                     }
-                    result.data.fo = omzetCombination(foOmzet, stores);
-                    result.data.standalone = omzetCombination(standaloneOmzet, stores);
-                    result.data.bateeqshop = omzetCombination(bateeqshopOmzet, stores);
-                    result.data.vvip = omzetCombination(vvipOmzet, stores);
-                    result.data.on_konsinyasi = omzetCombination(on_konsinyasiOmzet, stores);
-                    result.data.off_konsinyasi = omzetCombination(off_konsinyasiOmzet, stores);
+                    result.data.fo = omzetCombination(foOmzet, foStores);
+                    result.data.standalone = omzetCombination(standaloneOmzet, standaloneStores);
+                    result.data.bateeqshop = omzetCombination(bateeqshopOmzet, bateeqshopStores);
+                    result.data.vvip = omzetCombination(vvipOmzet, vvipStores);
+                    result.data.on_konsinyasi = omzetCombination(on_konsinyasiOmzet, on_konsinyasiStores);
+                    result.data.off_konsinyasi = omzetCombination(off_konsinyasiOmzet, off_konsinyasiStores);
+                    result.data.public = omzetCombination(publicOmzet, publicStores);
                     resolve(result);
                 })
                 .catch(e => {
