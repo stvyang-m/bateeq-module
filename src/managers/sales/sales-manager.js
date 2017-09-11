@@ -16,12 +16,13 @@ var generateCode = require('../../utils/code-generator');
 // constant
 const STANDALONE = "STAND ALONE";
 const VVIP = "PENJUALAN VVIP";
-const KONSINYASI = "KONSINYASI";
+const CONSIGNMENT = "KONSINYASI";
 const FO = "FACTORY OUTLET";
 const MARKETPLACE = "MARKET PLACE";
 const DEPTSTORE = "DEPT STORE";
 const ONLINE = "ONLINE";
 const OFFLINE = "OFFLINE";
+const GENERALSALES = "PENJUALAN UMUM";
 
 module.exports = class SalesManager extends BaseManager {
     
@@ -145,7 +146,6 @@ module.exports = class SalesManager extends BaseManager {
                 $group: {
                     _id: {
                         salesCategory: "$store.salesCategory",
-                        storeCategory: "$store.storeCategory",
                         onlineoffline: "$store.online-offline"
                     },
                     grandTotal: { $sum: "$grandTotal" },
@@ -154,7 +154,9 @@ module.exports = class SalesManager extends BaseManager {
             },
             { $sort: { "grandTotal": -1 } }
         ]
-        let queryCategory = (salesCategory, storeCategory, onlineoffline) => {
+        let queryCategory = (salesCategory, onlineoffline) => {
+            let sC = salesCategory !== null ? salesCategory : { $ne: null };
+            let onOff = onlineoffline !== null ? onlineoffline : { $ne : null };
             return [
                 {
                     $match: {
@@ -163,9 +165,8 @@ module.exports = class SalesManager extends BaseManager {
                             $lte: new Date(dateTo)
                         },
                         isVoid: false,
-                        "store.salesCategory": salesCategory,
-                        "store.storeCategory": storeCategory,
-                        "store.online-offline": onlineoffline
+                        "store.salesCategory": sC,
+                        "store.online-offline": onOff
                     }
                 },
                 {
@@ -181,44 +182,61 @@ module.exports = class SalesManager extends BaseManager {
         } // callback function for function reuse
         let categoryQuery = this.collection.aggregate(category).toArray();
         let storeQuery = this.storeCollection.find({ status: "OPEN" }).toArray();
-        let foQuery = this.collection.aggregate(queryCategory(STANDALONE, FO, OFFLINE)).toArray();
-        let standaloneQuery = this.collection.aggregate(queryCategory(STANDALONE, STANDALONE, OFFLINE)).toArray();
-        let bateeqshopQuery = this.collection.aggregate(queryCategory(STANDALONE, STANDALONE, ONLINE)).toArray();
-        let vvipQuery = this.collection.aggregate(queryCategory(VVIP, FO, OFFLINE)).toArray();
-        let on_konsinyasiQuery = this.collection.aggregate(queryCategory(KONSINYASI, MARKETPLACE, ONLINE)).toArray();
-        let off_konsinyasiQuery = this.collection.aggregate(queryCategory(KONSINYASI, DEPTSTORE, OFFLINE)).toArray();
+        let standaloneQuery = this.collection.aggregate(queryCategory(STANDALONE, OFFLINE)).toArray();
+        let consignmentQuery = this.collection.aggregate(queryCategory(CONSIGNMENT, OFFLINE)).toArray();
+        let onlineQuery = this.collection.aggregate(queryCategory(null, ONLINE)).toArray();
+        let generalSalesQuery = this.collection.aggregate(queryCategory(GENERALSALES, null)).toArray();
+        let vvipQuery = this.collection.aggregate(queryCategory(VVIP, null)).toArray();
         return new Promise((resolve, reject) => {
-            Promise.all([categoryQuery, storeQuery, foQuery, standaloneQuery, bateeqshopQuery, vvipQuery, on_konsinyasiQuery, off_konsinyasiQuery])
+            Promise.all([categoryQuery, storeQuery, standaloneQuery, consignmentQuery, onlineQuery, generalSalesQuery, vvipQuery])
                 .then(queryResult => {
                     let categories = queryResult[0];
                     let stores = queryResult[1];
-                    let foOmzet = queryResult[2];
-                    let standaloneOmzet = queryResult[3];
-                    let bateeqshopOmzet = queryResult[4];
-                    let vvipOmzet = queryResult[5];
-                    let on_konsinyasiOmzet = queryResult[6];
-                    let off_konsinyasiOmzet = queryResult[7];
+                    let standaloneOmzet = queryResult[2];
+                    let consignmentOmzet = queryResult[3];
+                    let onlineOmzet = queryResult[4];
+                    let generalSalesOmzet = queryResult[5];
+                    let vvipOmzet = queryResult[6];
                     let result = {};
                     result.data = {};
                     result.category = {};
+                    let standaloneStores = [];
+                    let consignmentStores = [];
+                    let onlineStores = [];
+                    let generalSalesStores = [];
+                    let vvipStores = [];
                     for (let c of categories) {
-                        if (c._id.salesCategory == STANDALONE && c._id.storeCategory == FO && c._id.onlineoffline == OFFLINE) {
-                            result.category.fo = c;
-                        }
-                        else if (c._id.salesCategory == STANDALONE && c._id.storeCategory == STANDALONE && c._id.onlineoffline == OFFLINE) {
+                        if (c._id.salesCategory === STANDALONE && c._id.onlineoffline === OFFLINE) {
                             result.category.standalone = c;
                         }
-                        else if (c._id.salesCategory == STANDALONE && c._id.storeCategory == STANDALONE && c._id.onlineoffline == ONLINE) {
-                            result.category.bateeqshop = c;
+                        else if (c._id.salesCategory === CONSIGNMENT && c._id.onlineoffline === OFFLINE) {
+                            result.category.consignment = c;
                         }
-                        else if (c._id.salesCategory == VVIP && c._id.storeCategory == FO && c._id.onlineoffline == OFFLINE) {
+                        else if (c._id.onlineoffline === ONLINE) {
+                            result.category.online = c;
+                        }
+                        else if (c._id.salesCategory === GENERALSALES) {
+                            result.category.generalSales = c;
+                        }
+                        else if (c._id.salesCategory === VVIP) {
                             result.category.vvip = c;
                         }
-                        else if (c._id.salesCategory == KONSINYASI && c._id.storeCategory == MARKETPLACE && c._id.onlineoffline == ONLINE) {
-                            result.category.on_konsinyasi = c;
+                    }
+                    for(let s of stores){
+                        if (s.salesCategory === STANDALONE && s["online-offline"] === OFFLINE) {
+                            standaloneStores.push(s);
                         }
-                        else if (c._id.salesCategory == KONSINYASI && c._id.storeCategory == DEPTSTORE && c._id.onlineoffline == OFFLINE) {
-                            result.category.off_konsinyasi = c;
+                        else if (s.salesCategory === CONSIGNMENT && s["online-offline"] === OFFLINE) {
+                            consignmentStores.push(s);
+                        }
+                        else if (s["online-offline"] === ONLINE) {
+                            onlineStores.push(s);
+                        }
+                        else if (s.salesCategory === GENERALSALES) {
+                            generalSalesStores.push(s);
+                        }
+                        else if (s.salesCategory === VVIP) {
+                            vvipStores.push(s);
                         }
                     }
                     let omzetCombination = (withOmzet, allStores) => {
@@ -234,12 +252,11 @@ module.exports = class SalesManager extends BaseManager {
                         }
                         return withOmzet;
                     }
-                    result.data.fo = omzetCombination(foOmzet, stores);
-                    result.data.standalone = omzetCombination(standaloneOmzet, stores);
-                    result.data.bateeqshop = omzetCombination(bateeqshopOmzet, stores);
-                    result.data.vvip = omzetCombination(vvipOmzet, stores);
-                    result.data.on_konsinyasi = omzetCombination(on_konsinyasiOmzet, stores);
-                    result.data.off_konsinyasi = omzetCombination(off_konsinyasiOmzet, stores);
+                    result.data.standalone = omzetCombination(standaloneOmzet, standaloneStores);
+                    result.data.consignment = omzetCombination(consignmentOmzet, consignmentStores);
+                    result.data.online = omzetCombination(onlineOmzet, onlineStores);
+                    result.data.generalSales = omzetCombination(generalSalesOmzet, generalSalesStores);
+                    result.data.vvip = omzetCombination(vvipOmzet, vvipStores);
                     resolve(result);
                 })
                 .catch(e => {
