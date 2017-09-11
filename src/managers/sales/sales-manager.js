@@ -16,13 +16,13 @@ var generateCode = require('../../utils/code-generator');
 // constant
 const STANDALONE = "STAND ALONE";
 const VVIP = "PENJUALAN VVIP";
-const KONSINYASI = "KONSINYASI";
+const CONSIGNMENT = "KONSINYASI";
 const FO = "FACTORY OUTLET";
 const MARKETPLACE = "MARKET PLACE";
 const DEPTSTORE = "DEPT STORE";
 const ONLINE = "ONLINE";
 const OFFLINE = "OFFLINE";
-const PUBLIC = "PENJUALAN UMUM";
+const GENERALSALES = "PENJUALAN UMUM";
 
 module.exports = class SalesManager extends BaseManager {
     
@@ -146,7 +146,6 @@ module.exports = class SalesManager extends BaseManager {
                 $group: {
                     _id: {
                         salesCategory: "$store.salesCategory",
-                        storeCategory: "$store.storeCategory",
                         onlineoffline: "$store.online-offline"
                     },
                     grandTotal: { $sum: "$grandTotal" },
@@ -155,9 +154,8 @@ module.exports = class SalesManager extends BaseManager {
             },
             { $sort: { "grandTotal": -1 } }
         ]
-        let queryCategory = (salesCategory, storeCategory, onlineoffline) => {
-            let slC = salesCategory !== null ? salesCategory : { $ne: null };
-            let stC = storeCategory !== null ? storeCategory : { $ne: null };
+        let queryCategory = (salesCategory, onlineoffline) => {
+            let sC = salesCategory !== null ? salesCategory : { $ne: null };
             let onOff = onlineoffline !== null ? onlineoffline : { $ne : null };
             return [
                 {
@@ -167,8 +165,7 @@ module.exports = class SalesManager extends BaseManager {
                             $lte: new Date(dateTo)
                         },
                         isVoid: false,
-                        "store.salesCategory": slC,
-                        "store.storeCategory": stC,
+                        "store.salesCategory": sC,
                         "store.online-offline": onOff
                     }
                 },
@@ -185,79 +182,61 @@ module.exports = class SalesManager extends BaseManager {
         } // callback function for function reuse
         let categoryQuery = this.collection.aggregate(category).toArray();
         let storeQuery = this.storeCollection.find({ status: "OPEN" }).toArray();
-        let foQuery = this.collection.aggregate(queryCategory(STANDALONE, FO, OFFLINE)).toArray();
-        let standaloneQuery = this.collection.aggregate(queryCategory(STANDALONE, STANDALONE, OFFLINE)).toArray();
-        let bateeqshopQuery = this.collection.aggregate(queryCategory(STANDALONE, STANDALONE, ONLINE)).toArray();
-        let vvipQuery = this.collection.aggregate(queryCategory(VVIP, FO, OFFLINE)).toArray();
-        let on_konsinyasiQuery = this.collection.aggregate(queryCategory(KONSINYASI, MARKETPLACE, ONLINE)).toArray();
-        let off_konsinyasiQuery = this.collection.aggregate(queryCategory(KONSINYASI, null, OFFLINE)).toArray();
-        let publicQuery = this.collection.aggregate(queryCategory(PUBLIC, null, null)).toArray();
+        let standaloneQuery = this.collection.aggregate(queryCategory(STANDALONE, OFFLINE)).toArray();
+        let consignmentQuery = this.collection.aggregate(queryCategory(CONSIGNMENT, OFFLINE)).toArray();
+        let onlineQuery = this.collection.aggregate(queryCategory(null, ONLINE)).toArray();
+        let generalSalesQuery = this.collection.aggregate(queryCategory(GENERALSALES, null)).toArray();
+        let vvipQuery = this.collection.aggregate(queryCategory(VVIP, null)).toArray();
         return new Promise((resolve, reject) => {
-            Promise.all([categoryQuery, storeQuery, foQuery, standaloneQuery, bateeqshopQuery, vvipQuery, on_konsinyasiQuery, off_konsinyasiQuery, publicQuery])
+            Promise.all([categoryQuery, storeQuery, standaloneQuery, consignmentQuery, onlineQuery, generalSalesQuery, vvipQuery])
                 .then(queryResult => {
                     let categories = queryResult[0];
                     let stores = queryResult[1];
-                    let foOmzet = queryResult[2];
-                    let standaloneOmzet = queryResult[3];
-                    let bateeqshopOmzet = queryResult[4];
-                    let vvipOmzet = queryResult[5];
-                    let on_konsinyasiOmzet = queryResult[6];
-                    let off_konsinyasiOmzet = queryResult[7];
-                    let publicOmzet = queryResult[8];
+                    let standaloneOmzet = queryResult[2];
+                    let consignmentOmzet = queryResult[3];
+                    let onlineOmzet = queryResult[4];
+                    let generalSalesOmzet = queryResult[5];
+                    let vvipOmzet = queryResult[6];
                     let result = {};
                     result.data = {};
                     result.category = {};
-                    let foStores = [];
                     let standaloneStores = [];
-                    let bateeqshopStores = [];
+                    let consignmentStores = [];
+                    let onlineStores = [];
+                    let generalSalesStores = [];
                     let vvipStores = [];
-                    let on_konsinyasiStores = [];
-                    let off_konsinyasiStores = [];
-                    let publicStores = [];
                     for (let c of categories) {
-                        if (c._id.salesCategory == STANDALONE && c._id.storeCategory == FO && c._id.onlineoffline == OFFLINE) {
-                            result.category.fo = c;
-                        }
-                        else if (c._id.salesCategory == STANDALONE && c._id.storeCategory == STANDALONE && c._id.onlineoffline == OFFLINE) {
+                        if (c._id.salesCategory === STANDALONE && c._id.onlineoffline === OFFLINE) {
                             result.category.standalone = c;
                         }
-                        else if (c._id.salesCategory == STANDALONE && c._id.storeCategory == STANDALONE && c._id.onlineoffline == ONLINE) {
-                            result.category.bateeqshop = c;
+                        else if (c._id.salesCategory === CONSIGNMENT && c._id.onlineoffline === OFFLINE) {
+                            result.category.consignment = c;
                         }
-                        else if (c._id.salesCategory == VVIP && c._id.storeCategory == FO && c._id.onlineoffline == OFFLINE) {
+                        else if (c._id.onlineoffline === ONLINE) {
+                            result.category.online = c;
+                        }
+                        else if (c._id.salesCategory === GENERALSALES) {
+                            result.category.generalSales = c;
+                        }
+                        else if (c._id.salesCategory === VVIP) {
                             result.category.vvip = c;
-                        }
-                        else if (c._id.salesCategory == KONSINYASI && c._id.storeCategory == MARKETPLACE && c._id.onlineoffline == ONLINE) {
-                            result.category.on_konsinyasi = c;
-                        }
-                        else if (c._id.salesCategory == KONSINYASI && c._id.onlineoffline == OFFLINE) {
-                            result.category.off_konsinyasi = c;
-                        }
-                        else if (c._id.salesCategory == PUBLIC){
-                            result.category.public = c;
                         }
                     }
                     for(let s of stores){
-                        if (s.salesCategory == STANDALONE && s.storeCategory == FO && s["online-offline"] == OFFLINE) {
-                            foStores.push(s);
-                        }
-                        else if (s.salesCategory == STANDALONE && s.storeCategory == STANDALONE && s["online-offline"] == OFFLINE) {
+                        if (s.salesCategory === STANDALONE && s["online-offline"] === OFFLINE) {
                             standaloneStores.push(s);
                         }
-                        else if (s.salesCategory == STANDALONE && s.storeCategory == STANDALONE && s["online-offline"] == ONLINE) {
-                            bateeqshopStores.push(s);
+                        else if (s.salesCategory === CONSIGNMENT && s["online-offline"] === OFFLINE) {
+                            consignmentStores.push(s);
                         }
-                        else if (s.salesCategory == VVIP && s.storeCategory == FO && s["online-offline"] == OFFLINE) {
+                        else if (s["online-offline"] === ONLINE) {
+                            onlineStores.push(s);
+                        }
+                        else if (s.salesCategory === GENERALSALES) {
+                            generalSalesStores.push(s);
+                        }
+                        else if (s.salesCategory === VVIP) {
                             vvipStores.push(s);
-                        }
-                        else if (s.salesCategory == KONSINYASI && s.storeCategory == MARKETPLACE && s["online-offline"] == ONLINE) {
-                            on_konsinyasiStores.push(s);
-                        }
-                        else if (s.salesCategory == KONSINYASI && s["online-offline"] == OFFLINE) {
-                            off_konsinyasiStores.push(s);
-                        }
-                        else if (s.salesCategory == PUBLIC){
-                            publicStores.push(s);
                         }
                     }
                     let omzetCombination = (withOmzet, allStores) => {
@@ -273,13 +252,11 @@ module.exports = class SalesManager extends BaseManager {
                         }
                         return withOmzet;
                     }
-                    result.data.fo = omzetCombination(foOmzet, foStores);
                     result.data.standalone = omzetCombination(standaloneOmzet, standaloneStores);
-                    result.data.bateeqshop = omzetCombination(bateeqshopOmzet, bateeqshopStores);
+                    result.data.consignment = omzetCombination(consignmentOmzet, consignmentStores);
+                    result.data.online = omzetCombination(onlineOmzet, onlineStores);
+                    result.data.generalSales = omzetCombination(generalSalesOmzet, generalSalesStores);
                     result.data.vvip = omzetCombination(vvipOmzet, vvipStores);
-                    result.data.on_konsinyasi = omzetCombination(on_konsinyasiOmzet, on_konsinyasiStores);
-                    result.data.off_konsinyasi = omzetCombination(off_konsinyasiOmzet, off_konsinyasiStores);
-                    result.data.public = omzetCombination(publicOmzet, publicStores);
                     resolve(result);
                 })
                 .catch(e => {
