@@ -107,7 +107,6 @@ module.exports = class InventoryManager extends BaseManager {
             this.collection
                 .where(query)
                 .select(_select)
-                .order(sorting)
                 .execute()
                 .then((results) => {
                     resolve(results);
