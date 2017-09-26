@@ -79,7 +79,7 @@ module.exports = class ReportManager extends BaseManager {
                 }
             },
             {
-                $sort: { "items.item.size": -1 }
+                $sort: { "items.size": -1 }
             }
         ];
 
