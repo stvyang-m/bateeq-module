@@ -38,7 +38,7 @@ module.exports = class ReportManager extends BaseManager {
                     detailOnInventory.push(itemDetail);
                 }
 
-                item['storageName'] = item._id;
+                item['storageName'] = dataItem._id;
                 item['detailOnInventory'] = detailOnInventory;
 
                 return item;
@@ -79,7 +79,7 @@ module.exports = class ReportManager extends BaseManager {
                 }
             },
             {
-                $sort: { "items.size": -1 }
+                $sort: { "items.size": 1 }
             }
         ];
 
