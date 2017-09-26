@@ -25,14 +25,22 @@ module.exports = class ReportManager extends BaseManager {
             var dataItems = results[1].map((dataItem) => {
                 var item = {};
                 var detailOnInventory = [];
+                var detailOnSales = [];
+
+                for (var i = 0; i < sales.length; i++) {
+                    if (sales[i]._id === dataItem._id) {
+
+
+                    }
+                }
 
                 for (var i = 0; i < dataItem.items; i++) {
                     var itemSize = dataItem.items[i].size;
                     var itemOnInventory = dataItem.items[i].quantity;
 
                     var itemDetail = {
-                        'size' : itemSize,
-                        'quantityOnInventory' : itemOnInventory
+                        'size': itemSize,
+                        'quantityOnInventory': itemOnInventory
                     }
 
                     detailOnInventory.push(itemDetail);
@@ -40,6 +48,8 @@ module.exports = class ReportManager extends BaseManager {
 
                 item['storageName'] = dataItem._id;
                 item['detailOnInventory'] = detailOnInventory;
+                item['detailOnSales'] = detailOnSales;
+                item['age'] = latestDate;
 
                 return item;
             });
