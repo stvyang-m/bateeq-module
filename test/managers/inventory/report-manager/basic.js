@@ -31,7 +31,7 @@ before('#01. test report per ro with no realization order', function (done) {
                 .then(result => {
                     
                     if(result.length > 0) {
-                        done("has result with no realization order")
+                        done("has result with no realization order");
                     } else {
                         done("no result");
                     }
@@ -54,7 +54,7 @@ before('#01. test report per ro with realization order', function (done) {
                 .then(result => {
                     
                     if(result.length > 0) {
-                        done("has result with no realization order")
+                        done("has result with no realization order");
                     } else {
                         done("no result");
                     }
