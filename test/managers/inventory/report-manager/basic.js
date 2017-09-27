@@ -1,5 +1,7 @@
 var helper = require("../../../helper");
 var InventoryManager = require("../../../../src/managers/inventory/inventory-manager");
+var ExpeditionManager = require("../../../../src/managers/inventory/efr-kb-exp-manager");
+var SalesManager = require("../../../../src/managers/sales/sales-manager");
 var ReportManager = require("../../../../src/managers/inventory/report-manager");
 var reportManager = null;
 
