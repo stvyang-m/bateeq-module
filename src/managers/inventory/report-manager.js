@@ -5,7 +5,7 @@ var BaseManager = require('module-toolkit').BaseManager;
 var BateeqModels = require('bateeq-models');
 var map = BateeqModels.map;
 
-var SalesManager = require('../../src/managers/sales/sales-manager');
+var SalesManager = require('../sales/sales-manager');
 
 
 module.exports = class ReportManager extends BaseManager {
@@ -21,7 +21,7 @@ module.exports = class ReportManager extends BaseManager {
         var items = this._getItemsFromInventoryByRealizationOrder(realizationOrder);
         var sales = this._getItemsSalesFromSalesDocByRealizationOrder(realizationOrder);
 
-        Promise.all(latestDate, [items], [sales]).then(results => {
+        return new Promise.all(latestDate, [items], [sales]).then(results => {
             var dataItems = results[1].map((dataItem) => {
                 var item = {};
                 var detailOnInventory = [];
@@ -51,7 +51,7 @@ module.exports = class ReportManager extends BaseManager {
                 item['detailOnSales'] = detailOnSales;
                 item['age'] = latestDate;
 
-                return item;
+                resolve(item);
             });
         }).cacth((error) => {
             reject(error);
