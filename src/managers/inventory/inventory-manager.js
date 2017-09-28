@@ -418,20 +418,18 @@ module.exports = class InventoryManager extends BaseManager {
                 });
         });
     }
-     getInventoryByItem(itemId) {
-        
-        
 
+    getInventoryByItem(itemId) {
         return new Promise((resolve, reject) => {
-        var query={
-                "itemId" : (new ObjectId(itemId)) 
+            var query = {
+                "itemId": (new ObjectId(itemId))
             }
-      
-    
-    
+
+
+
             this.collection.find(query)
-                .toArray().then(result=>
-                resolve(result));
+                .toArray().then(result =>
+                    resolve(result));
         })
     }
     out(storageId, refNo, itemId, quantity, remark) {
@@ -484,74 +482,23 @@ module.exports = class InventoryManager extends BaseManager {
         });
     }
 
-    _validate(inventory) {
-        var errors = {};
-        return new Promise((resolve, reject) => {
-            var valid = new Inventory(inventory);
-            var getStorage = this.storageManager.getSingleById(inventory.storageId);
-            var getItem = this.itemManager.getSingleById(inventory.itemId);
-
-            Promise.all([getStorage, getItem])
-                .then(results => {
-                    var storage = results[0];
-                    var item = results[1];
-
-                    if (!valid.storageId || valid.storageId == '')
-                        errors["storageId"] = "storageId is required";
-                    if (!storage) {
-                        errors["storageId"] = "storageId not found";
-                    }
-                    else {
-                        valid.storageId = storage._id;
-                        valid.storage = storage;
-                    }
-                    if (!valid.itemId || valid.itemId == '')
-                        errors["itemId"] = "itemId is required";
-                    if (!item) {
-                        errors["itemId"] = "itemId not found";
-                    }
-                    else {
-                        valid.itemId = item._id;
-                        valid.item = item;
-                    }
-
-                    if (valid.quantity == undefined || (valid.quantity && valid.quantity == '')) {
-                        errors["quantity"] = "quantity is required";
-                    }
-                    else if (parseInt(valid.quantity) < 0) {
-                        errors["quantity"] = "quantity must be greater than 0";
-                    }
-
-                    // 2c. begin: check if data has any error, reject if it has.
-                    for (var prop in errors) {
-                        var ValidationError = require('../../validation-error');
-                        reject(new ValidationError('data does not pass validation', errors));
-                    }
-                    valid.stamp(this.user.username, 'manager');
-                    resolve(valid)
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
-    }
     getInventoryByItem(itemId) {
-        
-    return new Promise((resolve, reject) => {
-       var query={}
-          if(itemId && itemId!==""){
+
+        return new Promise((resolve, reject) => {
+            var query = {}
+            if (itemId && itemId !== "") {
                 query = {
-                itemId: new ObjectId(itemId),
-                _deleted: false
-            };
+                    itemId: new ObjectId(itemId),
+                    _deleted: false
+                };
             }
-            else{
-               resolve(null)
+            else {
+                resolve(null)
             }
             this.collection.find(query)
-                .toArray().then(result=>
-                resolve(result));
+                .toArray().then(result =>
+                    resolve(result));
 
-                });
+        });
     }
 };
