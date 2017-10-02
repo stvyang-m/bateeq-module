@@ -1,56 +1,66 @@
 'use strict';
 
 var ObjectId = require('mongodb').ObjectId;
-var BaseManager = require('module-toolkit').BaseManager;
 var BateeqModels = require('bateeq-models');
+var InventoryManager = require('./inventory-manager');
+var ExpeditionManager = null;
 var map = BateeqModels.map;
 
 var SalesManager = require('../sales/sales-manager');
 
 
-module.exports = class ReportManager extends BaseManager {
+module.exports = class ReportManager extends InventoryManager {
     constructor(db, user) {
         super(db, user);
-        this.inventoryCollection = this.db.use(map.inventory.Inventory);
         this.expeditionDocCollection = this.db.use(map.inventory.ExpeditionDoc);
         this.salesCollection = this.db.use(map.sales.SalesDoc);
     }
 
     getReportItemsByRealizationOrder(realizationOrder) {
-        var latestDate = this._getLatestdateFromExpeditionByRealizationOrder(realizationOrder);
         var items = this._getItemsFromInventoryByRealizationOrder(realizationOrder);
+        var latestDate = this._getLatestdateFromExpeditionByRealizationOrder(realizationOrder);
         var sales = this._getItemsSalesFromSalesDocByRealizationOrder(realizationOrder);
 
-        return new Promise.all(latestDate, [items], [sales]).then(results => {
+        return new Promise.all([items], latestDate, [sales]).then(results => {
             var dataItems = results[1].map((dataItem) => {
                 var item = {};
                 var detailOnInventory = [];
                 var detailOnSales = [];
 
-                for (var i = 0; i < sales.length; i++) {
-                    if (sales[i]._id === dataItem._id) {
+                if (results[0] && results[1]) {
+                    for (var i = 0; i < dataItem.items; i++) {
+                        var itemSize = dataItem.items[i].size;
+                        var itemOnInventory = dataItem.items[i].quantity;
 
+                        var itemDetail = {
+                            'size': itemSize,
+                            'quantityOnInventory': itemOnInventory
+                        }
 
-                    }
-                }
-
-                for (var i = 0; i < dataItem.items; i++) {
-                    var itemSize = dataItem.items[i].size;
-                    var itemOnInventory = dataItem.items[i].quantity;
-
-                    var itemDetail = {
-                        'size': itemSize,
-                        'quantityOnInventory': itemOnInventory
+                        detailOnInventory.push(itemDetail);
                     }
 
-                    detailOnInventory.push(itemDetail);
+                    item['storageName'] = dataItem._id;
+                    item['detailOnInventory'] = detailOnInventory;
+                    item['age'] = latestDate;
                 }
 
-                item['storageName'] = dataItem._id;
-                item['detailOnInventory'] = detailOnInventory;
-                item['detailOnSales'] = detailOnSales;
-                item['age'] = latestDate;
+                if (results[2]) {
+                    for (var i = 0; i < sales.length; i++) {
+                        if (sales[i]._id === dataItem._id) {
+                            var itemSize = [];
+                            var itemOnsales = [];
+                        }
 
+                        var itemDetail = {
+                            'size': itemSize,
+                            'quantityOnSales': itemOnsales
+                        };
+
+                        detailOnSales.push(itemDetail);
+                    }
+                    item['detailOnSales'] = detailOnSales;
+                }
                 resolve(item);
             });
         }).cacth((error) => {
@@ -122,7 +132,7 @@ module.exports = class ReportManager extends BaseManager {
         ];
 
         return new Promise((resolve, reject) => {
-            this.inventoryCollection.aggregate(aggregate)
+            this.collection.aggregate(aggregate)
                 .toArray((err, result) => {
                     resolve(result);
                 });
