@@ -132,28 +132,6 @@ module.exports = class SalesManager extends BaseManager {
     }
 
     omsetReportAll(dateFrom, dateTo) {
-        let category = [
-            {
-                $match: {
-                    date: {
-                        $gte: new Date(dateFrom),
-                        $lte: new Date(dateTo)
-                    },
-                    isVoid: false
-                }
-            },
-            {
-                $group: {
-                    _id: {
-                        salesCategory: "$store.salesCategory",
-                        onlineoffline: "$store.online-offline"
-                    },
-                    grandTotal: { $sum: "$grandTotal" },
-                    count: { $sum: "$totalProduct" }
-                }
-            },
-            { $sort: { "grandTotal": -1 } }
-        ]
         let queryCategory = (salesCategory, onlineoffline) => {
             let sC = salesCategory !== null ? salesCategory : { $ne: null };
             let onOff = onlineoffline !== null ? onlineoffline : { $ne : null };
@@ -179,8 +157,7 @@ module.exports = class SalesManager extends BaseManager {
                 },
                 { $sort: { "grandTotal": -1 } }
             ]
-        } // callback function for function reuse
-        let categoryQuery = this.collection.aggregate(category).toArray();
+        }
         let storeQuery = this.storeCollection.find({ status: "OPEN" }).toArray();
         let standaloneQuery = this.collection.aggregate(queryCategory(STANDALONE, OFFLINE)).toArray();
         let consignmentQuery = this.collection.aggregate(queryCategory(CONSIGNMENT, OFFLINE)).toArray();
@@ -188,15 +165,14 @@ module.exports = class SalesManager extends BaseManager {
         let generalSalesQuery = this.collection.aggregate(queryCategory(GENERALSALES, null)).toArray();
         let vvipQuery = this.collection.aggregate(queryCategory(VVIP, null)).toArray();
         return new Promise((resolve, reject) => {
-            Promise.all([categoryQuery, storeQuery, standaloneQuery, consignmentQuery, onlineQuery, generalSalesQuery, vvipQuery])
+            Promise.all([storeQuery, standaloneQuery, consignmentQuery, onlineQuery, generalSalesQuery, vvipQuery])
                 .then(queryResult => {
-                    let categories = queryResult[0];
-                    let stores = queryResult[1];
-                    let standaloneOmzet = queryResult[2];
-                    let consignmentOmzet = queryResult[3];
-                    let onlineOmzet = queryResult[4];
-                    let generalSalesOmzet = queryResult[5];
-                    let vvipOmzet = queryResult[6];
+                    let stores = queryResult[0];
+                    let standaloneOmzet = queryResult[1];
+                    let consignmentOmzet = queryResult[2];
+                    let onlineOmzet = queryResult[3];
+                    let generalSalesOmzet = queryResult[4];
+                    let vvipOmzet = queryResult[5];
                     let result = {};
                     result.data = {};
                     result.category = {};
@@ -205,23 +181,6 @@ module.exports = class SalesManager extends BaseManager {
                     let onlineStores = [];
                     let generalSalesStores = [];
                     let vvipStores = [];
-                    for (let c of categories) {
-                        if (c._id.salesCategory === STANDALONE && c._id.onlineoffline === OFFLINE) {
-                            result.category.standalone = c;
-                        }
-                        else if (c._id.salesCategory === CONSIGNMENT && c._id.onlineoffline === OFFLINE) {
-                            result.category.consignment = c;
-                        }
-                        else if (c._id.onlineoffline === ONLINE) {
-                            result.category.online = c;
-                        }
-                        else if (c._id.salesCategory === GENERALSALES) {
-                            result.category.generalSales = c;
-                        }
-                        else if (c._id.salesCategory === VVIP) {
-                            result.category.vvip = c;
-                        }
-                    }
                     for(let s of stores){
                         if (s.salesCategory === STANDALONE && s["online-offline"] === OFFLINE) {
                             standaloneStores.push(s);
@@ -257,6 +216,21 @@ module.exports = class SalesManager extends BaseManager {
                     result.data.online = omzetCombination(onlineOmzet, onlineStores);
                     result.data.generalSales = omzetCombination(generalSalesOmzet, generalSalesStores);
                     result.data.vvip = omzetCombination(vvipOmzet, vvipStores);
+                    let assignedCategory = (allOmzet) => {
+                        let category = {};
+                        category.grandTotal = 0;
+                        category.count = 0;
+                        for (let omzet of allOmzet){
+                            category.grandTotal += omzet.grandTotal;
+                            category.count += omzet.count;
+                        }
+                        return category;
+                    }
+                    result.category.standalone = assignedCategory(result.data.standalone);
+                    result.category.consignment = assignedCategory(result.data.consignment);
+                    result.category.online = assignedCategory(result.data.online);
+                    result.category.generalSales = assignedCategory(result.data.generalSales);
+                    result.category.vvip = assignedCategory(result.data.vvip);
                     resolve(result);
                 })
                 .catch(e => {
