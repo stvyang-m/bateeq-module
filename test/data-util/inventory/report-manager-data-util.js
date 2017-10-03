@@ -63,45 +63,45 @@ class ReportManagerDataUtil extends BaseManager {
                                             inventoryManager
                                                 .getByStorageIdAndItemId(storage._id, result._id)
                                                 .then(inventoryData => {
-                                                    if (inventoryData.item) {
+                                                    if (inventoryData) {
                                                         if (inventoryData.item.article) {
                                                             resolve(inventoryData);
-                                                        }
-                                                    } else {
-
-                                                        if (inventoryData._id) {
-                                                            inventoryData.storageId = storage._id;
-                                                            inventoryData.storage = storage;
-                                                            inventoryData.itemId = result._id;
-                                                            inventoryData.item = result;
-                                                            inventoryData.quantity = quantity;
-
-                                                            inventoryManager.update(inventoryData)
-                                                                .then(id => {
-                                                                    inventoryManager.getSingleById(id)
-                                                                        .then(inventoryData => {
-                                                                            resolve(inventoryData);
-                                                                        }).catch(e => {
-                                                                            reject(e);
-                                                                        });
-                                                                });
                                                         } else {
-                                                            var inventory = new Inventory();
-                                                            inventory.storageId = storage._id;
-                                                            inventory.storage = storage;
-                                                            inventory.itemId = result._id;
-                                                            inventory.item = result;
-                                                            inventory.quantity = quantity;
 
-                                                            inventoryManager.create(inventory)
-                                                                .then(id => {
-                                                                    inventoryManager.getSingleById(id)
-                                                                        .then(inventoryData => {
-                                                                            resolve(inventoryData);
-                                                                        }).catch(e => {
-                                                                            reject(e);
-                                                                        });
-                                                                });
+                                                            if (inventoryData._id) {
+                                                                inventoryData.storageId = storage._id;
+                                                                inventoryData.storage = storage;
+                                                                inventoryData.itemId = result._id;
+                                                                inventoryData.item = result;
+                                                                inventoryData.quantity = quantity;
+
+                                                                inventoryManager.update(inventoryData)
+                                                                    .then(id => {
+                                                                        inventoryManager.getSingleById(id)
+                                                                            .then(inventoryData => {
+                                                                                resolve(inventoryData);
+                                                                            }).catch(e => {
+                                                                                reject(e);
+                                                                            });
+                                                                    });
+                                                            } else {
+                                                                var inventory = new Inventory();
+                                                                inventory.storageId = storage._id;
+                                                                inventory.storage = storage;
+                                                                inventory.itemId = result._id;
+                                                                inventory.item = result;
+                                                                inventory.quantity = quantity;
+
+                                                                inventoryManager.create(inventory)
+                                                                    .then(id => {
+                                                                        inventoryManager.getSingleById(id)
+                                                                            .then(inventoryData => {
+                                                                                resolve(inventoryData);
+                                                                            }).catch(e => {
+                                                                                reject(e);
+                                                                            });
+                                                                    });
+                                                            }
                                                         }
                                                     }
                                                 }).catch(e => {
