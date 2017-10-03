@@ -61,8 +61,8 @@ module.exports = class ReportManager extends InventoryManager {
                     }
                     item['detailOnSales'] = detailOnSales;
                 }
-                return Promise.resolve(item);
             });
+            return Promise.resolve([].concat.apply([], dataItems));
         }).catch((error) => {
             return Promise.reject(error);
         });
