@@ -63,8 +63,10 @@ class ReportManagerDataUtil extends BaseManager {
                                             inventoryManager
                                                 .getByStorageIdAndItemId(storage._id, result._id)
                                                 .then(inventoryData => {
-                                                    if (inventoryData.item.article) {
-                                                        resolve(inventoryData);
+                                                    if (inventoryData.item) {
+                                                        if (inventoryData.item.article) {
+                                                            resolve(inventoryData);
+                                                        }
                                                     } else {
 
                                                         if (inventoryData._id) {
