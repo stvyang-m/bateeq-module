@@ -21,8 +21,8 @@ module.exports = class ReportManager extends InventoryManager {
         var latestDate = this._getLatestdateFromExpeditionByRealizationOrder(realizationOrder);
         var sales = this._getItemsSalesFromSalesDocByRealizationOrder(realizationOrder);
 
-        return new Promise.all([items], latestDate, [sales]).then(results => {
-            var dataItems = results[1].map((dataItem) => {
+        return Promise.all([items, latestDate, sales]).then(results => {
+            var dataItems = results[0].map((dataItem) => {
                 var item = {};
                 var detailOnInventory = [];
                 var detailOnSales = [];
@@ -61,10 +61,10 @@ module.exports = class ReportManager extends InventoryManager {
                     }
                     item['detailOnSales'] = detailOnSales;
                 }
-                resolve(item);
+                return Promise.resolve(item);
             });
-        }).cacth((error) => {
-            reject(error);
+        }).catch((error) => {
+            return Promise.reject(error);
         });
     }
 
@@ -76,7 +76,11 @@ module.exports = class ReportManager extends InventoryManager {
                 .limit(1)
                 .toArray()
                 .then((expeditionDates) => {
-                    resolve(expeditionDates[0]._createdDate);
+                    if (expeditionDates[0]) {
+                        resolve(expeditionDates[0]._createdDate);
+                    } else {
+                        resolve(new Date());
+                    }
                 }).catch((error) => {
                     reject(error);
                 })

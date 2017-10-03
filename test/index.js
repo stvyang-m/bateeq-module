@@ -51,4 +51,6 @@ describe('#bateeq-module', function (done) {
     test('@manager/adjustment-manager',                 './managers/inventory/adjustment');
     test('@manager/stock-opname-manager',               './managers/inventory/stock-opname');
 
+    //inventory
+    test('@managers/inventory/report-manager',                       './managers/inventory/report-manager');
 })
