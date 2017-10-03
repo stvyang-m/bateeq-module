@@ -47,7 +47,7 @@ class ReportManagerDataUtil extends BaseManager {
                             var finishedItem = null;
 
 
-                            if (!item.article.realizationOrder) {
+                            if (!item.article) {
                                 finishedItem = new FinishedItem(item);
                                 finishedItem.article = {
                                     "realizationOrder": "G78564343"
