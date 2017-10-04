@@ -5,18 +5,20 @@ var reportManager = null;
 var realizationOrder = null;
 
 function processingData(data) {
-    var dataInventory = InventoryDataUtil.getInventoryData(data);
+    return new Promise((resolve, reject) => {
+        var dataInventory = InventoryDataUtil.getInventoryData(data);
 
-    return Promise.all([dataInventory])
-        .then(result => {
-            if (result[0].item.article.realizationOrder) {
-                var id = result[0].item.article.realizationOrder;
-                return Promise.resolve(id);
-            }
-        })
-        .catch(e => {
-            return Promise.reject(e);
-        });
+        Promise.all([dataInventory])
+            .then(result => {
+                if (result[0].item.article.realizationOrder) {
+                    var id = result[0].item.article.realizationOrder;
+                    resolve(id);
+                }
+            })
+            .catch(e => {
+                reject(e);
+            });
+    });
 }
 
 before('#00. connect db', function (done) {

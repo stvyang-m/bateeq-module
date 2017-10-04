@@ -17,57 +17,61 @@ module.exports = class ReportManager extends InventoryManager {
     }
 
     getReportItemsByRealizationOrder(realizationOrder) {
-        var items = this._getItemsFromInventoryByRealizationOrder(realizationOrder);
-        var latestDate = this._getLatestdateFromExpeditionByRealizationOrder(realizationOrder);
-        var sales = this._getItemsSalesFromSalesDocByRealizationOrder(realizationOrder);
+        return new Promise((resolve, reject) => {
+            var items = this._getItemsFromInventoryByRealizationOrder(realizationOrder);
+            var latestDate = this._getLatestdateFromExpeditionByRealizationOrder(realizationOrder);
+            var sales = this._getItemsSalesFromSalesDocByRealizationOrder(realizationOrder);
 
-        return Promise.all([items, latestDate, sales]).then(results => {
-            var dataItems = results[0].map((dataItem) => {
-                var item = {};
-                var detailOnInventory = [];
-                var detailOnSales = [];
+            Promise.all([items, latestDate, sales]).then(results => {
+                var dataItems = results[0].map((dataItem) => {
+                    var item = {};
+                    var detailOnInventory = [];
+                    var detailOnSales = [];
 
-                if (results[0]) {
-                    for (var i = 0; i < dataItem.items; i++) {
-                        var itemSize = dataItem.items[i].size;
-                        var itemOnInventory = dataItem.items[i].quantity;
+                    if (results[0]) {
+                        for (var inventoryItem of dataItem.items) {
+                            var itemSize = inventoryItem.size;
+                            var itemOnInventory = inventoryItem.quantity;
 
-                        var itemDetail = {
-                            'size': itemSize,
-                            'quantityOnInventory': itemOnInventory
+                            var itemDetail = {
+                                'size': itemSize,
+                                'quantityOnInventory': itemOnInventory
+                            }
+
+                            detailOnInventory.push(itemDetail);
                         }
 
-                        detailOnInventory.push(itemDetail);
+                        item['storageName'] = dataItem._id;
+                        item['detailOnInventory'] = detailOnInventory;
                     }
 
-                    item['storageName'] = dataItem._id;
-                    item['detailOnInventory'] = detailOnInventory;
-                }
+                    if (results[1]) {
+                        item['age'] = results[1];
+                    }
 
-                if(results[1]) {
-                    item['age'] = results[1];
-                }
+                    if (results[2]) {
+                        for (var i = 0; i < results[2].length; i++) {
+                            if (sales[i]._id === dataItem._id) {
+                                var itemSize = [];
+                                var itemOnsales = [];
+                            }
 
-                if (results[2]) {
-                    for (var i = 0; i < sales.length; i++) {
-                        if (sales[i]._id === dataItem._id) {
-                            var itemSize = [];
-                            var itemOnsales = [];
+                            var itemDetail = {
+                                'size': itemSize,
+                                'quantityOnSales': itemOnsales
+                            };
+
+                            detailOnSales.push(itemDetail);
                         }
-
-                        var itemDetail = {
-                            'size': itemSize,
-                            'quantityOnSales': itemOnsales
-                        };
-
-                        detailOnSales.push(itemDetail);
+                        item['detailOnSales'] = detailOnSales;
                     }
-                    item['detailOnSales'] = detailOnSales;
-                }
+
+                    return item;
+                });
+                resolve([].concat.apply([], dataItems));
+            }).catch((error) => {
+                reject(error);
             });
-            return Promise.resolve([].concat.apply([], dataItems));
-        }).catch((error) => {
-            return Promise.reject(error);
         });
     }
 
