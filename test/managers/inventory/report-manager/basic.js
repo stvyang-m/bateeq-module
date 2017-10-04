@@ -21,16 +21,6 @@ function processingData(data) {
     });
 }
 
-before('#00. connect db', function (done) {
-    helper.getDb()
-        .then(db => {
-            done();
-        })
-        .catch(e => {
-            done(e);
-        })
-});
-
 it('#01. test report per ro with realization order', function (done) {
     helper.getDb()
         .then(db => {
