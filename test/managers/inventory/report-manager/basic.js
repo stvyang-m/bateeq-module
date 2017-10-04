@@ -1,3 +1,4 @@
+var should = require("should");
 var helper = require("../../../helper");
 var ReportManager = require("../../../../src/managers/inventory/report-manager");
 var InventoryDataUtil = require("../../../../test/data-util/inventory/report-manager-data-util");
@@ -50,13 +51,9 @@ it('#01. test report per ro with realization order', function (done) {
         .then(db => {
             reportManager.getReportItemsByRealizationOrder(realizationOrder)
                 .then(result => {
-                    if (result) {
-                        console.log("Done: with result");
-                        done();
-                    } else {
-                        console.log("Done: with no result");
-                        done();
-                    }
+                    result.should.be.Array();
+                    console.log("Done: with result");
+                    done();
                 })
                 .catch(e => {
                     done(e);
