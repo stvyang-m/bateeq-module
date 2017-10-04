@@ -31,7 +31,6 @@ it('#01. test report per ro with realization order', function (done) {
                 reportManager.getReportItemsByRealizationOrder(realizationOrder)
                     .then(result => {
                         result.should.be.Array();
-                        console.log("Done: with result");
                         done();
                     })
                     .catch(e => {
