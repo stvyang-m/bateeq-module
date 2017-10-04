@@ -27,7 +27,7 @@ module.exports = class ReportManager extends InventoryManager {
                 var detailOnInventory = [];
                 var detailOnSales = [];
 
-                if (results[0] && results[1]) {
+                if (results[0]) {
                     for (var i = 0; i < dataItem.items; i++) {
                         var itemSize = dataItem.items[i].size;
                         var itemOnInventory = dataItem.items[i].quantity;
@@ -42,7 +42,10 @@ module.exports = class ReportManager extends InventoryManager {
 
                     item['storageName'] = dataItem._id;
                     item['detailOnInventory'] = detailOnInventory;
-                    item['age'] = latestDate;
+                }
+
+                if(results[1]) {
+                    item['age'] = results[1];
                 }
 
                 if (results[2]) {
