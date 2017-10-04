@@ -66,26 +66,3 @@ it('#01. test report per ro with realization order', function (done) {
             done(e);
         });
 });
-
-it('#02. test report per ro with no realization order', function (done) {
-    helper.getDb()
-        .then(db => {
-            realizationOrder = "";
-            reportManager.getReportItemsByRealizationOrder(realizationOrder)
-                .then(result => {
-                    if (result) {
-                        console.log("Done: with result");
-                        done();
-                    } else {
-                        console.log("Done: with no result");
-                        done();
-                    }
-                })
-                .catch(e => {
-                    done(e);
-                });
-        })
-        .catch(e => {
-            done(e);
-        });
-});
