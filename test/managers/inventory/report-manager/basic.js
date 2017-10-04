@@ -3,7 +3,6 @@ var helper = require("../../../helper");
 var ReportManager = require("../../../../src/managers/inventory/report-manager");
 var InventoryDataUtil = require("../../../../test/data-util/inventory/report-manager-data-util");
 var reportManager = null;
-var realizationOrder = null;
 
 function processingData(data) {
     return new Promise((resolve, reject) => {
@@ -25,21 +24,7 @@ function processingData(data) {
 before('#00. connect db', function (done) {
     helper.getDb()
         .then(db => {
-            var data = require("../../../data");
-            data(db).then((results) => {
-                reportManager = new ReportManager(db, 'unit-test');
-
-                processingData(data).then(id => {
-                    realizationOrder = id;
-                    done();
-                })
-                    .catch(e => {
-                        done(e);
-                    });
-            })
-                .catch(e => {
-                    done(e);
-                });
+            done();
         })
         .catch(e => {
             done(e);
@@ -49,15 +34,20 @@ before('#00. connect db', function (done) {
 it('#01. test report per ro with realization order', function (done) {
     helper.getDb()
         .then(db => {
-            reportManager.getReportItemsByRealizationOrder(realizationOrder)
-                .then(result => {
-                    result.should.be.Array();
-                    console.log("Done: with result");
-                    done();
-                })
-                .catch(e => {
-                    done(e);
-                });
+            var data = require("../../../data");
+            reportManager = new ReportManager(db, 'unit-test');
+
+            processingData(data).then(realizationOrder => {
+                reportManager.getReportItemsByRealizationOrder(realizationOrder)
+                    .then(result => {
+                        result.should.be.Array();
+                        console.log("Done: with result");
+                        done();
+                    })
+                    .catch(e => {
+                        done(e);
+                    })
+            });
         })
         .catch(e => {
             done(e);
