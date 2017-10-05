@@ -25,46 +25,33 @@ module.exports = class ReportManager extends InventoryManager {
             Promise.all([items, latestDate, sales]).then(results => {
                 var dataItems = results[0].map((dataItem) => {
                     var item = {};
-                    var detailOnInventory = [];
-                    var detailOnSales = [];
+                    var storeName = dataItem._id.storage;
+                    var itemSize = dataItem._id.size;
+                    var quantityOnInventory = dataItem.quantity;
+                    var quantityOnSales = 0;
 
-                    if (results[0]) {
-                        for (var inventoryItem of dataItem.items) {
-                            var itemSize = inventoryItem.size;
-                            var itemOnInventory = inventoryItem.quantity;
-
-                            var itemDetail = {
-                                'size': itemSize,
-                                'quantityOnInventory': itemOnInventory
-                            }
-
-                            detailOnInventory.push(itemDetail);
-                        }
-
-                        item['storageName'] = dataItem._id;
-                        item['detailOnInventory'] = detailOnInventory;
-                    }
+                    item['storageName'] = storeName;
 
                     if (results[1]) {
-                        item['age'] = results[1];
+                        var today = new Date();
+                        item['age'] = this._getDifferenceDate(results[1], today);
                     }
 
                     if (results[2]) {
-                        for (var i = 0; i < results[2].length; i++) {
-                            if (sales[i]._id === dataItem._id) {
-                                var itemSize = [];
-                                var itemOnsales = [];
+                        for (var sales of results[2]) {
+                            if (sales._id.storage === storeName && sales._id.size === itemSize) {
+                                quantityOnSales = sales.quantity;
                             }
-
-                            var itemDetail = {
-                                'size': itemSize,
-                                'quantityOnSales': itemOnsales
-                            };
-
-                            detailOnSales.push(itemDetail);
                         }
-                        item['detailOnSales'] = detailOnSales;
                     }
+
+                    var itemDetail = {
+                        'size': itemSize,
+                        'quantityOnInventory': quantityOnInventory,
+                        'quantityOnSales': quantityOnSales
+                    }
+
+                    item['itemDetail'] = itemDetail;
 
                     return item;
                 });
@@ -73,6 +60,15 @@ module.exports = class ReportManager extends InventoryManager {
                 reject(error);
             });
         });
+    }
+
+    _getDifferenceDate(dateFrom, dateTo) {
+        var _MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+        var utc1 = Date.UTC(dateFrom.getFullYear(), dateFrom.getMonth(), dateFrom.getDate());
+        var utc2 = Date.UTC(dateTo.getFullYear(), dateTo.getMonth(), dateTo.getDate());
+
+        return Math.abs(Math.floor((utc2 - utc1) / _MS_PER_DAY));
     }
 
     _getLatestdateFromExpeditionByRealizationOrder(realizationOrder) {
