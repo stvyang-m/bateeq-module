@@ -97,6 +97,7 @@ module.exports = class ReportManager extends InventoryManager {
     //Group by store location
     _getItemsSalesFromSalesDocByRealizationOrder(realizationOrder) {
         var aggregate = [
+            { $unwind: '$items' },
             {
                 $match: {
                     $and: [{ "_deleted": false }, { 'items.item.article.realizationOrder': realizationOrder }]
@@ -105,12 +106,12 @@ module.exports = class ReportManager extends InventoryManager {
             {
                 $group:
                 {
-                    _id: '$store.storage.name',
-                    items: { $push: { 'size': '$items.item.size', 'quantitySold': '$items.quantity', 'totalPrice': '$items.total' } }
+                    _id: { storage: '$store.storage.name', size: '$items.item.size' },
+                    quantity: { $sum: '$items.quantity' }
                 }
             },
             {
-                $sort: { "items.size": 1 }
+                $sort: { '_id.storage': 1 }
             }
         ];
 
@@ -133,12 +134,13 @@ module.exports = class ReportManager extends InventoryManager {
             {
                 $group:
                 {
-                    _id: '$storage.name',
-                    items: { $push: { 'size': '$item.size', 'quantity': '$quantity' } }
+                    _id: { storage: '$storage.name', size: '$item.size' },
+                    quantity: { $sum: '$quantity' }
                 }
             },
             {
-                $sort: { "items.size": 1 }
+
+                $sort: { "_id.storage": 1 }
             }
         ];
 
