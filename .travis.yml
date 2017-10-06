@@ -11,8 +11,7 @@ addons:
     - mongodb-3.2-precise
     packages:
     - mongodb-org-server
-script: "sbt clean coverage test"
 after_success:
-- sbt coveralls  
+- npm run coveralls 
 - npm run codeclimate 
 cache: false
