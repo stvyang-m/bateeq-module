@@ -30,6 +30,7 @@ inventoryMap.set("inv-ro-report", require('./src/managers/inventory/inv-ro-repor
 inventoryMap.set("stock-opname-doc", require('./src/managers/inventory/stock-opname-doc-manager'));
 inventoryMap.set("stock-availability", require('./src/managers/inventory/stock-availability-manager'));
 inventoryMap.set("report-manager", require('./src/managers/inventory/report-manager'));
+inventoryMap.set("monthly-stock", require('./src/managers/inventory/monthly-stock-manager'));
 
 var merchandiserMap = new Map();
 merchandiserMap.set("efr-pk", require('./src/managers/merchandiser/efr-pk-manager'));
@@ -71,6 +72,7 @@ module.exports = {
         StockOpnameDocManager: inventoryMap.get("stock-opname-doc"),
         StockAvailabilityManager: inventoryMap.get("stock-availability"),
         ReportManager: inventoryMap.get("report-manager"),
+        MonthlyStockManager: inventoryMap.get("monthly-stock"),
         map: inventoryMap
     },
     merchandiser: {
@@ -133,4 +135,3 @@ module.exports = {
     }
 
 }
-
