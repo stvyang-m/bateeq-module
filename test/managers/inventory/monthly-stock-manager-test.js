@@ -1,3 +1,5 @@
+"use strict";
+
 // dependency
 var helper = require('../../helper');
 var should = require('should');
