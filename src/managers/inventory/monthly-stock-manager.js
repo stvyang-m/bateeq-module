@@ -113,20 +113,16 @@ module.exports = class MonthlyStockManager extends BaseManager {
 
     // GET LOCALE TIME IN JAKARTA
     __getLocaleDateOfMonth(year, month, isStartOf) {
-        var date = new Date(year, month); // using current date but based on input of year and month
-        var momentDate = isStartOf ? moment(date).startOf('month') : moment(date).endOf('month');
-        var utc = new Date(momentDate);
-        var convertToLocale = moment(utc).add(7, 'h'); // add 7 hours from UTC to Locale
-        var locale = new Date(convertToLocale);
+        var locale = isStartOf ? moment().month(month).year(year).startOf('month') : moment().month(month).year(year).endOf('month');
         return locale;
     }
 
     _setDateOfMonth(month, year) {
-        var firstDay = this.__getLocaleDateOfMonth(year, month, true);
-        var lastDay = this.__getLocaleDateOfMonth(year, month, false);
+        var firstDay = this.__getLocaleDateOfMonth(year, month, true).format();
+        var lastDay = this.__getLocaleDateOfMonth(year, month, false).format();
         return {
-            firstDay: firstDay,
-            lastDay: lastDay
+            firstDay: new Date(firstDay),
+            lastDay: new Date(lastDay)
         }
     }
     //
@@ -142,7 +138,8 @@ module.exports = class MonthlyStockManager extends BaseManager {
             { $group: { _id: { storageCode: "$storage.code", storageName: "$storage.name", itemCode: "$item.code", date: "$date", quantity: quantityRule, hpp: { $cond: { if: { $ne: ["$item.domesticCOGS", ""] }, then: "$item.domesticCOGS", else: "$item.internationalCOGS" } }, sale: { $cond: { if: { $ne: ["$item.domesticSale", ""] }, then: "$item.domesticSale", else: "$item.internationalSale" } } } } }, // earliest = before, latest = $after
             { $sort: { "_id.date": sortRule } }, // earliest =  1, latest = -1
             { $group: { _id: { storageCode: "$_id.storageCode", storageName: "$_id.storageName", itemCode: "$_id.itemCode" }, quantity: { $first: "$_id.quantity" }, hpp: { $first: "$_id.hpp" }, sale: { $first: "$_id.sale" } } },
-            { $group: { _id: { storageCode: "$_id.storageCode", storageName: "$_id.storageName" }, quantity: { $sum: "$quantity" }, hpp: { $sum: "$hpp" }, sale: { $sum: "$sale" } } }
+            { $group: { _id: { storageCode: "$_id.storageCode", storageName: "$_id.storageName", itemCode: "$_id.itemCode", quantity: "$quantity", hpp: { $multiply: ["$quantity", "$hpp"] }, sale: { $multiply: ["$quantity", "$sale"] } } } },
+            { $group: { _id: { storageCode: "$_id.storageCode", storageName: "$_id.storageName" }, quantity: { $sum: "$_id.quantity" }, hpp: { $sum: "$_id.hpp" }, sale: { $sum: "$_id.sale" } } }
         ]
         var query = this.collection.aggregate(allStockThisMonth).toArray();
         return query;
@@ -156,7 +153,6 @@ module.exports = class MonthlyStockManager extends BaseManager {
                 $match: {
                     date: { $gte: date.firstDay, $lte: date.lastDay },
                 }
-
             },
             { $group: { _id: { storageCode: "$storage.code", itemCode: "$item.code" } } }
         ]
@@ -214,7 +210,8 @@ module.exports = class MonthlyStockManager extends BaseManager {
             { $group: { _id: { storageCode: "$storage.code", storageName: "$storage.name", itemCode: "$item.code", date: "$date", quantity: "$after", hpp: { $cond: { if: { $ne: ["$item.domesticCOGS", ""] }, then: "$item.domesticCOGS", else: "$item.internationalCOGS" } }, sale: { $cond: { if: { $ne: ["$item.domesticSale", ""] }, then: "$item.domesticSale", else: "$item.internationalSale" } } } } },
             { $sort: { "_id.date": -1 } },
             { $group: { _id: { storageCode: "$_id.storageCode", storageName: "$_id.storageName", itemCode: "$_id.itemCode" }, quantity: { $first: "$_id.quantity" }, hpp: { $first: "$_id.hpp" }, sale: { $first: "$_id.sale" } } },
-            { $group: { _id: { storageCode: "$_id.storageCode", storageName: "$_id.storageName" }, quantity: { $sum: "$quantity" }, hpp: { $sum: "$hpp" }, sale: { $sum: "$sale" } } }
+            { $group: { _id: { storageCode: "$_id.storageCode", storageName: "$_id.storageName", itemCode: "$_id.itemCode", quantity: "$quantity", hpp: { $multiply: ["$quantity", "$hpp"] }, sale: { $multiply: ["$quantity", "$sale"] } } } },
+            { $group: { _id: { storageCode: "$_id.storageCode", storageName: "$_id.storageName" }, quantity: { $sum: "$_id.quantity" }, hpp: { $sum: "$_id.hpp" }, sale: { $sum: "$_id.sale" } } }
         ]
         var query = this.collection.aggregate(allStockBeforeThis).toArray();
         return query;
@@ -319,7 +316,10 @@ module.exports = class MonthlyStockManager extends BaseManager {
                 }
             },
             { $sort: { "_id.date": -1 } },
-            { $group: { _id: { itemCode: "$_id.itemCode", itemName: "$_id.itemName" }, quantity: { $first: "$_id.quantity" }, hpp: { $first: "$_id.hpp" }, sale: { $first: "$_id.sale" } } }
+            { $group: { _id: { itemCode: "$_id.itemCode", itemName: "$_id.itemName" }, quantity: { $first: "$_id.quantity" }, hpp: { $first: "$_id.hpp" }, sale: { $first: "$_id.sale" } } },
+            { $group: { _id: { itemCode: "$_id.itemCode", itemName: "$_id.itemName", quantity: "$quantity", hpp: { $multiply: ["$quantity", "$hpp"] }, sale: { $multiply: ["$quantity", "$sale"] } } } },
+            { $project: { itemCode: "$_id.itemCode", itemName: "$_id.itemName", quantity: "$_id.quantity", totalHPP: "$_id.hpp", totalSale: "$_id.sale" } },
+            { $match: { quantity: { $ne: 0 } } }
         ]
         var query = this.collection.aggregate(itemThisMonth).toArray();
         return query;
@@ -329,7 +329,7 @@ module.exports = class MonthlyStockManager extends BaseManager {
     _getItems(stocks) {
         var items = [];
         stocks.forEach(item => {
-            items.push(item._id.itemCode);
+            items.push(item.itemCode);
         })
         return items;
     }
@@ -354,7 +354,10 @@ module.exports = class MonthlyStockManager extends BaseManager {
                 }
             },
             { $sort: { "_id.date": -1 } },
-            { $group: { _id: { itemCode: "$_id.itemCode", itemName: "$_id.itemName" }, quantity: { $first: "$_id.quantity" }, hpp: { $first: "$_id.hpp" }, sale: { $first: "$_id.sale" } } }
+            { $group: { _id: { itemCode: "$_id.itemCode", itemName: "$_id.itemName" }, quantity: { $first: "$_id.quantity" }, hpp: { $first: "$_id.hpp" }, sale: { $first: "$_id.sale" } } },
+            { $group: { _id: { itemCode: "$_id.itemCode", itemName: "$_id.itemName", quantity: "$quantity", hpp: { $multiply: ["$quantity", "$hpp"] }, sale: { $multiply: ["$quantity", "$sale"] } } } },
+            { $project: { itemCode: "$_id.itemCode", itemName: "$_id.itemName", quantity: "$_id.quantity", totalHPP: "$_id.hpp", totalSale: "$_id.sale" } },
+            { $match: { quantity: { $ne: 0 } } }
         ]
         var query = this.collection.aggregate(itemBeforeThis).toArray();
         return query;
@@ -372,21 +375,6 @@ module.exports = class MonthlyStockManager extends BaseManager {
         return allItems;
     }
 
-    _calculateTotal(stocks) {
-        var finalStocks = [];
-        stocks.forEach(item => {
-            var finalItem = {
-                itemCode: item._id.itemCode,
-                itemName: item._id.itemName,
-                quantity: item.quantity,
-                totalHPP: item.quantity * item.hpp,
-                totalSale: item.quantity * item.sale
-            }
-            finalStocks.push(finalItem);
-        })
-        return finalStocks;
-    }
-
     getStockInStorage(storageCode, month, year) {
         var stockDate = this._setDateOfMonth(month, year);
         var stockThisMonthQuery = this._getItemThisMonth(stockDate, storageCode);
@@ -397,8 +385,7 @@ module.exports = class MonthlyStockManager extends BaseManager {
                     var stockBeforeThisQuery = this._getItemBeforeThis(stockDate, storageCode, items);
                     return stockBeforeThisQuery
                         .then(stockBeforeThis => {
-                            var allStocks = this._embedItems(stockThisMonth, stockBeforeThis);
-                            var finalStocks = this._calculateTotal(allStocks);
+                            var finalStocks = this._embedItems(stockThisMonth, stockBeforeThis);
                             resolve(finalStocks);
                         })
                 })

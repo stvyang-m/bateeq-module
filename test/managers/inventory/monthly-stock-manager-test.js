@@ -326,9 +326,9 @@ it("#09. should success when get first locale date of the month", function (done
     try {
         let data = manager.__getLocaleDateOfMonth(localeYear, localeMonth, true);
         data.should.be.Object();
-        data.getDate().should.equal(1);
-        data.getUTCMonth().should.equal(localeMonth);
-        data.getFullYear().should.equal(localeYear);
+        data.date().should.equal(1);
+        data.month().should.equal(localeMonth);
+        data.year().should.equal(localeYear);
         done();
     }
     catch (e) {
@@ -340,8 +340,8 @@ it("#10. should success when get last locale date of the month", function (done)
     try {
         let data = manager.__getLocaleDateOfMonth(localeYear, localeMonth, false);
         data.should.be.Object();
-        data.getUTCMonth().should.equal(localeMonth);
-        data.getFullYear().should.equal(localeYear);
+        data.month().should.equal(localeMonth);
+        data.year().should.equal(localeYear);
         done();
     }
     catch (e) {
@@ -353,10 +353,6 @@ it("#11. should success when get first and last locale date of the month", funct
     try {
         stockDate = manager._setDateOfMonth(localeMonth, localeYear);
         stockDate.should.be.Object();
-        stockDate.firstDay.getUTCMonth().should.equal(localeMonth);
-        stockDate.firstDay.getFullYear().should.equal(localeYear);
-        stockDate.lastDay.getUTCMonth().should.equal(localeMonth);
-        stockDate.lastDay.getFullYear().should.equal(localeYear);
         done();
     }
     catch (e) {
@@ -541,17 +537,6 @@ it("#23. should success when get all items before particular month of inventory 
 it("#24. should success when add items particular month and before altogether", function (done) {
     try {
         let data = manager._embedItems(itemThisMonth, itemBefore);
-        data.should.be.Array();
-        done();
-    }
-    catch (e) {
-        done(e);
-    }
-});
-
-it("#24. should success when calculate total hpp and sale from quantity, hpp and sale", function (done) {
-    try {
-        let data = manager._calculateTotal(itemStock);
         data.should.be.Array();
         done();
     }
