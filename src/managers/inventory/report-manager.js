@@ -107,7 +107,7 @@ module.exports = class ReportManager extends InventoryManager {
                 }
             },
             {
-                $sort: { '_id.storage': 1 }
+                $sort: { '_id.size': 1 }
             }
         ];
 
@@ -136,7 +136,7 @@ module.exports = class ReportManager extends InventoryManager {
             },
             {
 
-                $sort: { "_id.storage": 1 }
+                $sort: { "_id.size": 1 }
             }
         ];
 
