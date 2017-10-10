@@ -264,12 +264,18 @@ module.exports = class FinishedGoodsManager extends ItemManager {
 
     insert(dataFile) {
         return new Promise((resolve, reject) => {
-            var data = [];
+            var notUnique = [];
             if (dataFile != "") {
                 for (var i = 1; i < dataFile.length; i++) {
-                    data.push({ "code": dataFile[i][0], "name": dataFile[i][1], "uom": dataFile[i][2], "size": dataFile[i][3], "domesticCOGS": dataFile[i][4], "domesticSale": dataFile[i][5], "internationalSale": dataFile[i][6], "realizationOrder": dataFile[i][7] });
+                    notUnique.push({ "code": dataFile[i][0], "name": dataFile[i][1], "uom": dataFile[i][2], "size": dataFile[i][3], "domesticCOGS": dataFile[i][4], "domesticSale": dataFile[i][5], "internationalSale": dataFile[i][6], "realizationOrder": dataFile[i][7] });
                 }
             }
+            var data = [];
+            notUnique.filter(function (item) {
+                var i = data.findIndex(x => x.code == item.code);
+                if (i <= -1)
+                    data.push(item);
+            });
             var dataError = [], errorMessage;
             for (var i = 0; i < data.length; i++) {
                 errorMessage = "";
@@ -325,9 +331,9 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                                     resultItem.name = item.name;
                                     resultItem.uom = item.uom;
                                     resultItem.size = item.size;
-                                    resultItem.domesticCOGS = item.domesticCOGS;
-                                    resultItem.domesticSale = item.domesticSale;
-                                    resultItem.internationalSale = item.internationalSale;
+                                    resultItem.domesticCOGS = Number(item.domesticCOGS);
+                                    resultItem.domesticSale = Number(item.domesticSale);
+                                    resultItem.internationalSale = Number(item.internationalSale);
                                     resultItem.article.realizationOrder = item.realizationOrder;
                                     this.update(resultItem)
                                         .then(id => {
@@ -350,9 +356,9 @@ module.exports = class FinishedGoodsManager extends ItemManager {
                                     finishGood.name = item.name;
                                     finishGood.uom = item.uom;
                                     finishGood.size = item.size;
-                                    finishGood.domesticCOGS = item.domesticCOGS;
-                                    finishGood.internationalSale = item.internationalSale;
-                                    finishGood.domesticSale = item.domesticSale;
+                                    finishGood.domesticCOGS = Number(item.domesticCOGS);
+                                    finishGood.internationalSale = Number(item.internationalSale);
+                                    finishGood.domesticSale = Number(item.domesticSale);
                                     finishGood.article.realizationOrder = item.realizationOrder;
                                     this.create(finishGood)
                                         .then(id => {
