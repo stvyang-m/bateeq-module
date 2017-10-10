@@ -272,6 +272,7 @@ module.exports = class FinishedGoodsManager extends ItemManager {
             }
             var data = [];
             notUnique.filter(function (item) {
+                var i = data.findIndex(x => x.code == item.code);
                 if (i <= -1)
                     data.push(item);
             });
