@@ -12,6 +12,6 @@ addons:
     packages:
     - mongodb-org-server
 after_success:
-- npm run coveralls  
+- npm run coveralls 
 - npm run codeclimate 
 cache: false
