@@ -463,7 +463,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
             }
             var data = [];
             notUnique.filter(function (item) {
-                var i = data.findIndex(x => x.code == item.code);
+                var i = data.findIndex(x => x.Barcode == item.Barcode);
                 if (i <= -1)
                     data.push(item);
             });
