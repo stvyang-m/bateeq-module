@@ -6,176 +6,6 @@ var should = require('should');
 let manager;
 
 // hardcoded data
-let itemStock = [
-    {
-        _id: { itemCode: 'UT-FG2', itemName: 'Silhouette M[UT]' },
-        quantity: 215,
-        hpp: 100000,
-        sale: 100000
-    },
-    {
-        _id: { itemCode: 'UT-AV1', itemName: 'Silhouette S[UT]' },
-        quantity: 1140,
-        hpp: 1000,
-        sale: 5000
-    },
-    {
-        _id: { itemCode: 'UT-FG3', itemName: 'Silhouette Version 3 M[UT]' },
-        quantity: 215,
-        hpp: 100000,
-        sale: 100000
-    }
-]
-
-let itemBefore = [
-    {
-        _id: { itemCode: 'UT-FG3', itemName: 'Silhouette Version 3 M[UT]' },
-        quantity: 215,
-        hpp: 100000,
-        sale: 100000
-    }
-]
-
-let itemThisMonth = [
-    {
-        _id: { itemCode: 'UT-FG2', itemName: 'Silhouette M[UT]' },
-        quantity: 215,
-        hpp: 100000,
-        sale: 100000
-    },
-    {
-        _id: { itemCode: 'UT-AV1', itemName: 'Silhouette S[UT]' },
-        quantity: 1140,
-        hpp: 1000,
-        sale: 5000
-    }
-]
-
-let items = ['UT-FG2', 'UT-AV1'];
-
-let earliestStock = [
-    {
-        _id:
-        {
-            storageCode: 'UT-BJB',
-            storageName: 'Pusat - Finished Goods[UT]'
-        },
-        quantity: 1315,
-        hpp: 100000,
-        sale: 100000
-    },
-    {
-        _id:
-        {
-            storageCode: 'ST-BJB',
-            storageName: 'Pusat - Finished Goods[UT]'
-        },
-        quantity: 12967,
-        hpp: 300000,
-        sale: 300000
-    },
-    {
-        _id: { storageCode: 'UT-FNG', storageName: 'Finishing[UT]' },
-        quantity: 228,
-        hpp: 100000,
-        sale: 100000
-    }
-];
-
-let latestStock = [
-    {
-        _id:
-        {
-            storageCode: 'ST-BJB',
-            storageName: 'Pusat - Finished Goods[UT]'
-        },
-        quantity: 13365,
-        hpp: 300000,
-        sale: 300000
-    },
-    {
-        _id:
-        {
-            storageCode: 'UT-BJB',
-            storageName: 'Pusat - Finished Goods[UT]'
-        },
-        quantity: 1355,
-        hpp: 100000,
-        sale: 100000
-    },
-    {
-        _id: { storageCode: 'UT-FNG', storageName: 'Finishing[UT]' },
-        quantity: 238,
-        hpp: 100000,
-        sale: 100000
-    }
-];
-
-let stockPairs = [
-    { _id: { storageCode: 'UT-FNG', itemCode: 'UT-FG1' } },
-    { _id: { storageCode: 'ST-BJB', itemCode: 'UT-FG2' } },
-    { _id: { storageCode: 'ST-BJB', itemCode: 'UT-AV1' } },
-    { _id: { storageCode: 'ST-BJB', itemCode: 'UT-FG1' } },
-    { _id: { storageCode: 'UT-FNG', itemCode: 'UT-AV1' } },
-    { _id: { storageCode: 'UT-BJB', itemCode: 'UT-AV1' } },
-    { _id: { storageCode: 'UT-BJB', itemCode: 'UT-FG2' } },
-    { _id: { storageCode: 'ST-BJB', itemCode: 'UT-FG3' } }
-];
-
-let groupedStockPairs = [
-    { storage: 'UT-FNG', items: ['UT-FG1', 'UT-AV1'] },
-    { storage: 'ST-BJB', items: ['UT-FG2', 'UT-AV1', 'UT-FG1', 'UT-FG3'] },
-    { storage: 'UT-BJB', items: ['UT-AV1', 'UT-FG2'] }
-];
-
-let beforeStock = [
-    {
-        _id: { storageCode: 'UT-FNG', storageName: 'Finishing[UT]' },
-        quantity: 997,
-        hpp: 0,
-        sale: 0
-    },
-    {
-        _id: { storageCode: 'UT-ACC', storageName: 'Accessories[UT]' },
-        quantity: 20,
-        hpp: 0,
-        sale: 0
-    }
-];
-
-let earliestLatestStock = [
-    {
-        code: 'ST-BJB',
-        name: 'Pusat - Finished Goods[UT]',
-        latestQuantity: 13365,
-        latestHPP: 300000,
-        latestSale: 300000,
-        earliestQuantity: 12967,
-        earliestHPP: 300000,
-        earliestSale: 300000
-    },
-    {
-        code: 'UT-BJB',
-        name: 'Pusat - Finished Goods[UT]',
-        latestQuantity: 1355,
-        latestHPP: 100000,
-        latestSale: 100000,
-        earliestQuantity: 1315,
-        earliestHPP: 100000,
-        earliestSale: 100000
-    },
-    {
-        code: 'UT-FNG',
-        name: 'Finishing[UT]',
-        latestQuantity: 238,
-        latestHPP: 100000,
-        latestSale: 100000,
-        earliestQuantity: 228,
-        earliestHPP: 100000,
-        earliestSale: 100000
-    }
-];
-
 let firstMonth = 5;
 let lastMonth = 9;
 let firstMonthOfYear = 0;
@@ -360,90 +190,24 @@ it("#11. should success when get first and last locale date of the month", funct
     }
 });
 
-it("#12. should success when get status of all latest stock with movement particular month", function (done) {
-    manager._getAllStockThisMonth(stockDate, -1, "$after")
+var earliestStocks;
+it("#12. should success when get earliest current stocks of particular month", function (done) {
+    manager._getCurrentStocks(stockDate.firstDay)
         .then(data => {
+            earliestStocks = data;
             data.should.be.Array();
-            done();
-        })
-        .catch(e => {
-            done(e);
-        });
-});
-
-it("#13. should success when get status of all earliest stock with movement particular month", function (done) {
-    manager._getAllStockThisMonth(stockDate, 1, "$before")
-        .then(data => {
-            data.should.be.Array();
-            done();
-        })
-        .catch(e => {
-            done(e);
-        });
-});
-
-it("#13. should success when get storage and item pairs of stock with movement this month", function (done) {
-    manager._getStorageItemPairs(stockDate)
-        .then(data => {
-            data.should.be.Array();
-            done();
-        })
-        .catch(e => {
-            done(e);
-        });
-});
-
-it("#14. should success when group storage and item pairs of stock", function (done) {
-    try {
-        let data = manager._groupStorageItemPairs(stockPairs)
-        data.should.be.Array();
-        data.forEach(storage => {
-            storage.items.forEach(item => {
-                var found = stockPairs.find(stockPair => { return stockPair._id.storageCode === storage.storage && stockPair._id.itemCode === item });
-                found._id.storageCode.should.equal(storage.storage);
-                found._id.itemCode.should.equal(item);
+            data.forEach(stock => {
+                stock._id.should.have.property('storageCode');
+                stock._id.storageCode.should.instanceOf(String);
+                stock.should.have.property('storageName');
+                stock.storageName.should.instanceOf(String);
+                stock.should.have.property('quantity');
+                stock.quantity.should.be.Number();
+                stock.should.have.property('hpp');
+                stock.hpp.should.be.Number();
+                stock.should.have.property('sale');
+                stock.sale.should.be.Number();
             })
-        })
-        done();
-    }
-    catch (e) {
-        done(e);
-    }
-});
-
-it("#15. should success when construct $or query based on grouped stock pairs", function (done) {
-    try {
-        let orQuery = manager.__constructOrQuery(groupedStockPairs);
-        orQuery.should.be.Array();
-        let ninStorage = [];
-        for (let i = 0; i < orQuery.length - 1; i++) {
-            let currentOrStorage = orQuery[i]["$and"][0]["storage.code"]["$eq"];
-            let foundStorage = groupedStockPairs.find(gsp => { return gsp.storage === currentOrStorage })
-            currentOrStorage.should.equal(foundStorage.storage);
-            ninStorage.push(currentOrStorage);
-            let currentOrItems = orQuery[i]["$and"][1]["item.code"]["$nin"];
-            currentOrItems.forEach(currentOrItem => {
-                let foundItem = foundStorage.items.find(item => { return item === currentOrItem })
-                currentOrItem.should.equal(foundItem);
-            })
-        }
-        let ninQuery = orQuery[orQuery.length - 1]["storage.code"]["$nin"];
-        ninQuery.forEach(ninQ => {
-            let foundNin = ninStorage.find(ninS => { return ninS === ninQ });
-            ninQ.should.equal(foundNin);
-        })
-        done();
-    }
-    catch (e) {
-        done(e);
-    }
-});
-
-it("#16. should success when get status of all latest stock without movement particular month", function (done) {
-    manager._getAllStockBeforeThis(stockDate, groupedStockPairs)
-        .then(data => {
-            beforeStock = data;
-            data.should.be.Array();
             done();
         })
         .catch(e => {
@@ -451,27 +215,53 @@ it("#16. should success when get status of all latest stock without movement par
         });
 });
 
-it("#17. should success when add earliest stock particular month and latest stock particular month altogether", function (done) {
-    try {
-        let data = manager.__embedEarliestWithLatest(earliestStock, latestStock);
-        data.forEach(els => {
-            let foundLatestStock = latestStock.find(ls => { return ls._id.storageCode === els.code })
-            els.code.should.equal(foundLatestStock._id.storageCode)
-            let foundEarliestStock = earliestStock.find(es => { return es._id.storageCode === els.code })
-            els.code.should.equal(foundEarliestStock._id.storageCode)
+var latestStocks;
+it("#13. should success when get latest current stocks of particular month", function (done) {
+    manager._getCurrentStocks(stockDate.lastDay)
+        .then(data => {
+            latestStocks = data;
+            data.should.be.Array();
+            data.forEach(stock => {
+                stock._id.should.have.property('storageCode');
+                stock._id.storageCode.should.instanceOf(String);
+                stock.should.have.property('storageName');
+                stock.storageName.should.instanceOf(String);
+                stock.should.have.property('quantity');
+                stock.quantity.should.be.Number();
+                stock.should.have.property('hpp');
+                stock.hpp.should.be.Number();
+                stock.should.have.property('sale');
+                stock.sale.should.be.Number();
+            })
+            done();
         })
-        data.should.be.Array();
-        done();
-    }
-    catch (e) {
-        done(e);
-    }
+        .catch(e => {
+            done(e);
+        });
 });
 
-it("#18. should success when add stock particular month and before altogether", function (done) {
+it("#14. should success when get combine earliest and latest stock of particular month", function (done) {
     try {
-        let data = manager.__embedBeforeWithThisMonth(earliestLatestStock, beforeStock);
+        let data = manager._combineStocks(earliestStocks, latestStocks);
         data.should.be.Array();
+        data.forEach(stock => {
+            stock.should.have.property('code');
+            stock.code.should.instanceOf(String);
+            stock.should.have.property('name');
+            stock.name.should.instanceOf(String);
+            stock.should.have.property('earliestQuantity');
+            stock.earliestQuantity.should.be.Number();
+            stock.should.have.property('earliestHPP');
+            stock.earliestHPP.should.be.Number();
+            stock.should.have.property('earliestSale');
+            stock.earliestSale.should.be.Number();
+            stock.should.have.property('latestQuantity');
+            stock.latestQuantity.should.be.Number();
+            stock.should.have.property('latestHPP');
+            stock.latestHPP.should.be.Number();
+            stock.should.have.property('latestSale');
+            stock.latestSale.should.be.Number();
+        })
         done();
     }
     catch (e) {
@@ -479,21 +269,28 @@ it("#18. should success when add stock particular month and before altogether", 
     }
 });
 
-it("#19. should success when combine all stock (earliest particular month, latest particular month and before)", function (done) {
-    try {
-        let data = manager._embedStocks(earliestStock, latestStock, beforeStock);
-        data.should.be.Array();
-        done();
-    }
-    catch (e) {
-        done(e);
-    }
-});
-
-it("#20. should success when get overall stock particular month", function (done) {
+it("#15. should success when get overall stock particular month", function (done) {
     manager.getOverallStock(localeMonth, localeYear)
         .then(data => {
             data.should.be.Array();
+            data.forEach(stock => {
+                stock.should.have.property('code');
+                stock.code.should.instanceOf(String);
+                stock.should.have.property('name');
+                stock.name.should.instanceOf(String);
+                stock.should.have.property('earliestQuantity');
+                stock.earliestQuantity.should.be.Number();
+                stock.should.have.property('earliestHPP');
+                stock.earliestHPP.should.be.Number();
+                stock.should.have.property('earliestSale');
+                stock.earliestSale.should.be.Number();
+                stock.should.have.property('latestQuantity');
+                stock.latestQuantity.should.be.Number();
+                stock.should.have.property('latestHPP');
+                stock.latestHPP.should.be.Number();
+                stock.should.have.property('latestSale');
+                stock.latestSale.should.be.Number();
+            })
             done();
         })
         .catch(e => {
@@ -501,10 +298,22 @@ it("#20. should success when get overall stock particular month", function (done
         });
 });
 
-it("#21. should success when get all items in particular month of inventory movement based on storage", function (done) {
-    manager._getItemThisMonth(stockDate, 'UT-BJB')
+it("#16. should success when get latest current items of particular month", function (done) {
+    manager._getCurrentItems('UT-BJB', stockDate.lastDay)
         .then(data => {
             data.should.be.Array();
+            data.forEach(item => {
+                item.should.have.property('itemCode');
+                item.itemCode.should.instanceOf(String);
+                item.should.have.property('itemName');
+                item.itemName.should.instanceOf(String);
+                item.should.have.property('quantity');
+                item.quantity.should.be.Number();
+                item.should.have.property('totalHPP');
+                item.totalHPP.should.be.Number();
+                item.should.have.property('totalSale');
+                item.totalSale.should.be.Number();
+            })
             done();
         })
         .catch(e => {
@@ -512,43 +321,22 @@ it("#21. should success when get all items in particular month of inventory move
         });
 });
 
-it("#22. should success when get array of item based on items", function (done) {
-    try {
-        let data = manager._getItems(itemThisMonth);
-        data.should.be.Array();
-        done();
-    }
-    catch (e) {
-        done(e);
-    }
-});
-
-it("#23. should success when get all items before particular month of inventory movement based on storage", function (done) {
-    manager._getItemBeforeThis(stockDate, 'UT-BJB', items)
-        .then(data => {
-            data.should.be.Array();
-            done();
-        })
-        .catch(e => {
-            done(e);
-        });
-});
-
-it("#24. should success when add items particular month and before altogether", function (done) {
-    try {
-        let data = manager._embedItems(itemThisMonth, itemBefore);
-        data.should.be.Array();
-        done();
-    }
-    catch (e) {
-        done(e);
-    }
-});
-
-it("#25. should success when get all items on particular month based on storage", function (done) {
+it("#17. should success when get all items on particular month based on storage", function (done) {
     manager.getStockInStorage('UT-BJB', localeMonth, localeYear)
         .then(data => {
             data.should.be.Array();
+            data.forEach(item => {
+                item.should.have.property('itemCode');
+                item.itemCode.should.instanceOf(String);
+                item.should.have.property('itemName');
+                item.itemName.should.instanceOf(String);
+                item.should.have.property('quantity');
+                item.quantity.should.be.Number();
+                item.should.have.property('totalHPP');
+                item.totalHPP.should.be.Number();
+                item.should.have.property('totalSale');
+                item.totalSale.should.be.Number();
+            })
             done();
         })
         .catch(e => {
