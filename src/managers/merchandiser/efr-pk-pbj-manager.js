@@ -455,12 +455,18 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
 
     insert(dataFile, sourceId, destinationId, dateForm) {
         return new Promise((resolve, reject) => {
-            var data = [];
+            var notUnique = [];
             if (dataFile != "") {
                 for (var i = 1; i < dataFile.length; i++) {
-                    data.push({ "PackingList": dataFile[i][0], "Password": dataFile[i][1], "Barcode": dataFile[i][2], "Name": dataFile[i][3], "Size": dataFile[i][4], "Price": dataFile[i][5], "UOM": dataFile[i][6], "QTY": dataFile[i][7], "RO": dataFile[i][8], "HPP": dataFile[i][9] });
+                    notUnique.push({ "PackingList": dataFile[i][0], "Password": dataFile[i][1], "Barcode": dataFile[i][2], "Name": dataFile[i][3], "Size": dataFile[i][4], "Price": dataFile[i][5], "UOM": dataFile[i][6], "QTY": dataFile[i][7], "RO": dataFile[i][8], "HPP": dataFile[i][9] });
                 }
             }
+            var data = [];
+            notUnique.filter(function (item) {
+                var i = data.findIndex(x => x.Barcode == item.Barcode);
+                if (i <= -1)
+                    data.push(item);
+            });
             var dataError = [], errorMessage;
             for (var i = 0; i < data.length; i++) {
                 errorMessage = "";
@@ -539,8 +545,8 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                     resultItem.uom = item.uom;
                                     resultItem.article.realizationOrder = item.realizationOrder;
                                     resultItem.size = item.size;
-                                    resultItem.domesticSale = item.domesticSale;
-                                    resultItem.domesticCOGS = item.domesticCOGS;
+                                    resultItem.domesticSale = Number(item.domesticSale);
+                                    resultItem.domesticCOGS = Number(item.domesticCOGS);
                                     this.finishedGoodsManager.update(resultItem)
                                         .then(id => {
                                             this.itemManager.getSingleById(id)
@@ -562,8 +568,8 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                     finishGood.uom = item.uom;
                                     finishGood.article.realizationOrder = item.realizationOrder;
                                     finishGood.size = item.size;
-                                    finishGood.domesticSale = item.domesticSale;
-                                    finishGood.domesticCOGS = item.domesticCOGS;
+                                    finishGood.domesticSale = Number(item.domesticSale);
+                                    finishGood.domesticCOGS = Number(item.domesticCOGS);
                                     this.finishedGoodsManager.create(finishGood)
                                         .then(id => {
                                             this.itemManager.getSingleById(id)
