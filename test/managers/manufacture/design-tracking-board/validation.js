@@ -1,3 +1,5 @@
+"use strict";
+
 require("should");
 const helper = require('../../../helper');
 const DesignTrackingBoardManager = require('../../../../src/managers/manufacture/design-tracking-board-manager');

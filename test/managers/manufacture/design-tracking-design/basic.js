@@ -1,3 +1,5 @@
+"use strict";
+
 let options = {
     manager: require("../../../../src/managers/manufacture/design-tracking-design-manager"),
     model: require("bateeq-models").manufacture.DesignTrackingDesign,

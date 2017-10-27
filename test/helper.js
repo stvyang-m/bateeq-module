@@ -1,3 +1,5 @@
+"use strict";
+
 function _getDb() {
     return new Promise((resolve, reject) => {
         let factory = require('mongo-factory');
