@@ -1,8 +1,7 @@
-var helper = require("../../helper");
+var helper = require("../helper");
 var user = {
     username: "dev"
 };
-
 
 module.exports = function(data, Manager, filterCallback) {
     var manager;
