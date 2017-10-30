@@ -182,3 +182,22 @@ it("#09. should success when search with keyword", function (done) {
             done(e);
         });
 });
+
+it("#10. should error when create with close date less than current date", function (done) {
+    manager.create({ closeDate: "" })
+        .then((id) => {
+            done("Should not be able to create with close date less than current date");
+        })
+        .catch((e) => {
+            try {
+                e.name.should.equal("ValidationError");
+                e.should.have.property("errors");
+                e.errors.should.instanceof(Object);
+                e.errors.should.have.property("closeDate");
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        });
+});

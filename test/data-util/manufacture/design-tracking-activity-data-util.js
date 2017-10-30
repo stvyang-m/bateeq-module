@@ -4,6 +4,7 @@ const DesignTrackingActivityManager = require('../../../src/managers/manufacture
 const generateCode = require("../../../src/utils/code-generator");
 const designTrackingDesign = require("./design-tracking-design-data-util");
 const account = require("../auth/account-data-util.js");
+const moment = require("moment");
 
 class DesignTrackingActivityDataUtil {
     getNewData() {
@@ -35,7 +36,7 @@ class DesignTrackingActivityDataUtil {
                                 title: "Unit Test Title",
                                 notes: "Unit Test Notes",
                                 assignedTo: result,
-                                dueDate: "2017-26-07 03:00",
+                                dueDate: moment().add(1, 'day'),
                                 status: false
                             };
 

@@ -1,6 +1,7 @@
 "use strict";
 
 require("should");
+const moment = require("moment");
 const helper = require("../../../helper");
 
 const DesignTrackingActivityManager = require("../../../../src/managers/manufacture/design-tracking-activity-manager");
@@ -42,7 +43,7 @@ it("#01. should error when create with invalid type", function (done) {
 it("#02. should error when create with type NOTES and empty notes", function (done) {
     manager.create({ type: "NOTES", field: { notes: "" } })
         .then((id) => {
-            done("Should not be able to create with invalid type");
+            done("Should not be able to create with type NOTES and empty notes");
         })
         .catch((e) => {
             try {
@@ -61,7 +62,7 @@ it("#02. should error when create with type NOTES and empty notes", function (do
 it("#03. should error when create with type TASK and empty data", function (done) {
     manager.create({ type: "TASK", field: { title: "", assignedTo: "", dueDate: "" } })
         .then((id) => {
-            done("Should not be able to create with invalid type");
+            done("Should not be able to create with type TASK and empty data");
         })
         .catch((e) => {
             try {
@@ -134,5 +135,24 @@ it("#06. should success when search with keyword", function (done) {
         })
         .catch((e) => {
             done(e);
+        });
+});
+
+it("#07. should error when create with type TASK due date before now", function (done) {
+    manager.create({ type: "TASK", field: { title: "test", assignedTo: "test", dueDate: moment().subtract(1, 'days') } })
+        .then((id) => {
+            done("Should not be able to create with type TASK due date before now");
+        })
+        .catch((e) => {
+            try {
+                e.name.should.equal("ValidationError");
+                e.should.have.property("errors");
+                e.errors.should.instanceof(Object);
+                e.errors.should.have.property("dueDate");
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
         });
 });

@@ -2,6 +2,7 @@
 
 // external dependencies
 require("mongodb-toolkit");
+const moment = require("moment");
 const ObjectId = require("mongodb").ObjectId;
 const BaseManager = require("module-toolkit").BaseManager;
 const BateeqModels = require('bateeq-models');
@@ -48,6 +49,14 @@ module.exports = class DesignTrackingActivityManager extends BaseManager {
     _validate(designTrackingActivity) {
         let errors = {};
         let valid = designTrackingActivity;
+        if (valid) {
+            if (valid.field) {
+                var _dueDate = valid.field.dueDate ? moment(valid.field.dueDate) : moment();
+            }
+            else {
+                var _dueDate = moment();
+            }
+        }
 
         if (!valid.type || valid.type === '' || !["ADD", "NOTES", "TASK", "MOVE"].find(t => t === valid.type))
             errors["type"] = "Type is invalid";
@@ -64,7 +73,11 @@ module.exports = class DesignTrackingActivityManager extends BaseManager {
 
             if (!valid.field.dueDate || valid.field.dueDate === '')
                 errors["dueDate"] = "Due date is required";
+            else if (_dueDate.isBefore(moment()))
+                errors["dueDate"] = "Due date cannot be before now";
         }
+
+        valid.closeDate = new Date(_dueDate);
 
         if (Object.getOwnPropertyNames(errors).length > 0) {
             let ValidationError = require('module-toolkit').ValidationError;

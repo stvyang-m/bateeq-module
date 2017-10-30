@@ -57,6 +57,8 @@ module.exports = class DesignTrackingBoardManager extends BaseManager {
             errors['numberOfStage'] = 'Number of stage must be greater or equal than 1';
         else if (valid.numberOfStage > 7)
             errors['numberOfStage'] = 'Number of stage must be lesser or equal than 7';
+        else if (valid.stagesLength > valid.numberOfStage)
+            errors['numberOfStage'] = 'Jumlah stage pada board ini melebihi banyak stage yang anda input, Silahkan hapus stage yang diinginkan terlebih dahulu.';
 
         if (Object.getOwnPropertyNames(errors).length > 0) {
             let ValidationError = require('module-toolkit').ValidationError;
@@ -64,6 +66,7 @@ module.exports = class DesignTrackingBoardManager extends BaseManager {
         }
 
         if (!valid.stamp) {
+            delete valid.stagesLength;
             valid = new DesignTrackingBoard(valid);
         }
 
