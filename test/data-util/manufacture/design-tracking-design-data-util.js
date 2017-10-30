@@ -8,6 +8,7 @@ const articleSeason = require("../master/article/article-season-data-util");
 const articleMaterialComposition = require("../master/article/article-material-composition-data-util");
 const articleSubCounter = require("../master/article/article-sub-counter-data-util");
 const articleMaterial = require("../master/article/article-material-data-util");
+const moment = require("moment");
 
 const designTrackingStage = require("./design-tracking-stage-data-util");
 
@@ -42,7 +43,7 @@ class DesignTrackingDesignDataUtil {
                 data.articleSubCounter = _articleSubCounter;
                 data.articleMaterialId = _articleMaterial._id;
                 data.articleMaterial = _articleMaterial;
-                data.closeDate = new Date();
+                data.closeDate = moment().add(1, 'day');
                 data.description = `description[${code}]`;
                 data.stageId = _designTrackingStage._id;
 

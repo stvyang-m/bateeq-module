@@ -101,7 +101,9 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
                 let _articleMaterialComposition = results[3];
                 let _articleSubCounter = results[4];
                 let _articleMaterial = results[5];
-                let _closeDate = moment(valid.closeDate);
+                if (valid) {
+                    var _closeDate = valid.closeDate ? moment(valid.closeDate) : moment();
+                }
 
                 if (!valid.name || valid.name == "")
                     errors['name'] = 'Name is required';
@@ -152,6 +154,7 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
                 valid.articleMaterialCompositionId = new ObjectId(valid.articleMaterialComposition._id);
                 valid.articleSubCounterId = new ObjectId(valid.articleSubCounter._id);
                 valid.articleMaterialId = new ObjectId(valid.articleMaterial._id);
+                valid.closeDate = new Date(_closeDate);
                 this.stageId = valid.stageId;
 
                 if (!valid.stamp) {
