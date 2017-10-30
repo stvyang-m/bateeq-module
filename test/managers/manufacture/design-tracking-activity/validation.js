@@ -59,7 +59,7 @@ it("#02. should error when create with type NOTES and empty notes", function (do
 });
 
 it("#03. should error when create with type TASK and empty data", function (done) {
-    manager.create({ type: "TASK", field: { notes: "", title: "", assignedTo: "", dueDate: "" } })
+    manager.create({ type: "TASK", field: { title: "", assignedTo: "", dueDate: "" } })
         .then((id) => {
             done("Should not be able to create with invalid type");
         })
@@ -69,7 +69,6 @@ it("#03. should error when create with type TASK and empty data", function (done
                 e.should.have.property("errors");
                 e.errors.should.instanceof(Object);
                 e.errors.should.have.property("title");
-                e.errors.should.have.property("notes");
                 e.errors.should.have.property("assignedTo");
                 e.errors.should.have.property("dueDate");
                 done();
