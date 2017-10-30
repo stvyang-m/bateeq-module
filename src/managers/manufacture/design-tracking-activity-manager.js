@@ -59,9 +59,6 @@ module.exports = class DesignTrackingActivityManager extends BaseManager {
             if (!valid.field.title || valid.field.title === '')
                 errors["title"] = "Title is required";
 
-            if (!valid.field.notes || valid.field.notes === '')
-                errors["notes"] = "Notes is required";
-
             if (!valid.field.assignedTo || valid.field.assignedTo === '')
                 errors["assignedTo"] = "Assigned to is required";
 

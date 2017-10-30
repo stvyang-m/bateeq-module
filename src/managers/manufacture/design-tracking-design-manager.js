@@ -2,6 +2,7 @@
 
 // external dependencies
 require("mongodb-toolkit");
+const moment = require("moment");
 const ObjectId = require("mongodb").ObjectId;
 const BaseManager = require("module-toolkit").BaseManager;
 const BateeqModels = require('bateeq-models');
@@ -100,6 +101,7 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
                 let _articleMaterialComposition = results[3];
                 let _articleSubCounter = results[4];
                 let _articleMaterial = results[5];
+                let _closeDate = moment(valid.closeDate);
 
                 if (!valid.name || valid.name == "")
                     errors['name'] = 'Name is required';
@@ -136,6 +138,8 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
 
                 if (!valid.closeDate || valid.closeDate == "")
                     errors["closeDate"] = "Close date is required";
+                else if (_closeDate.isBefore(moment().startOf('day')))
+                    errors["closeDate"] = "Close date cannot be before today";
 
                 if (Object.getOwnPropertyNames(errors).length > 0) {
                     let ValidationError = require('module-toolkit').ValidationError;
