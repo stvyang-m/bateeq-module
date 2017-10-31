@@ -43,7 +43,7 @@ class DesignTrackingDesignDataUtil {
                 data.articleSubCounter = _articleSubCounter;
                 data.articleMaterialId = _articleMaterial._id;
                 data.articleMaterial = _articleMaterial;
-                data.closeDate = moment().add(1, 'day');
+                data.closeDate = new Date(moment().add(1, 'day'));
                 data.description = `description[${code}]`;
                 data.stageId = _designTrackingStage._id;
 

@@ -101,9 +101,7 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
                 let _articleMaterialComposition = results[3];
                 let _articleSubCounter = results[4];
                 let _articleMaterial = results[5];
-                if (valid) {
-                    var _closeDate = valid.closeDate ? moment(valid.closeDate) : moment();
-                }
+                let _closeDate = !valid.closeDate || valid.closeDate === '' ? undefined : moment(valid.closeDate).startOf('day');
 
                 if (!valid.name || valid.name == "")
                     errors['name'] = 'Name is required';
@@ -140,8 +138,11 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
 
                 if (!valid.closeDate || valid.closeDate == "")
                     errors["closeDate"] = "Close date is required";
-                else if (_closeDate.isBefore(moment().startOf('day')))
-                    errors["closeDate"] = "Close date cannot be before today";
+                if (_closeDate){
+                    if (_closeDate.isBefore(moment().startOf('day'))){
+                        errors["closeDate"] = "Close date cannot be before today";
+                    }
+                }   
 
                 if (Object.getOwnPropertyNames(errors).length > 0) {
                     let ValidationError = require('module-toolkit').ValidationError;
@@ -154,7 +155,6 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
                 valid.articleMaterialCompositionId = new ObjectId(valid.articleMaterialComposition._id);
                 valid.articleSubCounterId = new ObjectId(valid.articleSubCounter._id);
                 valid.articleMaterialId = new ObjectId(valid.articleMaterial._id);
-                valid.closeDate = new Date(_closeDate);
                 this.stageId = valid.stageId;
 
                 if (!valid.stamp) {
