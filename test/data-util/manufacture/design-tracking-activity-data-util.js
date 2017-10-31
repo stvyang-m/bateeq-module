@@ -36,7 +36,7 @@ class DesignTrackingActivityDataUtil {
                                 title: "Unit Test Title",
                                 notes: "Unit Test Notes",
                                 assignedTo: result,
-                                dueDate: moment().add(1, 'day'),
+                                dueDate: new Date(moment().add(1, 'day')),
                                 status: false
                             };
 
