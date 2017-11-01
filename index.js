@@ -108,7 +108,8 @@ module.exports = {
             ArticleSubCollectionManager: require('./src/managers/master/article/article-sub-collection-manager'),
             ArticleProcessManager: require('./src/managers/master/article/article-process-manager'),
             ArticleSubProcessManager: require('./src/managers/master/article/article-sub-process-manager'),
-            ArticleCategoryManager: require('./src/managers/master/article/article-category-manager')
+            ArticleCategoryManager: require('./src/managers/master/article/article-category-manager'),
+            ArticleTypeManager: require('./src/managers/master/article/article-type-manager')
         },
         ExpeditionServiceManager: require('./src/managers/master/expedition-service-manager')
     },
@@ -132,6 +133,13 @@ module.exports = {
         dimBranch: require('./src/etl/dim-branch'),
         dimTime: require('./src/etl/dim-time'),
         updateProductFactPenjualan: require('./src/etl/update-product-fact-penjualan')
+    },
+
+    manufacture: {
+        DesignTrackingBoardManager: require('./src/managers/manufacture/design-tracking-board-manager'),
+        DesignTrackingStageManager: require('./src/managers/manufacture/design-tracking-stage-manager'),
+        DesignTrackingDesignManager: require('./src/managers/manufacture/design-tracking-design-manager'),
+        DesignTrackingActivityManager: require('./src/managers/manufacture/design-tracking-activity-manager')
     }
 
 }

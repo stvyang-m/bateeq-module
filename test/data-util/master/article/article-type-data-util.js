@@ -2,9 +2,9 @@
 var _getSert = require("../../getsert");
 var generateCode = require("../../../../src/utils/code-generator");
 
-class ArticleMaterialCompositionDataUtil {
+class ArticleTypeDataUtil {
     getSert(input) {
-        var ManagerType = require("../../../../src/managers/master/article/article-material-composition-manager");
+        var ManagerType = require("../../../../src/managers/master/article/article-type-manager");
         return _getSert(input, ManagerType, (data) => {
             return {
                 code: data.code
@@ -13,24 +13,22 @@ class ArticleMaterialCompositionDataUtil {
     }
 
     getNewData() {
-        var Model = require('bateeq-models').master.article.ArticleMaterialComposition;
+        var Model = require('bateeq-models').master.article.ArticleType;
         var data = new Model();
         var code = generateCode();
         data.code = code;
         data.name = `name[${code}]`;
         data.description = `description[${code}]`;
-        data.subMaterialCompositions = [];
         return Promise.resolve(data);
     }
 
     getTestData() {
         var data = {
-            code: "UT/Article-Material-Composition/01",
+            code: "UT/Article-Article-Type/01",
             name: "data 01",
-            description: "description data 01",
-            subMaterialCompositions: []
+            description: "description data 01"
         };
         return this.getSert(data);
     }
 }
-module.exports = new ArticleMaterialCompositionDataUtil();
+module.exports = new ArticleTypeDataUtil();
