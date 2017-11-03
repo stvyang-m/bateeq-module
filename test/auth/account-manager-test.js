@@ -13,12 +13,13 @@ function getData() {
 
     account.username = `user${code}@unit.test`;
     account.password = "Standar123";
+    account.confirmPassword = "Standar123";
     account.profile = {
         firstname: 'unit',
         lastname: 'test',
         gender: 'M',
         dob: new Date(),
-        email: account.username
+        email: `unit.test@moonlay.com`
     };
     return account;
 }
@@ -81,10 +82,11 @@ it(`#03. should success when get created data with id`, function(done) {
 });
 
 
-it(`#03. should success when update created data`, function(done) {
+it(`#04. should success when update created data`, function(done) {
 
     createdData.profile.lastname += '[updated]';
     createdData.password = '';
+    createdData.confirmPassword = '';
 
     instanceManager.update(createdData)
         .then(id => {
@@ -96,7 +98,7 @@ it(`#03. should success when update created data`, function(done) {
         });
 });
 
-it(`#04. should success when get updated data with id`, function(done) {
+it(`#05. should success when get updated data with id`, function(done) {
     instanceManager.getSingleByQuery({
             _id: createdId
         })
@@ -112,7 +114,7 @@ it(`#04. should success when get updated data with id`, function(done) {
         })
 });
 
-it(`#05. should success when delete data`, function(done) {
+it(`#06. should success when delete data`, function(done) {
     instanceManager.delete(createdData)
         .then(id => {
             createdId.toString().should.equal(id.toString());
@@ -123,7 +125,7 @@ it(`#05. should success when delete data`, function(done) {
         });
 });
 
-it(`#06. should _deleted=true`, function(done) {
+it(`#07. should _deleted=true`, function(done) {
     instanceManager.getSingleByQuery({
             _id: createdId
         })
@@ -139,8 +141,7 @@ it(`#06. should _deleted=true`, function(done) {
         })
 });
 
-
-it('#07. should error when create new data with same username', function(done) {
+it('#08. should error when create new data with same username', function(done) {
     var data = Object.assign({}, createdData);
     delete data._id;
     instanceManager.create(data)
@@ -154,7 +155,6 @@ it('#07. should error when create new data with same username', function(done) {
             done();
         })
 });
-
 
 // it('#08. should error with property username, password, and profile ', function(done) {
 //     instanceManager.create({})
