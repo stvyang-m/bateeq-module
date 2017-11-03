@@ -163,8 +163,8 @@ module.exports = class AccountManager extends BaseManager {
                         else if (!emailFormat)
                             profileError["email"] = "Format email tidak tepat";
 
-                        if (!valid.profile.birthDate || valid.profile.birthDate == '')
-                            profileError["birthDate"] = "Birth Date harus diisi";
+                        if (!valid.profile.dob || valid.profile.dob == '')
+                            profileError["dob"] = "Birth Date harus diisi";
 
                         if (!valid.profile.gender || valid.profile.gender == '')
                             profileError["gender"] = "Gender harus diisi";
