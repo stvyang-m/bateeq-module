@@ -2,9 +2,9 @@
 
 var ObjectId = require("mongodb").ObjectId;
 require("mongodb-toolkit");
-var DLModels = require('bateeq-models');
-var map = DLModels.map;
-var Account = DLModels.auth.Account;
+var BateeqModels = require('bateeq-models');
+var map = BateeqModels.map;
+var Account = BateeqModels.auth.Account;
 var BaseManager = require('module-toolkit').BaseManager;
 var sha1 = require("sha1");
 
@@ -14,63 +14,36 @@ module.exports = class AccountManager extends BaseManager {
         this.collection = this.db.use(map.auth.collection.Account);
     }
 
-    create(account) {
-        return new Promise((resolve, reject) => {
-            this._validate(account)
-                .then(validAccount => {
-                    validAccount.password = sha1(validAccount.password);
-                    this.collection.insert(validAccount)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        })
-                })
-                .catch(e => {
-                    reject(e);
-                })
-        });
+    _createIndexes() {
+        var dateIndex = {
+            name: `ix_${map.auth.collection.Account}__updatedDate`,
+            key: {
+                _updatedDate: -1
+            }
+        };
+
+        var usernameIndex = {
+            name: `ix_${map.auth.collection.Account}_username`,
+            key: {
+                username: 1
+            },
+            unique: true
+        };
+
+        return this.collection.createIndexes([dateIndex, usernameIndex]);
     }
 
-    update(account) {
-        return new Promise((resolve, reject) => {
-            this._validate(account)
-                .then(validAccount => {
-                    if (validAccount.password && validAccount.password.length > 0)
-                        validAccount.password = sha1(validAccount.password);
-                    else
-                        delete validAccount.password;
-                    this.collection.update(validAccount)
-                        .then(id => {
-                            resolve(id);
-                        })
-                        .catch(e => {
-                            reject(e);
-                        });
+    _beforeInsert(data) {
+        data.password = sha1(data.password);
+        return Promise.resolve(data);
+    }
 
-                    // var q = {
-                    //     username: validAccount.username
-                    // };
-                    // this.getSingleByQuery(q)
-                    //     .then(dbAccount => {
-                    //         validAccount.password = validAccount.password.length < 1 ? dbAccount.password : sha1(validAccount.password);
-                    //         this.collection.update(validAccount)
-                    //             .then(id => {
-                    //                 resolve(id);
-                    //             })
-                    //             .catch(e => {
-                    //                 reject(e);
-                    //             });
-                    //     })
-                    //     .catch(e => {
-                    //         reject(e);
-                    //     });
-                })
-                .catch(e => {
-                    reject(e);
-                });
-        });
+    _beforeUpdate(data) {
+        if (data.password && data.password.length > 0)
+            data.password = sha1(data.password);
+        else
+            delete data.password;
+        return Promise.resolve(data);
     }
 
     authenticate(username, password) {
@@ -94,38 +67,52 @@ module.exports = class AccountManager extends BaseManager {
     }
 
     _getQuery(paging) {
-        var deleted = {
+        var basicFilter = {
             _deleted: false
-        };
-        var query = paging.keyword ? {
-            '$and': [deleted]
-        } : deleted;
+        }, keywordFilter = {};
+
+        var query = {};
 
         if (paging.keyword) {
             var regex = new RegExp(paging.keyword, "i");
+
             var filterUsername = {
                 'username': {
                     '$regex': regex
                 }
             };
-            var filterName = {
-                '$or': [{
-                    'profile.firstname': {
-                        '$regex': regex
-                    }
-                }, {
-                    'profile.lastname': {
-                        '$regex': regex
-                    }
-                }]
+            var filterFirstName = {
+                'profile.firstname': {
+                    '$regex': regex
+                }
             };
-            var $or = {
-                '$or': [filterUsername, filterName]
+            var filterLastName = {
+                'profile.lastname': {
+                    '$regex': regex
+                }
             };
 
-            query['$and'].push($or);
+            keywordFilter = {
+                '$or': [filterUsername, filterFirstName, filterLastName]
+            };
         }
+        query = { '$and': [basicFilter, paging.filter, keywordFilter] };
         return query;
+    }
+
+    validateEmail(email) {
+        let pattern = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+        return pattern.test(email);
+    }
+
+    uniqueInArray(array) {
+        let unique = [];
+        array.filter(function (each) {
+            var i = unique.findIndex(u => u._id === each._id);
+            if (i <= -1)
+                unique.push(each);
+        });
+        return unique;
     }
 
     _validate(account) {
@@ -139,11 +126,14 @@ module.exports = class AccountManager extends BaseManager {
                         '$ne': new ObjectId(valid._id)
                     }
                 }, {
-                    username: {
-                        '$regex': new RegExp((valid.username || '').trim(), "i")
-                    }
+                    username: valid.username
                 }]
             });
+
+            let emailFormat = this.validateEmail(valid.profile.email);
+            valid.roles = this.uniqueInArray(valid.roles);
+            valid.stores = this.uniqueInArray(valid.stores);
+
             // 2. begin: Validation.
             Promise.all([getAccountPromise])
                 .then(results => {
@@ -156,22 +146,32 @@ module.exports = class AccountManager extends BaseManager {
                     }
 
                     if (!valid._id && (!valid.password || valid.password == ''))
-                        errors["password"] = "password is required";
+                        errors["password"] = "Password harus diisi";
+                    else if (valid.confirmPassword !== valid.password)
+                        errors["confirmPassword"] = "Input tidak sesuai dengan password yang telah diisi";
 
                     if (!valid.profile)
-                        errors["profile"] = "profile is required";
+                        errors["profile"] = "Profile harus diisi";
                     else {
                         var profileError = {};
+
                         if (!valid.profile.firstname || valid.profile.firstname == '')
-                            profileError["firstname"] = "firstname harus diisi";
+                            profileError["firstname"] = "First name harus diisi";
+
+                        if (!valid.profile.email || valid.profile.email == '')
+                            profileError["email"] = "Email harus diisi";
+                        else if (!emailFormat)
+                            profileError["email"] = "Format email tidak tepat";
+
+                        if (!valid.profile.birthDate || valid.profile.birthDate == '')
+                            profileError["birthDate"] = "Birth Date harus diisi";
 
                         if (!valid.profile.gender || valid.profile.gender == '')
-                            profileError["gender"] = "gender harus diisi";
+                            profileError["gender"] = "Gender harus diisi";
 
                         if (Object.getOwnPropertyNames(profileError).length > 0)
                             errors["profile"] = profileError;
                     }
-
 
                     // 2c. begin: check if data has any error, reject if it has.
                     if (Object.getOwnPropertyNames(errors).length > 0) {
@@ -179,8 +179,11 @@ module.exports = class AccountManager extends BaseManager {
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 
-                    valid = new Account(account);
-                    valid.stamp(this.user.username, 'manager');
+                    if (!valid.stamp) {
+                        valid = new Account(valid);
+                    }
+
+                    valid.stamp(this.user.username, "manager");
                     resolve(valid);
                 })
                 .catch(e => {
