@@ -140,22 +140,3 @@ it('#07. should error when create new data with same code', function (done) {
             done();
         });
 });
-
-it('#08. should error with property code and name ', function (done) {
-    var data = Object.assign({}, createdData);
-    delete data.code;
-    delete data.name;
-    instanceManager.create({})
-        .then(id => {
-            done("Should not be error with property code and name");
-        })
-        .catch(e => {
-            try {
-                e.errors.should.have.property('code');
-                e.errors.should.have.property('name');
-                done();
-            } catch (ex) {
-                done(ex);
-            }
-        });
-});
