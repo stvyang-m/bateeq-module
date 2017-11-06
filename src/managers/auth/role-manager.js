@@ -2,9 +2,9 @@
 
 var ObjectId = require("mongodb").ObjectId;
 require("mongodb-toolkit");
-var DLModels = require('bateeq-models');
-var map = DLModels.map;
-var Role = DLModels.auth.Role;
+var BateeqModels = require('bateeq-models');
+var map = BateeqModels.map;
+var Role = BateeqModels.auth.Role;
 var BaseManager = require('module-toolkit').BaseManager;
 
 module.exports = class RoleManager extends BaseManager {
@@ -13,16 +13,34 @@ module.exports = class RoleManager extends BaseManager {
         this.collection = this.db.use(map.auth.collection.Role);
     }
 
-    _getQuery(paging) {
-        var deleted = {
-            _deleted: false
+    _createIndexes() {
+        var dateIndex = {
+            name: `ix_${map.auth.collection.Role}__updatedDate`,
+            key: {
+                _updatedDate: -1
+            }
         };
-        var query = paging.keyword ? {
-            '$and': [deleted]
-        } : deleted;
+
+        var codeIndex = {
+            name: `ix_${map.auth.collection.Role}_code`,
+            key: {
+                code: 1
+            }
+        };
+
+        return this.collection.createIndexes([dateIndex, codeIndex]);
+    }
+
+    _getQuery(paging) {
+        var basicFilter = {
+            _deleted: false
+        }, keywordFilter = {};
+
+        var query = {};
 
         if (paging.keyword) {
             var regex = new RegExp(paging.keyword, "i");
+
             var filterCode = {
                 'code': {
                     '$regex': regex
@@ -33,13 +51,23 @@ module.exports = class RoleManager extends BaseManager {
                     '$regex': regex
                 }
             };
-            var $or = {
+
+            keywordFilter = {
                 '$or': [filterCode, filterName]
             };
-
-            query['$and'].push($or);
         }
+        query = { '$and': [basicFilter, paging.filter, keywordFilter] };
         return query;
+    }
+
+    uniqueInArray(array) {
+        let unique = [];
+        array.filter(function (each) {
+            var i = unique.findIndex(u => u.unitId === each.unitId);
+            if (i <= -1)
+                unique.push(each);
+        });
+        return unique;
     }
 
     _validate(role) {
@@ -56,6 +84,7 @@ module.exports = class RoleManager extends BaseManager {
                     code: valid.code
                 }]
             });
+            valid.permissions = this.uniqueInArray(valid.permissions);
             // 2. begin: Validation.
             Promise.all([getBuyerPromise])
                 .then(results => {
@@ -70,15 +99,17 @@ module.exports = class RoleManager extends BaseManager {
                     if (!valid.name || valid.name == '')
                         errors["name"] = "Nama Harus diisi";
 
-
                     // 2c. begin: check if data has any error, reject if it has.
                     if (Object.getOwnPropertyNames(errors).length > 0) {
                         var ValidationError = require('module-toolkit').ValidationError;
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 
-                    valid = new Role(valid);
-                    valid.stamp(this.user.username, 'manager');
+                    if (!valid.stamp) {
+                        valid = new Role(valid);
+                    }
+
+                    valid.stamp(this.user.username, "manager");
                     resolve(valid);
                 })
                 .catch(e => {

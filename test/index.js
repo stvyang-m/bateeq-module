@@ -6,7 +6,7 @@ function test(name, path) {
 
 
 describe('#bateeq-module', function (done) {
-    this.timeout(10000 * 60000);
+    this.timeout(2 * 60000);
     //auth
     test('@AUTH/ACCOUNT-MANAGER', './auth/account-manager-test');
     test('@AUTH/ROLE-MANAGER', './auth/role-manager-test');

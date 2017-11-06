@@ -30,16 +30,17 @@ class AccountDataUtil {
 
                 data.username = `${code}@unit.test`;
                 data.password = "Standar123";
-                data.email = `${code}@unit.test`;
+                data.confirmPassword = "Standar123";
                 data.isLocked = false;
                 data.profile = {
                     firstname: "John",
                     lastname: code,
                     gender: "M",
                     dob: new Date(),
-                    email: `${code}@unit.test`
+                    email: `unit.test@moonlay.com`
                 };
                 data.roles = [role];
+                data.stores = [];
                 data.facebook = {};
 
 
