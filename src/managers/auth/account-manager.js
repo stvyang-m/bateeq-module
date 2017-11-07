@@ -40,7 +40,7 @@ module.exports = class AccountManager extends BaseManager {
     }
 
     _beforeUpdate(data) {
-        if (data.password && data.password.length > 0)
+        if (data.password !== "")
             data.password = sha1(data.password);
         else
             delete data.password;
@@ -165,7 +165,7 @@ module.exports = class AccountManager extends BaseManager {
                             profileError["email"] = "Format email tidak tepat";
 
                         let _dob = !valid.profile.dob || valid.profile.dob == '' ? null : moment(valid.profile.dob);
-                         
+
                         if (!valid.profile.dob || valid.profile.dob == '')
                             profileError["dob"] = "Birth Date harus diisi";
                         else if (_dob !== null) {
