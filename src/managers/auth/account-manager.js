@@ -7,6 +7,7 @@ var map = BateeqModels.map;
 var Account = BateeqModels.auth.Account;
 var BaseManager = require('module-toolkit').BaseManager;
 var sha1 = require("sha1");
+const moment = require('moment');
 
 module.exports = class AccountManager extends BaseManager {
     constructor(db, user) {
@@ -163,8 +164,15 @@ module.exports = class AccountManager extends BaseManager {
                         else if (!emailFormat)
                             profileError["email"] = "Format email tidak tepat";
 
+                        let _dob = !valid.profile.dob || valid.profile.dob == '' ? null : moment(valid.profile.dob);
+                         
                         if (!valid.profile.dob || valid.profile.dob == '')
                             profileError["dob"] = "Birth Date harus diisi";
+                        else if (_dob !== null) {
+                            if (_dob.isAfter(moment())) {
+                                profileError["dob"] = "Birth Date tidak boleh melebihi hari ini";
+                            }
+                        }
 
                         if (!valid.profile.gender || valid.profile.gender == '')
                             profileError["gender"] = "Gender harus diisi";
