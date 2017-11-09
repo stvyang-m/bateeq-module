@@ -80,6 +80,14 @@ module.exports = class PusatTerimaBarangBaruManager extends TransferInManager {
                 isReceived: false
             };
 
+            let isDistributed = {
+                isDistributed: true
+            };
+
+            let isCentral = {
+                "destination.isCentral": true
+            };
+
             if (paging.keyword) {
                 var regex = new RegExp(paging.keyword, "i");
 
@@ -98,6 +106,8 @@ module.exports = class PusatTerimaBarangBaruManager extends TransferInManager {
                     deleted,
                     filterCode,
                     isReceived,
+                    isDistributed,
+                    isCentral,
                     destination,
                     keywordFilter
                 ]
