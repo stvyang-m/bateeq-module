@@ -4,6 +4,7 @@ const DesignTrackingDesignManager = require("../../../src/managers/manufacture/d
 const generateCode = require("../../../src/utils/code-generator");
 const designer = require("../auth/account-data-util");
 const articleCategory = require("../master/article/article-category-data-util");
+const articleCounter = require("../master/article/article-counter-data-util");
 const articleSeason = require("../master/article/article-season-data-util");
 const articleMaterialComposition = require("../master/article/article-material-composition-data-util");
 const articleSubCounter = require("../master/article/article-sub-counter-data-util");
@@ -14,15 +15,16 @@ const designTrackingStage = require("./design-tracking-stage-data-util");
 
 class DesignTrackingDesignDataUtil {
     getNewData() {
-        return Promise.all([designer.getTestData(), articleCategory.getTestData(), articleSeason.getTestData(), articleMaterialComposition.getTestData(), articleSubCounter.getTestData(), articleMaterial.getTestData(), designTrackingStage.getTestData()])
+        return Promise.all([designer.getTestData(), articleCategory.getTestData(), articleCounter.getTestData(), articleSeason.getTestData(), articleMaterialComposition.getTestData(), articleSubCounter.getTestData(), articleMaterial.getTestData(), designTrackingStage.getTestData()])
             .then((results) => {
                 let _designer = results[0];
                 let _articleCategory = results[1];
-                let _articleSeason = results[2];
-                let _articleMaterialComposition = results[3];
-                let _articleSubCounter = results[4];
-                let _articleMaterial = results[5];
-                let _designTrackingStage = results[6];
+                let _articleCounter = results[2];
+                let _articleSeason = results[3];
+                let _articleMaterialComposition = results[4];
+                let _articleSubCounter = results[5];
+                let _articleMaterial = results[6];
+                let _designTrackingStage = results[7];
 
                 let Model = require('bateeq-models').manufacture.DesignTrackingDesign;
                 let data = new Model();
@@ -35,6 +37,8 @@ class DesignTrackingDesignDataUtil {
                 data.designer = _designer;
                 data.articleCategoryId = _articleCategory._id;
                 data.articleCategory = _articleCategory;
+                data.articleCounterId = _articleCounter._id;
+                data.articleCounter = _articleCounter;
                 data.articleSeasonId = _articleSeason._id;
                 data.articleSeason = _articleSeason;
                 data.articleMaterialCompositionId = _articleMaterialComposition._id;
