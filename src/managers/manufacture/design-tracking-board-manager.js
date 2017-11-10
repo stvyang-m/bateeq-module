@@ -51,22 +51,12 @@ module.exports = class DesignTrackingBoardManager extends BaseManager {
         if (!valid.name || valid.name === "")
             errors['name'] = 'Name is required';
 
-        if (!valid.numberOfStage || valid.numberOfStage === "")
-            errors['numberOfStage'] = 'Number of stage is required';
-        else if (valid.numberOfStage < 1)
-            errors['numberOfStage'] = 'Number of stage must be greater or equal than 1';
-        else if (valid.numberOfStage > 7)
-            errors['numberOfStage'] = 'Number of stage must be lesser or equal than 7';
-        else if (valid.stagesLength > valid.numberOfStage)
-            errors['numberOfStage'] = 'Jumlah stage pada board ini melebihi banyak stage yang anda input, Silahkan hapus stage yang diinginkan terlebih dahulu.';
-
         if (Object.getOwnPropertyNames(errors).length > 0) {
             let ValidationError = require('module-toolkit').ValidationError;
             return Promise.reject(new ValidationError('data does not pass validation', errors));
         }
 
         if (!valid.stamp) {
-            delete valid.stagesLength;
             valid = new DesignTrackingBoard(valid);
         }
 

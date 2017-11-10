@@ -2,6 +2,7 @@
 var _getSert = require("../getsert");
 var generateCode = require("../../../src/utils/code-generator");
 var Role = require("./role-data-util");
+var Store = require("./../master/store-manager-data-util");
 
 class AccountDataUtil {
     getSert(input) {
@@ -13,20 +14,27 @@ class AccountDataUtil {
         });
     }
 
-    getNewData(pRole) {
+    getNewData(pRole, pStore) {
         var getRole;
+        var getStore;
         if (pRole)
             getRole = Promise.resolve(pRole);
         else
             getRole = Role.getTestData();
 
-        return getRole
-            .then((role) => {
+        if (pRole)
+            getStore = Promise.resolve(pStore);
+        else
+            getStore = Store.getTestData();
 
+        return Promise.all([getRole, getStore])
+            .then(results => {
                 var Model = require("bateeq-models").auth.Account;
                 var data = new Model();
 
                 var code = generateCode();
+                var role = results[0];
+                var store = results[1];
 
                 data.username = `${code}@unit.test`;
                 data.password = "Standar123";
@@ -40,12 +48,10 @@ class AccountDataUtil {
                     email: `unit.test@moonlay.com`
                 };
                 data.roles = [role];
-                data.stores = [];
-                data.facebook = {};
-
+                data.stores = [store];
 
                 return Promise.resolve(data);
-            });
+            })
     }
 
     getNewTestData(role) {

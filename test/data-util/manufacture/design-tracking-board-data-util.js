@@ -12,7 +12,6 @@ class DesignTrackingBoardDataUtil {
 
         data.code = code;
         data.name = `name[${code}]`;
-        data.numberOfStage = 7;
 
         return Promise.resolve(data);
     }

@@ -76,7 +76,26 @@ it("#03. should error when create with unknown article category", function (done
         });
 });
 
-it("#04. should error when create with unknown article season", function (done) {
+it("#04. should error when create with unknown article counter", function (done) {
+    manager.create({ articleCounter: { _id: "" } })
+        .then((id) => {
+            done("Should not be able to create with article counter");
+        })
+        .catch((e) => {
+            try {
+                e.name.should.equal("ValidationError");
+                e.should.have.property("errors");
+                e.errors.should.instanceof(Object);
+                e.errors.should.have.property("articleCounter");
+                done();
+            }
+            catch (ex) {
+                done(ex);
+            }
+        });
+});
+
+it("#05. should error when create with unknown article season", function (done) {
     manager.create({ articleSeason: { _id: "" } })
         .then((id) => {
             done("Should not be able to create with unknown article season");
@@ -95,7 +114,7 @@ it("#04. should error when create with unknown article season", function (done) 
         });
 });
 
-it("#05. should error when create with unknown article material composition", function (done) {
+it("#06. should error when create with unknown article material composition", function (done) {
     manager.create({ articleMaterialComposition: { _id: "" } })
         .then((id) => {
             done("Should not be able to create with unknown article material composition");
@@ -114,7 +133,7 @@ it("#05. should error when create with unknown article material composition", fu
         });
 });
 
-it("#06. should error when create with unknown article sub counter", function (done) {
+it("#07. should error when create with unknown article sub counter", function (done) {
     manager.create({ articleSubCounter: { _id: "" } })
         .then((id) => {
             done("Should not be able to create with unknown article sub counter");
@@ -133,7 +152,7 @@ it("#06. should error when create with unknown article sub counter", function (d
         });
 });
 
-it("#07. should error when create with unknown article material", function (done) {
+it("#08. should error when create with unknown article material", function (done) {
     manager.create({ articleMaterial: { _id: "" } })
         .then((id) => {
             done("Should not be able to create with unknown article material");
@@ -152,7 +171,7 @@ it("#07. should error when create with unknown article material", function (done
         });
 });
 
-it("#08. should error when create with empty close date", function (done) {
+it("#09. should error when create with empty close date", function (done) {
     manager.create({ closeDate: "" })
         .then((id) => {
             done("Should not be able to create with empty close date");
@@ -171,7 +190,7 @@ it("#08. should error when create with empty close date", function (done) {
         });
 });
 
-it("#09. should success when search with keyword", function (done) {
+it("#10. should success when search with keyword", function (done) {
     manager.read({ keyword: "Design Status" })
         .then((e) => {
             e.should.have.property("data");
@@ -183,7 +202,7 @@ it("#09. should success when search with keyword", function (done) {
         });
 });
 
-it("#10. should error when create with close date less than current date", function (done) {
+it("#11. should error when create with close date less than current date", function (done) {
     manager.create({ closeDate: "" })
         .then((id) => {
             done("Should not be able to create with close date less than current date");
