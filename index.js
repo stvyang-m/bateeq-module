@@ -111,7 +111,8 @@ module.exports = {
             ArticleCategoryManager: require('./src/managers/master/article/article-category-manager'),
             ArticleTypeManager: require('./src/managers/master/article/article-type-manager')
         },
-        ExpeditionServiceManager: require('./src/managers/master/expedition-service-manager')
+        ExpeditionServiceManager: require('./src/managers/master/expedition-service-manager'),
+        DesignTrackingReasonManager: require('./src/managers/master/design-tracking-reason-manager')
     },
     sales: {
         SalesManager: require('./src/managers/sales/sales-manager'),
