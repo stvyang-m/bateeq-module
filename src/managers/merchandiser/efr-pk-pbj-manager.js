@@ -663,6 +663,7 @@ module.exports = class SPKBarangJadiManager extends BaseManager {
                                         }
                                         else {
                                             var spkResult = new SPKDoc(spkDoc);
+                                            spkResult.isDistributed = true;
                                             spkResult.stamp(this.user.username, 'manager');
                                             spkResult._createdDate = new Date();
                                             this.collection.insert(spkResult)
