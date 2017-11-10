@@ -44,7 +44,9 @@ module.exports = class DesignTrackingReasonManager extends BaseManager {
         return Promise.resolve(data);
     }
 
+    _validate(designTrackingReason) {
         let errors = {};
+        let valid = designTrackingReason;
 
         if (!valid.reason || valid.reason === "")
             errors['reason'] = 'Reason is required';
@@ -64,12 +66,14 @@ module.exports = class DesignTrackingReasonManager extends BaseManager {
 
     _createIndexes() {
         let dateIndex = {
+            name: `ix_${map.master.DesignTrackingReason}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         };
 
         let deletedIndex = {
+            name: `ix_${map.master.DesignTrackingReason}__deleted`,
             key: {
                 _deleted: 1
             }
