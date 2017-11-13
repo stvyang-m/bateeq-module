@@ -1,24 +1,24 @@
 "use strict";
 const helper = require('../../helper');
-const DesignTrackingBoardManager = require('../../../src/managers/manufacture/design-tracking-board-manager');
+const DesignTrackingReasonManager = require('../../../src/managers/master/design-tracking-reason-manager');
 const generateCode = require('../../../src/utils/code-generator');
 
-class DesignTrackingBoardDataUtil {
+class DesignTrackingReasonDataUtil {
     getNewData() {
-        const Model = require('bateeq-models').manufacture.DesignTrackingBoard;
+        const Model = require('bateeq-models').master.DesignTrackingReason;
         let data = new Model();
 
-        let code = generateCode("EFR-DTB");
+        let code = generateCode("EFR-DTR");
 
         data.code = code;
-        data.name = `name[${code}]`;
+        data.reason = `name[${code}]`;
 
         return Promise.resolve(data);
     }
 
     getTestData() {
         return helper
-            .getManager(DesignTrackingBoardManager)
+            .getManager(DesignTrackingReasonManager)
             .then((manager) => {
                 return this.getNewData().then((data) => {
                     return manager.create(data)
@@ -28,4 +28,4 @@ class DesignTrackingBoardDataUtil {
     }
 }
 
-module.exports = new DesignTrackingBoardDataUtil();
+module.exports = new DesignTrackingReasonDataUtil();

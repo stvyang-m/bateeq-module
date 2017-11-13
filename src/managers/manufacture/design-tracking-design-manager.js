@@ -13,6 +13,7 @@ const generateCode = require("../../utils/code-generator");
 const DesignTrackingDesign = BateeqModels.manufacture.DesignTrackingDesign;
 const DesignerManager = require('../auth/account-manager');
 const ArticleCategoryManager = require("../master/article/article-category-manager");
+const ArticleCounterManager = require("../master/article/article-counter-manager");
 const ArticleSeasonManager = require("../master/article/article-season-manager");
 const ArticleMaterialCompositionManager = require("../master/article/article-material-composition-manager");
 const ArticleSubCounterManager = require("../master/article/article-sub-counter-manager");
@@ -27,6 +28,7 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
         this.collection = this.db.use(map.manufacture.DesignTrackingDesign);
         this.designerManager = new DesignerManager(db, user);
         this.articleCategoryManager = new ArticleCategoryManager(db, user);
+        this.articleCounterManager = new ArticleCounterManager(db, user);
         this.articleSeasonManager = new ArticleSeasonManager(db, user);
         this.articleMaterialCompositionManager = new ArticleMaterialCompositionManager(db, user);
         this.articleSubCounterManager = new ArticleSubCounterManager(db, user);
@@ -88,19 +90,21 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
 
         let getDesigner = valid.designer && ObjectId.isValid(valid.designer._id) ? this.designerManager.getSingleByIdOrDefault(valid.designer._id) : Promise.resolve(null);
         let getArticleCategory = valid.articleCategory && ObjectId.isValid(valid.articleCategory._id) ? this.articleCategoryManager.getSingleByIdOrDefault(valid.articleCategory._id) : Promise.resolve(null);
+        let getArticleCounter = valid.articleCounter && ObjectId.isValid(valid.articleCounter._id) ? this.articleCounterManager.getSingleByIdOrDefault(valid.articleCounter._id) : Promise.resolve(null);
         let getArticleSeason = valid.articleSeason && ObjectId.isValid(valid.articleSeason._id) ? this.articleSeasonManager.getSingleByIdOrDefault(valid.articleSeason._id) : Promise.resolve(null);
         let getArticleMaterialComposition = valid.articleMaterialComposition && ObjectId.isValid(valid.articleMaterialComposition._id) ? this.articleMaterialCompositionManager.getSingleByIdOrDefault(valid.articleMaterialComposition._id) : Promise.resolve(null);
         let getArticleSubCounter = valid.articleSubCounter && ObjectId.isValid(valid.articleSubCounter._id) ? this.articleSubCounterManager.getSingleByIdOrDefault(valid.articleSubCounter._id) : Promise.resolve(null);
         let getArticleMaterial = valid.articleMaterial && ObjectId.isValid(valid.articleMaterial._id) ? this.articleMaterialManager.getSingleByIdOrDefault(valid.articleMaterial._id) : Promise.resolve(null);
 
-        return Promise.all([getDesigner, getArticleCategory, getArticleSeason, getArticleMaterialComposition, getArticleSubCounter, getArticleMaterial])
+        return Promise.all([getDesigner, getArticleCategory, getArticleCounter, getArticleSeason, getArticleMaterialComposition, getArticleSubCounter, getArticleMaterial])
             .then(results => {
                 let _designer = results[0]
                 let _articleCategory = results[1];
-                let _articleSeason = results[2];
-                let _articleMaterialComposition = results[3];
-                let _articleSubCounter = results[4];
-                let _articleMaterial = results[5];
+                let _articleCounter = results[2];
+                let _articleSeason = results[3];
+                let _articleMaterialComposition = results[4];
+                let _articleSubCounter = results[5];
+                let _articleMaterial = results[6];
                 let _closeDate = !valid.closeDate || valid.closeDate === '' ? undefined : moment(valid.closeDate).startOf('day');
 
                 if (!valid.name || valid.name == "")
@@ -115,6 +119,11 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
                     errors['articleCategory'] = 'Article category is required';
                 else if (!_articleCategory)
                     errors['articleCategory'] = 'Article category is not found';
+
+                if (!valid.articleCounter)
+                    errors['articleCounter'] = 'Article counter is required';
+                else if (!_articleCounter)
+                    errors['articleCounter'] = 'Article counter is not found';
 
                 if (!valid.articleSeason)
                     errors['articleSeason'] = 'Article season is required';
@@ -138,11 +147,11 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
 
                 if (!valid.closeDate || valid.closeDate == "")
                     errors["closeDate"] = "Close date is required";
-                if (_closeDate){
-                    if (_closeDate.isBefore(moment().startOf('day'))){
+                if (_closeDate) {
+                    if (_closeDate.isBefore(moment().startOf('day'))) {
                         errors["closeDate"] = "Close date cannot be before today";
                     }
-                }   
+                }
 
                 if (Object.getOwnPropertyNames(errors).length > 0) {
                     let ValidationError = require('module-toolkit').ValidationError;
@@ -151,6 +160,7 @@ module.exports = class DesignTrackingDesignManager extends BaseManager {
 
                 valid.designerId = new ObjectId(valid.designer._id);
                 valid.articleCategoryId = new ObjectId(valid.articleCategory._id);
+                valid.articleCounterId = new ObjectId(valid.articleCounter._id);
                 valid.articleSeasonId = new ObjectId(valid.articleSeason._id);
                 valid.articleMaterialCompositionId = new ObjectId(valid.articleMaterialComposition._id);
                 valid.articleSubCounterId = new ObjectId(valid.articleSubCounter._id);

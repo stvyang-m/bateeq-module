@@ -9,13 +9,13 @@ const BateeqModels = require('bateeq-models');
 // internal dependencies
 const map = BateeqModels.map;
 const generateCode = require("../../utils/code-generator");
-const DesignTrackingBoard = BateeqModels.manufacture.DesignTrackingBoard;
-const moduleId = "EFR-DTB";
+const DesignTrackingReason = BateeqModels.master.DesignTrackingReason;
+const moduleId = "EFR-DTR";
 
-module.exports = class DesignTrackingBoardManager extends BaseManager {
+module.exports = class DesignTrackingReasonManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
-        this.collection = this.db.use(map.manufacture.DesignTrackingBoard);
+        this.collection = this.db.use(map.master.DesignTrackingReason);
     }
 
     _getQuery(paging) {
@@ -28,12 +28,12 @@ module.exports = class DesignTrackingBoardManager extends BaseManager {
 
         if (paging.keyword) {
             let regex = new RegExp(paging.keyword, "i");
-            let nameFilter = {
-                "name": {
+            let reasonFilter = {
+                "reason": {
                     "$regex": regex
                 }
             };
-            keywordFilter["$or"] = [nameFilter];
+            keywordFilter["$or"] = [reasonFilter];
         }
         query["$and"] = [_default, keywordFilter, pagingFilter];
         return query;
@@ -44,12 +44,12 @@ module.exports = class DesignTrackingBoardManager extends BaseManager {
         return Promise.resolve(data);
     }
 
-    _validate(designTrackingBoard) {
+    _validate(designTrackingReason) {
         let errors = {};
-        let valid = designTrackingBoard;
+        let valid = designTrackingReason;
 
-        if (!valid.name || valid.name === "")
-            errors['name'] = 'Name is required';
+        if (!valid.reason || valid.reason === "")
+            errors['reason'] = 'Reason is required';
 
         if (Object.getOwnPropertyNames(errors).length > 0) {
             let ValidationError = require('module-toolkit').ValidationError;
@@ -57,7 +57,7 @@ module.exports = class DesignTrackingBoardManager extends BaseManager {
         }
 
         if (!valid.stamp) {
-            valid = new DesignTrackingBoard(valid);
+            valid = new DesignTrackingReason(valid);
         }
 
         valid.stamp(this.user.username, "manager");
@@ -66,14 +66,14 @@ module.exports = class DesignTrackingBoardManager extends BaseManager {
 
     _createIndexes() {
         let dateIndex = {
-            name: `ix_${map.manufacture.DesignTrackingBoard}__updatedDate`,
+            name: `ix_${map.master.DesignTrackingReason}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         };
 
         let deletedIndex = {
-            name: `ix_${map.manufacture.DesignTrackingBoard}__deleted`,
+            name: `ix_${map.master.DesignTrackingReason}__deleted`,
             key: {
                 _deleted: 1
             }
@@ -84,7 +84,7 @@ module.exports = class DesignTrackingBoardManager extends BaseManager {
 
     read(paging) {
         let _paging = Object.assign({
-            select: ["name"],
+            select: ["reason"],
             order: { "_createdDate": "asc" }
         }, paging);
 

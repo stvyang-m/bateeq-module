@@ -24,6 +24,7 @@ describe('#bateeq-module', function (done) {
     test('@MANAGER/CARD-TYPE-MANAGER', './managers/card-type-manager-test');
     test('@MANAGER/PROMO-MANAGER', './managers/promo-manager-test');
     test('@MANAGER/RANGE-DISC-PRODUCT-MANAGER', './managers/range-disc-product-test');
+    test('@MANAGER/DESIGN-TRACKING-REASON-MANAGER', './managers/master/design-tracking-reason');
 
     test('@ARTICLE/ARTICLE-MOTIF', './article/article-motif');
     test('@ARTICLE/ARTICLE-COUNTER', './article/article-counter');
