@@ -79,6 +79,14 @@ module.exports = class TokoTerimaBarangBaruManager extends TransferInManager {
                 isReceived: false
             };
 
+            let isDistributed = {
+                isDistributed: true
+            };
+
+            let isCentral = {
+                "destination.isCentral": false
+            };
+
             if (paging.keyword) {
                 var regex = new RegExp(paging.keyword, "i");
 
@@ -97,6 +105,8 @@ module.exports = class TokoTerimaBarangBaruManager extends TransferInManager {
                     deleted,
                     filterCode,
                     isReceived,
+                    isDistributed,
+                    isCentral,
                     destination,
                     keywordFilter
                 ]
@@ -404,7 +414,7 @@ module.exports = class TokoTerimaBarangBaruManager extends TransferInManager {
                     transferInDoc = new TransferInDoc(transferInDoc);
                     transferInDoc.stamp(this.user.username, 'manager');
                     resolve(transferInDoc);
-                    
+
                 })
                 .catch(e => {
                     reject(e);

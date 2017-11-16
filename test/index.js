@@ -6,52 +6,59 @@ function test(name, path) {
 
 
 describe('#bateeq-module', function (done) {
-    this.timeout(10000 * 60000);
+    this.timeout(2 * 60000);
     //auth
-    test('@auth/account-manager',                       './auth/account-manager-test');
-    test('@auth/role-manager',                          './auth/role-manager-test');
+    test('@AUTH/ACCOUNT-MANAGER', './auth/account-manager-test');
+    test('@AUTH/ROLE-MANAGER', './auth/role-manager-test');
 
     //master 
-    test('@manager/master/item-manager',                './managers/master/item-manager-test');
-    test('@manager/master/material-manager',            './managers/master/material-manager-test');
-    test('@manager/master/finished-goods-manager',      './managers/master/finished-goods-manager-test');
-    test('@manager/storage-manager',                    './managers/storage-manager-test');
-    test('@manager/store-manager',                      './managers/store-manager-test');
-    test('@manager/supplier-manager',                   './managers/supplier-manager-test');
-    test('@manager/inventory-manager',                  './managers/inventory-manager-test');
-    test('@manager/module-manager',                     './managers/module-manager-test');
-    test('@manager/bank-manager',                       './managers/bank-manager-test');
-    test('@manager/card-type-manager',                  './managers/card-type-manager-test');
-    test('@manager/promo-manager',                      './managers/promo-manager-test');
-    test('@manager/range-disc-product-manager',         './managers/range-disc-product-test');
+    test('@MANAGER/MASTER/ITEM-MANAGER', './managers/master/item-manager-test');
+    test('@MANAGER/MASTER/MATERIAL-MANAGER', './managers/master/material-manager-test');
+    test('@MANAGER/MASTER/FINISHED-GOODS-MANAGER', './managers/master/finished-goods-manager-test');
+    test('@MANAGER/STORAGE-MANAGER', './managers/storage-manager-test');
+    test('@MANAGER/STORE-MANAGER', './managers/store-manager-test');
+    test('@MANAGER/SUPPLIER-MANAGER', './managers/supplier-manager-test');
+    test('@MANAGER/INVENTORY-MANAGER', './managers/inventory-manager-test');
+    test('@MANAGER/MODULE-MANAGER', './managers/module-manager-test');
+    test('@MANAGER/BANK-MANAGER', './managers/bank-manager-test');
+    test('@MANAGER/CARD-TYPE-MANAGER', './managers/card-type-manager-test');
+    test('@MANAGER/PROMO-MANAGER', './managers/promo-manager-test');
+    test('@MANAGER/RANGE-DISC-PRODUCT-MANAGER', './managers/range-disc-product-test');
+    test('@MANAGER/DESIGN-TRACKING-REASON-MANAGER', './managers/master/design-tracking-reason');
 
-    test('@ARTICLE/ARTICLE-MOTIF',                      './article/article-motif');
-    test('@ARTICLE/ARTICLE-COUNTER',                    './article/article-counter');
-    test('@ARTICLE/ARTICLE-SUB-COUNTER',                './article/article-sub-counter');
-    test('@ARTICLE/ARTICLE-SEASON',                     './article/article-season');
-    test('@ARTICLE/ARTICLE-COLLECTION',                 './article/article-collection');
-    test('@ARTICLE/ARTICLE-SUB-COLLECTION',             './article/article-sub-collection');
-    test('@ARTICLE/ARTICLE-MATERIAL',                   './article/article-material');
-    test('@ARTICLE/ARTICLE-MATERIAL-COMPOSITION',       './article/article-material-composition');
-    test('@ARTICLE/ARTICLE-SUB-MATERIAL-COMPOSITION',   './article/article-material-composition');
-    test('@ARTICLE/ARTICLE-PROCESS',                    './article/article-process');
-    test('@ARTICLE/ARTICLE-SUB-PROCESS',                './article/article-sub-process');
-    test('@ARTICLE/ARTICLE-CATEGORY',                   './article/article-category');
+    test('@ARTICLE/ARTICLE-MOTIF', './article/article-motif');
+    test('@ARTICLE/ARTICLE-COUNTER', './article/article-counter');
+    test('@ARTICLE/ARTICLE-SUB-COUNTER', './article/article-sub-counter');
+    test('@ARTICLE/ARTICLE-SEASON', './article/article-season');
+    test('@ARTICLE/ARTICLE-COLLECTION', './article/article-collection');
+    test('@ARTICLE/ARTICLE-SUB-COLLECTION', './article/article-sub-collection');
+    test('@ARTICLE/ARTICLE-MATERIAL', './article/article-material');
+    test('@ARTICLE/ARTICLE-MATERIAL-COMPOSITION', './article/article-material-composition');
+    test('@ARTICLE/ARTICLE-SUB-MATERIAL-COMPOSITION', './article/article-material-composition');
+    test('@ARTICLE/ARTICLE-PROCESS', './article/article-process');
+    test('@ARTICLE/ARTICLE-SUB-PROCESS', './article/article-sub-process');
+    test('@ARTICLE/ARTICLE-CATEGORY', './article/article-category');
 
     //transaction
-    test('@manager/transfer-in-doc-manager',            './managers/transfer-in-doc-manager-test');
-    test('@manager/transfer-in-store-business',         './business/store/transfer-in-store-business-test');
-    test('@manager/transfer-out-doc-manager',           './managers/transfer-out-doc-manager-test');
-    test('@manager/transfer-in-doc-ext-manager',        './managers/transfer-in-doc-ext-manager-test');
-    test('@manager/efr-tb-bjr-manager',                 './managers/efr-tb-bjr-manager-test');
-    test('@manager/efr-tb-brd-manager',                 './managers/efr-tb-brd-manager-test');
-    test('@manager/efr-tb-brt-manager',                 './managers/efr-tb-brt-manager-test'); 
-    test('@manager/sales-manager',                      './managers/sales-manager-test');
-    test('@manager/sales-return-manager',               './managers/sales-return-manager-test');
-    test('@manager/adjustment-manager',                 './managers/inventory/adjustment');
-    test('@manager/stock-opname-manager',               './managers/inventory/stock-opname');
+    test('@MANAGER/TRANSFER-IN-DOC-MANAGER', './managers/transfer-in-doc-manager-test');
+    test('@MANAGER/TRANSFER-IN-STORE-BUSINESS', './business/store/transfer-in-store-business-test');
+    test('@MANAGER/TRANSFER-OUT-DOC-MANAGER', './managers/transfer-out-doc-manager-test');
+    test('@MANAGER/TRANSFER-IN-DOC-EXT-MANAGER', './managers/transfer-in-doc-ext-manager-test');
+    test('@MANAGER/EFR-TB-BJR-MANAGER', './managers/efr-tb-bjr-manager-test');
+    test('@MANAGER/EFR-TB-BRD-MANAGER', './managers/efr-tb-brd-manager-test');
+    test('@MANAGER/EFR-TB-BRT-MANAGER', './managers/efr-tb-brt-manager-test');
+    test('@MANAGER/SALES-MANAGER', './managers/sales-manager-test');
+    test('@MANAGER/SALES-RETURN-MANAGER', './managers/sales-return-manager-test');
+    test('@MANAGER/ADJUSTMENT-MANAGER', './managers/inventory/adjustment');
+    test('@MANAGER/STOCK-OPNAME-MANAGER', './managers/inventory/stock-opname');
 
     //inventory
-    test('@managers/inventory/report-manager',          './managers/inventory/report-manager');
-    test('@manager/monthly-stock-manager',              './managers/inventory/monthly-stock-manager-test');
+    test('@MANAGERS/INVENTORY/REPORT-MANAGER', './managers/inventory/report-manager');
+    test('@MANAGER/MONTHLY-STOCK-MANAGER', './managers/inventory/monthly-stock-manager-test');
+
+    // manufacture
+    test('@MANAGERS/MANUFACTURE/DESIGN-TRACKING-BOARD-MANAGER', './managers/manufacture/design-tracking-board');
+    test('@MANAGERS/MANUFACTURE/DESIGN-TRACKING-STAGE-MANAGER', './managers/manufacture/design-tracking-stage');
+    test('@MANAGERS/MANUFACTURE/DESIGN-TRACKING-DESIGN-MANAGER', './managers/manufacture/design-tracking-design');
+    test('@MANAGERS/MANUFACTURE/DESIGN-TRACKING-ACTIVITY-MANAGER', './managers/manufacture/design-tracking-activity');
 })

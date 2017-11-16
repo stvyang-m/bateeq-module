@@ -381,6 +381,7 @@ module.exports = class PusatBarangBaruKirimBarangJadiAksesorisManager extends Ba
                                                                 if (spk) {
                                                                     resultSPK.items = spk.items;
                                                                 }
+                                                                resultSPK.isDistributed = true;
                                                                 getUpdateSPKData.push(this.spkManager.update(resultSPK));
                                                             }
                                                             //Update SPK Data
