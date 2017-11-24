@@ -152,7 +152,8 @@ module.exports = class SalesManager extends BaseManager {
                         _id: { "storeId": "$store._id" },
                         store: { "$min": "$store" },
                         grandTotal: { $sum: "$grandTotal" },
-                        count: { $sum: "$totalProduct" }
+                        count: { $sum: "$totalProduct" },
+                        remark: {$push: {Ket :"$remark", Totalrp:"$grandTotal"}}
                     }
                 },
                 { $sort: { "grandTotal": -1 } }
@@ -198,6 +199,13 @@ module.exports = class SalesManager extends BaseManager {
                             vvipStores.push(s);
                         }
                     }
+
+                    for (let ket of standaloneOmzet){
+                        if (ket.store.code === 'SLO.02')
+                                {;}
+
+                    }
+
                     let omzetCombination = (withOmzet, allStores) => {
                         for (let store of allStores) {
                             if (!withOmzet.find(sales => { return sales.store.code === store.code})){
