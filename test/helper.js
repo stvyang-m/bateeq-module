@@ -5,9 +5,9 @@ function _getDb() {
         let factory = require('mongo-factory');
         factory.getConnection(process.env.DB_CONNECTIONSTRING)
             .then(dbInstance => {
-                // dbInstance.use = dbInstance.use ||((collectionName) => {
-                //     return dbInstance.collection(collectionName);
-                // });
+                dbInstance.use = dbInstance.use ||((collectionName) => {
+                    return dbInstance.collection(collectionName)
+                });
                 resolve(dbInstance);
             })
             .catch(e => {
