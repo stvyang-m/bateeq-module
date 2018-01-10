@@ -166,6 +166,8 @@ module.exports = class MonthlyStockManager extends BaseManager {
 
     _combineStocks(earliest, latest) {
         let allStocks = [];
+        console.log(earliest);
+        console.log(latest);
         latest.forEach(ls => {
             let stock = {
                 code: ls._id.storageCode,
