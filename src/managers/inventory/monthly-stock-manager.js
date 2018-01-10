@@ -137,8 +137,8 @@ module.exports = class MonthlyStockManager extends BaseManager {
                     _id: { storageCode: "$storage.code", itemCode: "$item.code" },
                     storageName: { $first: "$storage.name" },
                     quantity: { $first: "$after" },
-                    hpp: { $first: { $cond: { if: { $ne: ["$item.domesticCOGS", ""] }, then: "$item.domesticCOGS", else: "$item.internationalCOGS" } } },
-                    sale: { $first: { $cond: { if: { $ne: ["$item.domesticSale", ""] }, then: "$item.domesticSale", else: "$item.internationalSale" } } }
+                    hpp: { $first: { $cond: { if: { $ne: ["$item.domesticCOGS", 0] }, then: "$item.domesticCOGS", else: "$item.internationalCOGS" } } },
+                    sale: { $first: { $cond: { if: { $ne: ["$item.domesticSale", 0] }, then: "$item.domesticSale", else: "$item.internationalSale" } } }
                 }
             },
             {
@@ -146,8 +146,8 @@ module.exports = class MonthlyStockManager extends BaseManager {
                     _id: 1,
                     storageName: "$storageName",
                     quantity: "$quantity",
-                    hpp: { $multiply: ["$quantity", parseFloat("$hpp")] },
-                    sale: { $multiply: ["$quantity", parseFloat("$sale")] }
+                    hpp: { $multiply: ["$quantity", "$hpp"] },
+                    sale: { $multiply: ["$quantity", "$sale"] }
                 }
             },
             {
@@ -221,8 +221,8 @@ module.exports = class MonthlyStockManager extends BaseManager {
                     _id: { itemCode: "$item.code" },
                     itemName: { $first: "$item.name" },
                     quantity: { $first: "$after" },
-                    hpp: { $first: { $cond: { if: { $ne: ["$item.domesticCOGS", ""] }, then: "$item.domesticCOGS", else: "$item.internationalCOGS" } } },
-                    sale: { $first: { $cond: { if: { $ne: ["$item.domesticSale", ""] }, then: "$item.domesticSale", else: "$item.internationalSale" } } }
+                    hpp: { $first: { $cond: { if: { $ne: ["$item.domesticCOGS", 0] }, then: "$item.domesticCOGS", else: "$item.internationalCOGS" } } },
+                    sale: { $first: { $cond: { if: { $ne: ["$item.domesticSale", 0] }, then: "$item.domesticSale", else: "$item.internationalSale" } } }
                 }
             },
             {
@@ -230,8 +230,8 @@ module.exports = class MonthlyStockManager extends BaseManager {
                     itemCode: "$_id.itemCode",
                     itemName: "$itemName",
                     quantity: "$quantity",
-                    totalHPP: { $multiply: ["$quantity", parseFloat("$hpp")] },
-                    totalSale: { $multiply: ["$quantity", parseFloat("$sale")] }
+                    totalHPP: { $multiply: ["$quantity", "$hpp"] },
+                    totalSale: { $multiply: ["$quantity", "$sale"] }
                 }
             },
             { $match: { quantity: { $ne: 0 } } }
