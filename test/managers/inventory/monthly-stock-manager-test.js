@@ -240,7 +240,7 @@ it("#13. should success when get latest current stocks of particular month", fun
         });
 });
 
-it("#14. should success when get combine earliest and latest stock of particular month", function (done) {
+it("#14. should success when get combine earliest and latest stock of particular month with similar early and latest stocks", function (done) {
     try {
         let data = manager._combineStocks(earliestStocks, latestStocks);
         data.should.be.Array();
@@ -269,7 +269,37 @@ it("#14. should success when get combine earliest and latest stock of particular
     }
 });
 
-it("#15. should success when get overall stock particular month", function (done) {
+it("#15. should success when get combine earliest and latest stock of particular month with different early and latest stocks", function (done) {
+    earliestStocks.pop();
+    try {
+        let data = manager._combineStocks(earliestStocks, latestStocks);
+        data.should.be.Array();
+        data.forEach(stock => {
+            stock.should.have.property('code');
+            stock.code.should.instanceOf(String);
+            stock.should.have.property('name');
+            stock.name.should.instanceOf(String);
+            stock.should.have.property('earliestQuantity');
+            stock.earliestQuantity.should.be.Number();
+            stock.should.have.property('earliestHPP');
+            stock.earliestHPP.should.be.Number();
+            stock.should.have.property('earliestSale');
+            stock.earliestSale.should.be.Number();
+            stock.should.have.property('latestQuantity');
+            stock.latestQuantity.should.be.Number();
+            stock.should.have.property('latestHPP');
+            stock.latestHPP.should.be.Number();
+            stock.should.have.property('latestSale');
+            stock.latestSale.should.be.Number();
+        })
+        done();
+    }
+    catch (e) {
+        done(e);
+    }
+});
+
+it("#16. should success when get overall stock particular month", function (done) {
     manager.getOverallStock(localeMonth, localeYear)
         .then(data => {
             data.should.be.Array();
@@ -298,7 +328,7 @@ it("#15. should success when get overall stock particular month", function (done
         });
 });
 
-it("#16. should success when get latest current items of particular month", function (done) {
+it("#17. should success when get latest current items of particular month", function (done) {
     manager._getCurrentItems('UT-BJB', stockDate.lastDay)
         .then(data => {
             data.should.be.Array();
@@ -321,7 +351,7 @@ it("#16. should success when get latest current items of particular month", func
         });
 });
 
-it("#17. should success when get all items on particular month based on storage", function (done) {
+it("#18. should success when get all items on particular month based on storage", function (done) {
     manager.getStockInStorage('UT-BJB', localeMonth, localeYear)
         .then(data => {
             data.should.be.Array();

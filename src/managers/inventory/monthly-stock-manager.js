@@ -175,7 +175,7 @@ module.exports = class MonthlyStockManager extends BaseManager {
                 latestSale: ls.sale
             };
             let found = earliest.find(es => { return es._id.storageCode === ls._id.storageCode });
-            if (found !== undefined) {
+            if (found) {
                 stock.earliestQuantity = found.quantity;
                 stock.earliestHPP = found.hpp;
                 stock.earliestSale = found.sale;
