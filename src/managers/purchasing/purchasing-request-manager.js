@@ -212,7 +212,9 @@ module.exports = class PurchaseRequestManager extends BaseManager {
         var getPurchaseRequests = [];
         return new Promise((resolve, reject) => {
             for (var purchaseRequest of listPurchaseRequest) {
-                getPurchaseRequests.push(this.getSingleByIdOrDefault(purchaseRequest._id));
+                if(purchaseRequest) {
+                    getPurchaseRequests.push(this.getSingleByIdOrDefault(purchaseRequest._id));
+                }
             }
             Promise.all(getPurchaseRequests)
                 .then(validPurchaseRequest => {
