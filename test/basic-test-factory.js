@@ -150,7 +150,7 @@ function getBasicTest(opt) {
                             e.errors.should.have.property(key);
                         }
                         manager.destroy(newDataId)
-                            .then(() => done(), done);
+                            .then(() => done();
                     }
                     catch (ex) {
                         done(e);
