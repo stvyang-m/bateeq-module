@@ -189,14 +189,14 @@ module.exports = class CurrencyManager extends BaseManager {
 
     _createIndexes() {
         var dateIndex = {
-            name: `ix_${map.master.collection.Currency}__updatedDate`,
+            name: `ix_${map.master.Currency}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         }
 
         var codeIndex = {
-            name: `ix_${map.master.collection.Currency}_code`,
+            name: `ix_${map.master.Currency}_code`,
             key: {
                 code: 1
             }

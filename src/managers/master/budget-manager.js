@@ -166,14 +166,14 @@ module.exports = class BudgetManager extends BaseManager {
 
     _createIndexes() {
         var dateIndex = {
-            name: `ix_${map.master.collection.Budget}__updatedDate`,
+            name: `ix_${map.master.Budget}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         };
 
         var codeIndex = {
-            name: `ix_${map.master.collection.Budget}_code`,
+            name: `ix_${map.master.Budget}_code`,
             key: {
                 code: 1
             }

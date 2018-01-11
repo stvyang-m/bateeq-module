@@ -167,14 +167,14 @@ module.exports = class CategoryManager extends BaseManager {
 
     _createIndexes() {
         var dateIndex = {
-            name: `ix_${map.master.collection.Category}__updatedDate`,
+            name: `ix_${map.master.Category}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         }
 
         var codeIndex = {
-            name: `ix_${map.master.collection.Category}_code`,
+            name: `ix_${map.master.Category}_code`,
             key: {
                 code: 1
             }
