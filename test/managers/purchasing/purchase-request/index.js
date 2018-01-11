@@ -18,6 +18,6 @@ describe("UNPOST SCENARIOS", function() {
 //     require("./report");
 // });
 
-// describe("PDF SCENARIOS", function() {
-//     require("./pdf");
-// });
+describe("PDF SCENARIOS", function() {
+    require("./pdf");
+});
