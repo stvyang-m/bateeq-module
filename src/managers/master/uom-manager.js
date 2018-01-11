@@ -151,14 +151,14 @@ module.exports = class UomManager extends BaseManager {
 
     _createIndexes() {
         var dateIndex = {
-            name: `ix_${map.master.collection.uom}__updatedDate`,
+            name: `ix_${map.master.Uom}__updatedDate`,
             key: {
                 _updatedDate: -1
             }
         };
 
         var unitIndex = {
-            name: `ix_${map.master.collection.uom}_unit`,
+            name: `ix_${map.master.Uom}_unit`,
             key: {
                 unit: 1
             }
