@@ -45,8 +45,8 @@ it('#02. should success when create new data', function (done) {
         .then(pr => {
             purchaseRequest = pr;
             validate(purchaseRequest);
-            done();
         })
+        .then(() => done(), done)
         .catch(e => {
             done(e);
         });
@@ -66,7 +66,7 @@ it('#02. should error when create new data using duplicate item', function (done
                 .catch(e => {
                     try {
                         e.errors.should.have.property('items');
-                        done();
+                        done(), done;
                     }
                     catch (ex) {
                         done(ex);

@@ -26,8 +26,8 @@ it('#01. should success when create new posted data', function(done) {
         .then(pr => {
             purchaseRequest = pr;
             validate(purchaseRequest);
-            done();
-        })
+            
+        }).then(() => done(), done)
         .catch(e => {
             done(e);
         });
@@ -38,8 +38,8 @@ it('#02. should isPosted = true', function (done) {
         .then((data) => {
             data.isPosted.should.be.Boolean();
             data.isPosted.should.equal(true);
-            done();
-        })
+            
+        }).then(() => done(), done)
         .catch(e => {
             done(e);
         })
@@ -51,8 +51,8 @@ it('#03. should success when unposting purchase-request', function (done) {
             purchaseRequest = pr;
             purchaseRequest.isPosted.should.equal(false);
             JSON.stringify(purchaseRequest.status).should.equal(JSON.stringify(prStatusEnum.CREATED));
-            done();
-        })
+            
+        }).then(() => done(), done)
         .catch(e => {
             done(e);
         });

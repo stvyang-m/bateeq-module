@@ -25,8 +25,8 @@ it('#01. should success when create new data', function(done) {
         .then(pr => {
             purchaseRequest = pr;
             validate(purchaseRequest);
-            done();
-        })
+            
+        }).then(() => done(), done)
         .catch(e => {
             done(e);
         });
@@ -35,17 +35,20 @@ it('#01. should success when create new data', function(done) {
 it('#02. should success when post', function(done) {
     purchaseRequestManager.post([purchaseRequest])
         .then(purchaseRequests => {
-            var prId = purchaseRequests[0]._id;
+            if (purchaseRequest) {
+                var prId = purchaseRequests[0]._id;
             purchaseRequestManager.getSingleById(prId)
                 .then(pr => {
                     purchaseRequest = pr;
                     validate(purchaseRequest);
                     purchaseRequest.isPosted.should.equal(true, "purchase-request.isPosted should be true after posted");
-                    done();
+                    
                 })
+                .then(() => done(), done)
                 .catch(e => {
                     done(e);
                 });
+            }
         })
         .catch(e => {
             done(e);
