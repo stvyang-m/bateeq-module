@@ -25,8 +25,8 @@ it('#01. should success when create new data', function(done) {
         .then(pr => {
             purchaseRequest = pr;
             validate(purchaseRequest);
-            
-        }).then(() => done(), done)
+            done();
+        })
         .catch(e => {
             done(e);
         });
@@ -42,9 +42,8 @@ it('#02. should success when post', function(done) {
                     purchaseRequest = pr;
                     validate(purchaseRequest);
                     purchaseRequest.isPosted.should.equal(true, "purchase-request.isPosted should be true after posted");
-                    
+                    done();
                 })
-                .then(() => done(), done)
                 .catch(e => {
                     done(e);
                 });

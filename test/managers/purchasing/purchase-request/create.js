@@ -45,8 +45,8 @@ it('#02. should success when create new data', function (done) {
         .then(pr => {
             purchaseRequest = pr;
             validate(purchaseRequest);
+            done();
         })
-        .then(() => done(), done)
         .catch(e => {
             done(e);
         });

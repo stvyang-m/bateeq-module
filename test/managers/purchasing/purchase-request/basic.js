@@ -4,7 +4,7 @@ var options = {
     util: require("../../../data-util/purchasing/purchase-request-data-util"),
     validator: require("bateeq-models").validator.purchasing.purchaseRequest,
     createDuplicate: false,
-    keys: ["no"]
+    keys: []
 };
 
 var basicTest = require("../../../basic-test-factory");

@@ -26,8 +26,8 @@ it("#01. should success when create new data", function (done) {
         .then((id) => {
             id.should.be.Object();
             createdId = id;
-           
-        }).then(() => done(), done)
+            done();
+        })
         .catch((e) => {
             done(e);
         });
@@ -36,8 +36,8 @@ it("#01. should success when create new data", function (done) {
 it('#02. should success when create pdf', function (done) {
     purchaseRequestManager.pdf(createdId, 7)
         .then(pdfData => {
-            
-        }).then(() => done(), done)
+            done();
+        })
         .catch(e => {
             done(e);
         });
@@ -48,8 +48,8 @@ it("#03. should success when destroy all unit test data", function (done) {
         .then((result) => {
             result.should.be.Boolean();
             result.should.equal(true);
-            
-        }).then(() => done(), done)
+            done();
+        })
         .catch((e) => {
             done(e);
         });
