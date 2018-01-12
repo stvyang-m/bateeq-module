@@ -66,7 +66,7 @@ it('#02. should error when create new data using duplicate item', function (done
                 .catch(e => {
                     try {
                         e.errors.should.have.property('items');
-                        done(), done;
+                        done();
                     }
                     catch (ex) {
                         done(ex);
