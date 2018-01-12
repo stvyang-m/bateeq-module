@@ -5,6 +5,7 @@ var validate = require("bateeq-models").validator.purchasing.purchaseRequest;
 
 var PurchaseRequestManager = require("../../../../src/managers/purchasing/purchasing-request-manager");
 var purchaseRequestManager = null;
+var purchaseRequest = null;
 
 before('#00. connect db', function(done) {
     helper.getDb()
@@ -19,7 +20,6 @@ before('#00. connect db', function(done) {
         });
 });
 
-var purchaseRequest;
 it('#01. should success when create new data', function(done) {
     PurchaseRequest.getNewTestData()
         .then(pr => {

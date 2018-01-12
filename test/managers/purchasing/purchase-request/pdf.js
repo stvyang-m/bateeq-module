@@ -2,9 +2,9 @@ require("should");
 var PurchaseRequest = require("../../../data-util/purchasing/purchase-request-data-util");
 var helper = require("../../../helper");
 var moment = require('moment');
-
 var PurchaseRequestManager = require("../../../../src/managers/purchasing/purchasing-request-manager");
 var purchaseRequestManager = null;
+var createdId = null;
 
 before('#00. connect db', function (done) {
     helper.getDb()
@@ -19,7 +19,6 @@ before('#00. connect db', function (done) {
         });
 });
 
-var createdId;
 it("#01. should success when create new data", function (done) {
     PurchaseRequest.getNewData()
         .then((data) => purchaseRequestManager.create(data))
