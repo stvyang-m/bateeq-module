@@ -58,7 +58,8 @@ class PurchaseRequestDataUtil {
                         .then((id) => {
                             return manager.getSingleById(id)})
                             .then((result) => { 
-                                return Promise.resolve(result)});
+                                return result
+                            });
                 });
             });
     }
@@ -74,7 +75,7 @@ class PurchaseRequestDataUtil {
                                 var id = prs[0]._id;
                                 return prManager.getSingleById(id)
                                 .then(result => {
-                                    return Promise.resolve(result);
+                                    return result;
                                 });
                             });
                     });
