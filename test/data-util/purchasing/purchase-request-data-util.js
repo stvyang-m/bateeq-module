@@ -48,16 +48,29 @@ class PurchaseRequestDataUtil {
                 return Promise.resolve(data);
             });
     }
-    
+
     getNewTestData() {
-        return helper
-            .getManager(PurchaseRequestManager)
-            .then((manager) => {
-                return this.getNewData().then((data) => {
-                    return manager.create(data)
-                        .then((id) => manager.getSingleById(id));
+        return new Promise((resolve, reject) => {
+            helper.getManager(PurchaseRequestManager)
+                .then((manager) => {
+                    this.getNewData()
+                        .then((data) => {
+                            manager.create(data)
+                                .then((id) => {
+                                    manager.getSingleById(id)
+                                        .then(result => {
+                                            resolve(result);
+                                        })
+                                        .catch(ex => {
+                                            reject(ex);
+                                        });
+                                });
+                        })
+                        .catch(ex => {
+                            reject(ex);
+                        });
                 });
-            });
+        });
     }
 
     getPostedData() {
