@@ -43,6 +43,7 @@ it('#01. should error when create with empty data ', function (done) {
 it('#02. should success when create new data', function (done) {
     PurchaseRequest.getNewTestData()
         .then(pr => {
+            console.log(pr);
             purchaseRequest = pr;
             validate(purchaseRequest);
             done();
@@ -55,6 +56,7 @@ it('#02. should success when create new data', function (done) {
 it('#02. should error when create new data using duplicate item', function (done) {
     PurchaseRequest.getNewData()
         .then(pr => {
+            console.log(pr);
             pr.items[1] = pr.items[0];
             var item = Object.assign({},pr.items[1]);
             delete item.product;
