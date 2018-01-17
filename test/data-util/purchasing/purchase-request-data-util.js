@@ -1,6 +1,6 @@
 "use strict";
 var helper = require("../../helper");
-var PurchaseRequestManager = require("../../../src/managers/purchasing/purchasing-request-manager");
+var PurchaseRequestManager = require("../../../src/managers/purchasing/purchase-request-manager");
 var codeGenerator = require("../../../src/utils/code-generator");
 //master from data-util
 var unit = require("../master/unit-data-util");
