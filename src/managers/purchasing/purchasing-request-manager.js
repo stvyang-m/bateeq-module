@@ -1,5 +1,5 @@
 "use strict";
-const moduleId = "EFR-RB/PR";
+const moduleId = "EFR-RB/PR"; 
 var ObjectId = require("mongodb").ObjectId;
 require("mongodb-toolkit");
 var BateeqModels = require("bateeq-models");
@@ -202,7 +202,7 @@ module.exports = class PurchaseRequestManager extends BaseManager {
     }
 
     _beforeInsert(purchaseRequest) {
-        purchaseRequest.no = generateCode(moduleId);
+        purchaseRequest.no = generateCode(moduleId); 
         purchaseRequest.status = prStatusEnum.CREATED;
         purchaseRequest._createdDate = new Date();
         return Promise.resolve(purchaseRequest);
