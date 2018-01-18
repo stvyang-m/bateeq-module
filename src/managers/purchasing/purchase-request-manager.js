@@ -265,6 +265,11 @@ module.exports = class PurchaseRequestManager extends BaseManager {
             this.getSingleById(id)
                 .then(purchaseRequest => {
                     var getDefinition = require("../../pdf/definitions/purchase-request");
+
+                    if (!offset) {
+                        offset = 7;
+                    }
+                    
                     var definition = getDefinition(purchaseRequest, offset);
 
                     var generatePdf = require("../../pdf/pdf-generator");
