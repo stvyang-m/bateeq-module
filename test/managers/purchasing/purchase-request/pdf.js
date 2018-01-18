@@ -2,7 +2,7 @@ require("should");
 var PurchaseRequest = require("../../../data-util/purchasing/purchase-request-data-util");
 var helper = require("../../../helper");
 var moment = require('moment');
-var PurchaseRequestManager = require("../../../../src/managers/purchasing/purchasing-request-manager");
+var PurchaseRequestManager = require("../../../../src/managers/purchasing/purchase-request-manager");
 var purchaseRequestManager = null;
 var createdId = null;
 

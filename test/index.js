@@ -64,4 +64,5 @@ describe('#bateeq-module', function (done) {
 
     //Purchasing 
     test('@PURCHASING/PURCHASE REQUEST', './managers/purchasing/purchase-request');
+    test('@PURCHASING/PURCHASE-ORDER', './managers/purchasing/purchase-order');
 })
