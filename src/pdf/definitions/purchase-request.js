@@ -7,24 +7,28 @@ module.exports = function (purchaseRequest, offset) {
     var iso = "";
     var number = purchaseRequest.no;
 
-    var locale = global.config.locale; 
+    var locale = global.config.locale;
 
     var moment = require('moment');
-    moment.locale(locale.name); 
+    moment.locale(locale.name);
 
     var header = [{
         columns: [{
             columns: [{
                 width: '*',
                 stack: [{
-                    text: 'PT DAN LIRIS',
+                    text: 'PT EFRATA RETAILINDO',
                     style: ['size15'],
                     alignment: "center"
                 }, {
-                        text: 'BANARAN, GROGOL, SUKOHARJO',
-                        style: ['size09'],
-                        alignment: "center"
-                    }]
+                    text: 'BANARAN, GROGOL, SUKOHARJO',
+                    style: ['size09'],
+                    alignment: "center"
+                }, {
+                    text: '57193, Jawa Tengah, Indonesia ',
+                    style: ['size06'],
+                    alignment: "center"
+                }]
             }]
 
         }]
@@ -32,7 +36,7 @@ module.exports = function (purchaseRequest, offset) {
 
     var line = [{
         canvas: [{
-    	       type: 'line',
+            type: 'line',
             x1: 0,
             y1: 5,
             x2: 378,
@@ -51,12 +55,12 @@ module.exports = function (purchaseRequest, offset) {
                     style: ['size09', 'bold'],
                     alignment: "right"
                 },
-                    {
-                        text: 'ORDER PEMESANAN',
-                        style: ['size09', 'bold'],
-                        alignment: "center",
-                        decoration: 'underline'
-                    }]
+                {
+                    text: 'ORDER PEMESANAN',
+                    style: ['size09', 'bold'],
+                    alignment: "center",
+                    decoration: 'underline'
+                }]
             }]
 
         }]
@@ -68,14 +72,14 @@ module.exports = function (purchaseRequest, offset) {
                 width: '50%',
                 columns: [{
                     width: '25%',
-                    stack: ['Bagian', 'Budget' , 'Nomor']
+                    stack: ['Bagian', 'Budget', 'Nomor']
                 }, {
-                        width: '5%',
-                        stack: [':', ':', ':']
-                    }, {
-                        width: '*',
-                        stack: [purchaseRequest.unit.name, purchaseRequest.budget.name, purchaseRequest.no]
-                    }],
+                    width: '5%',
+                    stack: [':', ':', ':']
+                }, {
+                    width: '*',
+                    stack: [purchaseRequest.unit.name, purchaseRequest.budget.name, purchaseRequest.no]
+                }],
                 style: ['size08']
 
             },
@@ -87,7 +91,7 @@ module.exports = function (purchaseRequest, offset) {
                 width: '30%',
                 columns: [{
                     width: '*',
-                    stack: [`Sukoharjo, ${moment(purchaseRequest.date).add(offset,'h').format(locale.date.format)} `],
+                    stack: [`Sukoharjo, ${moment(purchaseRequest.date).add(offset, 'h').format(locale.date.format)} `],
                     alignment: "right"
                 }],
                 style: ['size08']
@@ -109,36 +113,36 @@ module.exports = function (purchaseRequest, offset) {
         text: 'NO',
         style: 'tableHeader'
     }, {
-            text: 'KODE',
-            style: 'tableHeader'
-        }, {
-            text: 'BARANG',
-            style: 'tableHeader'
-        }, {
-            text: 'JUMLAH',
-            style: 'tableHeader'
-        }, {
-            text: 'HARGA',
-            style: 'tableHeader'
-        }];
+        text: 'KODE',
+        style: 'tableHeader'
+    }, {
+        text: 'BARANG',
+        style: 'tableHeader'
+    }, {
+        text: 'JUMLAH',
+        style: 'tableHeader'
+    }, {
+        text: 'HARGA',
+        style: 'tableHeader'
+    }];
 
     var tbody = items.map(function (item, index) {
         return [{
             text: (index + 1).toString() || '',
             style: ['size08', 'center']
         }, {
-                text: item.product.code,
-                style: ['size08', 'left']
-            }, {
-                text: item.product.name+'\n'+item.remark,
-                style: ['size08', 'left']
-            }, {
-                text: parseFloat(item.quantity).toLocaleString(locale, locale.decimal) + " " + item.product.uom.unit,
-                style: ['size08', 'center']
-            }, {
-                text: '',
-                style: ['size08', 'left']
-            }];
+            text: item.product.code,
+            style: ['size08', 'left']
+        }, {
+            text: item.product.name + '\n' + item.remark,
+            style: ['size08', 'left']
+        }, {
+            text: parseFloat(item.quantity).toLocaleString(locale, locale.decimal) + " " + item.product.uom.unit,
+            style: ['size08', 'center']
+        }, {
+            text: '',
+            style: ['size08', 'left']
+        }];
     });
 
     var tfoot = [[{
@@ -162,7 +166,7 @@ module.exports = function (purchaseRequest, offset) {
         }
     }];
 
-    var getDateexpected= purchaseRequest.expectedDeliveryDate && purchaseRequest.expectedDeliveryDate.toString().trim() != '' ?  moment(purchaseRequest.expectedDeliveryDate).add(offset,'h').format(locale.date.format) : '-';
+    var getDateexpected = purchaseRequest.expectedDeliveryDate && purchaseRequest.expectedDeliveryDate.toString().trim() != '' ? moment(purchaseRequest.expectedDeliveryDate).add(offset, 'h').format(locale.date.format) : '-';
 
     var footer = [
         '\n', {
@@ -173,12 +177,12 @@ module.exports = function (purchaseRequest, offset) {
                         width: '25%',
                         stack: ['Kategori', 'Diminta Datang', 'Keterangan']
                     }, {
-                            width: '3%',
-                            stack: [':', ':', ':']
-                        }, {
-                            width: '*',
-                            stack: [purchaseRequest.category.name, `${getDateexpected}`, purchaseRequest.remark]
-                        }]
+                        width: '3%',
+                        stack: [':', ':', ':']
+                    }, {
+                        width: '*',
+                        stack: [purchaseRequest.category.name, `${getDateexpected}`, purchaseRequest.remark]
+                    }]
                 }]
             }
             ],
@@ -190,18 +194,18 @@ module.exports = function (purchaseRequest, offset) {
         text: 'BAGIAN ANGGARAN',
         style: 'tableHeader'
     }, {
-            text: 'ACC MENGETAHUI',
-            style: 'tableHeader'
-        }, {
-            text: 'BAGIAN PEMBELIAN',
-            style: 'tableHeader'
-        }, {
-            text: 'KEPALA BAGIAN',
-            style: 'tableHeader'
-        }, {
-            text: 'YANG MEMERLUKAN',
-            style: 'tableHeader'
-        }];
+        text: 'ACC MENGETAHUI',
+        style: 'tableHeader'
+    }, {
+        text: 'BAGIAN PEMBELIAN',
+        style: 'tableHeader'
+    }, {
+        text: 'KEPALA BAGIAN',
+        style: 'tableHeader'
+    }, {
+        text: 'YANG MEMERLUKAN',
+        style: 'tableHeader'
+    }];
 
     var tbody2 = [[{
         text: " ",
