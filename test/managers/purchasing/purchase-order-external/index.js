@@ -6,12 +6,20 @@ describe("CREATE SCENARIOS", function() {
     require("./create");
 });
 
-describe("POST SCENARIOS", function() {
-    require("./post");
-});
-
 describe("UNPOST SCENARIOS", function() {
     require("./unpost");
+});
+
+describe("CANCEL SCENARIOS", function() {
+    require("./cancel");
+});
+
+describe("CLOSE SCENARIOS", function() {
+    require("./close");
+});
+
+describe("UPDATE SCENARIOS", function() {
+    require("./update");
 });
 
 describe("PDF SCENARIOS", function() {
