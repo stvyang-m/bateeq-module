@@ -2,18 +2,18 @@ describe("BASIC CRUD SCENARIOS", function() {
     require("./basic");
 });
 
-describe("CREATE SCENARIOS", function() {
-    require("./create");
-});
+// describe("CREATE SCENARIOS", function() {
+//     require("./create");
+// });
 
-describe("POST SCENARIOS", function() {
-    require("./post");
-});
+// describe("POST SCENARIOS", function() {
+//     require("./post");
+// });
 
-describe("UNPOST SCENARIOS", function() {
-    require("./unpost");
-});
+// describe("UNPOST SCENARIOS", function() {
+//     require("./unpost");
+// });
 
-describe("PDF SCENARIOS", function() {
-    require("./pdf");
-});
+// describe("PDF SCENARIOS", function() {
+//     require("./pdf");
+// });
