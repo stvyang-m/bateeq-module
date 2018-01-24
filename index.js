@@ -150,7 +150,8 @@ module.exports = {
 
     purchasing: {
         PurchasingRequestManager: require('./src/managers/purchasing/purchase-request-manager'),
-        PurchasingOrderManager: require('./src/managers/purchasing/purchase-order-manager')
+        PurchasingOrderManager: require('./src/managers/purchasing/purchase-order-manager'),
+        PurchasingOrderExternalManager: require('./src/managers/purchasing/purchase-order-external-manager')
     }
 
 }
