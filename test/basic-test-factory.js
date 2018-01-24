@@ -46,12 +46,7 @@ function getBasicTest(opt) {
     var createdId;
     it("#02. should success when create new data", function (done) {
         dataUtil.getNewData()
-            .then((data) => {
-                if (data) {
-                    console.log(data);
-                }
-                manager.create(data)
-            })
+            .then((data) => manager.create(data))
             .then((id) => {
                 id.should.be.Object();
                 createdId = id;
