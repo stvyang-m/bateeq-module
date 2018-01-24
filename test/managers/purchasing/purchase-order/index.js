@@ -1,15 +1,15 @@
-// describe("BASIC CRUD SCENARIOS", function() {
-//     require("./basic");
-// });
+describe("BASIC CRUD SCENARIOS", function() {
+    require("./basic");
+});
 
-// describe("CREATE SCENARIOS", function() {
-//     require("./create");
-// });
+describe("CREATE SCENARIOS", function() {
+    require("./create");
+});
 
-// describe("UPDATE SCENARIOS", function() {
-//     require("./update");
-// });
+describe("UPDATE SCENARIOS", function() {
+    require("./update");
+});
 
-// describe("SPLIT SCENARIOS", function() {
-//     require("./split");
-// });
+describe("SPLIT SCENARIOS", function() {
+    require("./split");
+});
