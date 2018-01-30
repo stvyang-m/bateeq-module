@@ -1,6 +1,6 @@
 // external deps 
 var ObjectId = require("mongodb").ObjectId;
-
+const moduleId = "EFR-RB/PO-EX"; 
 // internal deps
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
@@ -145,7 +145,7 @@ module.exports = class PurchaseOrderExternalManager extends BaseManager {
     }
 
     _beforeInsert(purchaseOrderExternal) {
-        purchaseOrderExternal.no = generateCode();
+        purchaseOrderExternal.no = generateCode(moduleId);
         purchaseOrderExternal.status = poStatusEnum.CREATED;
         return Promise.resolve(purchaseOrderExternal)
     }
