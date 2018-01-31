@@ -57,7 +57,7 @@ module.exports = function (pox, offset) {
     });
 
 
-    var iso = "FM-PB-00-06-009/R1";
+    var iso = "";
     var number = pox.no;
     var currency = pox.currency.code;
     var supplier = pox.supplier.name;
@@ -70,7 +70,7 @@ module.exports = function (pox, offset) {
     moment.locale(locale.name);
 
     var header = [{
-        text: 'PT. DAN LIRIS',
+        text: 'PT EFRATA RETAILINDO',
         style: 'bold'
     }, {
             columns: [{
