@@ -148,7 +148,7 @@ module.exports = function (pox, offset) {
             }, {
                 text: 'Yang bertanda tangan di bawah ini, '
             }, {
-                text: 'PT. DAN LIRIS, SOLO',
+                text: 'PT. EFRATA RETAILINDO',
                 style: ['bold']
             }, {
                 text: ' (selanjutnya disebut sebagai pihak Pembeli) dan '
@@ -330,7 +330,11 @@ module.exports = function (pox, offset) {
                         style: 'center'
                     }, {
                             width: '30%',
-                            text: ''
+                            stack: ['Menyetujui\n\n\n\n\n', {
+                                text: 'Haenis Gunarto',
+                                style: ['bold']
+                            }],
+                            style: 'center'
                         }, {
                             width: '35%',
                             stack: ['Penjual\n\n\n\n\n', {
