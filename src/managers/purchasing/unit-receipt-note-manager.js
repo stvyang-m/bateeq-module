@@ -1,4 +1,5 @@
 'use strict'
+const moduleId = "EFR-RB/URN";
 var ObjectId = require("mongodb").ObjectId;
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
@@ -338,7 +339,7 @@ module.exports = class UnitReceiptNoteManager extends BaseManager {
     }
 
     _beforeInsert(unitReceiptNote) {
-        unitReceiptNote.no = generateCode();
+        unitReceiptNote.no = generateCode(moduleId);
         return Promise.resolve(unitReceiptNote);
     }
 
