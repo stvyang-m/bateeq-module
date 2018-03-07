@@ -293,8 +293,14 @@ module.exports = class InventoryMovementManager {
         return new Promise((resolve, reject) => {
             var valid = inventoryMovement;
             var getStorage = this.storageManager.getSingleById(inventoryMovement.storageId);
-            var getItem = this.itemManager.getSingleById(inventoryMovement.itemId);
- 
+            var getItem;
+
+            if (inventoryMovement.itemId) {
+                getItem = this.itemManager.getSingleById(inventoryMovement.itemId);
+            } else {
+                getItem = this.productManager.getSingleById(inventoryMovement.productId);
+            }
+
             Promise.all([getStorage, getItem])
                 .then(results => {
                     var storage = results[0];
@@ -308,51 +314,76 @@ module.exports = class InventoryMovementManager {
                     else {
                         valid.storageId = storage._id;
                         valid.storage = storage;
-                    } 
-                    if (!valid.itemId || valid.itemId == '')
-                        errors["itemId"] = "itemId is required";
-                    if (!item) {
-                        errors["itemId"] = "itemId not found";
                     }
-                    else {
-                        valid.itemId = item._id;
-                        valid.item = item;
-                    } 
-                     
-                    if (!valid.type || valid.type == '')
-                        errors["type"] = "type is required";  
-                        
-                    if (valid.date == undefined || (valid.date && valid.date == '')) {
-                        errors["date"] = "date is required";
-                    }  
-                        
+
+                    if (valid.itemId) {
+                        if (!valid.itemId || valid.itemId == '')
+                            errors["itemId"] = "itemId is required";
+                        if (!item) {
+                            errors["itemId"] = "itemId not found";
+                        }
+                        else {
+                            valid.itemId = item._id;
+                            valid.item = item;
+                        }
+                    } else {
+                        if (!valid.productId || valid.itemId == '')
+                            errors["itemId"] = "productId is required";
+                        if (!item) {
+                            errors["itemId"] = "item not found";
+                        }
+                        else {
+                            valid.itemId = item._id;
+                            valid.item = item;
+                        }
+                    }
+
+                    if (valid.type) {
+                        if (!valid.type || valid.type == '')
+                            errors["type"] = "type is required";
+                    }
+
+                    if (valid.date) {
+                        if (valid.date == undefined || (valid.date && valid.date == '')) {
+                            errors["date"] = "date is required";
+                        }
+                    }
+
                     if (valid.quantity == undefined || (valid.quantity && valid.quantity == '')) {
                         errors["quantity"] = "quantity is required";
                     }
                     // else if (parseInt(valid.quantity) <= 0) {
                     //     errors["quantity"] = "quantity must be greater than 0";
                     // }
-                    
-                    if (valid.before == undefined || (valid.before && valid.before == '')) {
-                        errors["before"] = "before is required";
+
+                    if (valid.before) {
+                        if (valid.before == undefined || (valid.before && valid.before == '')) {
+                            errors["before"] = "before is required";
+                        }
+                        else if (parseInt(valid.before) < 0) {
+                            errors["before"] = "before must be greater than 0";
+                        }
                     }
-                    else if (parseInt(valid.before) < 0) {
-                        errors["before"] = "before must be greater than 0";
+
+                    if (valid.after) {
+                        if (valid.after == undefined || (valid.after && valid.after == '')) {
+                            errors["after"] = "after is required";
+                        }
+                        else if (parseInt(valid.after) < 0) {
+                            errors["after"] = "after must be greater than 0";
+                        }
                     }
-                    
-                    if (valid.after == undefined || (valid.after && valid.after == '')) {
-                        errors["after"] = "after is required";
-                    }
-                    else if (parseInt(valid.after) < 0) {
-                        errors["after"] = "after must be greater than 0";
-                    }
-                    
-                     // 2c. begin: check if data has any error, reject if it has.
+
+                    // 2c. begin: check if data has any error, reject if it has.
                     for (var prop in errors) {
                         var ValidationError = require('module-toolkit').ValidationError;
                         reject(new ValidationError('data does not pass validation', errors));
                     }
-                    valid.stamp(this.user.username, 'manager');
+
+                    if (valid.stamp) {
+                        valid.stamp(this.user.username, 'manager');
+                    }
+
                     resolve(valid)
                 })
                 .catch(e => {
