@@ -7,8 +7,7 @@ var generateCode = require("../../utils/code-generator");
 var ProductManager = require('../master/product-manager');
 var StorageManager = require('../master/storage-manager');
 var UomManager = require('../master/uom-manager');
-var InventorySummaryManager = require('./inventory-summary-manager');
-var InventoryMovementManager = require('./inventory-movement-manager');
+var InventoryManager = require('./inventory-manager');
 
 var Models = require("bateeq-models");
 var Map = Models.map;
@@ -22,9 +21,7 @@ module.exports = class InventoryDocumentManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
         this.collection = this.db.use(Map.inventory.InventoryDocument);
-
-        this.inventorySummaryManager = new InventorySummaryManager(db, user);
-        this.inventoryMovementManager = new InventoryMovementManager(db, user);
+        this.inventoryManager = new InventoryManager(db, user);
 
         this.storageManager = new StorageManager(db, user);
         this.productManager = new ProductManager(db, user);
@@ -96,7 +93,7 @@ module.exports = class InventoryDocumentManager extends BaseManager {
                     var movementCode = generateCode(item.productId.toString())
                     var movement = {
                         code: movementCode,
-                        referenceNo: inventoryDocument.referenceNo,
+                        reference: inventoryDocument.referenceNo,
                         referenceType: inventoryDocument.referenceType,
                         type: inventoryDocument.type,
                         storageId: inventoryDocument.storageId,
@@ -105,7 +102,21 @@ module.exports = class InventoryDocumentManager extends BaseManager {
                         quantity: item.quantity,
                         remark: item.remark
                     };
-                    return this.inventoryMovementManager.create(movement);
+
+                    if (movement.type === "IN") {
+                        return this.inventoryManager.inProduct( movement.storageId,
+                                                                movement.reference,
+                                                                movement.productId,
+                                                                movement.quantity,
+                                                                movement.remark);
+                    } else {
+                        return this.inventoryManager.outProduct(movement.storageId,
+                                                                movement.reference,
+                                                                movement.productId,
+                                                                movement.quantity,
+                                                                movement.remark);
+                    }
+
                 })
 
                 return Promise.all(createMovements);
