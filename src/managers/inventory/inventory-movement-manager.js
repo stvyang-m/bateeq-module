@@ -22,6 +22,9 @@ module.exports = class InventoryMovementManager {
 
         var ItemManager = require('../master/item-manager');
         this.itemManager = new ItemManager(db, user);
+
+        var ProductManager = require('../master/product-manager');
+        this.productManager = new ProductManager(db, user);
     }
 
     read(paging) {
@@ -295,9 +298,9 @@ module.exports = class InventoryMovementManager {
             var getStorage = this.storageManager.getSingleById(inventoryMovement.storageId);
             var getItem;
 
-            if (inventoryMovement.itemId) {
+            if (ObjectId.isValid(inventoryMovement.itemId)) {
                 getItem = this.itemManager.getSingleById(inventoryMovement.itemId);
-            } else {
+            } else if (ObjectId.isValid(inventoryMovement.productId)) {
                 getItem = this.productManager.getSingleById(inventoryMovement.productId);
             }
 
@@ -316,7 +319,7 @@ module.exports = class InventoryMovementManager {
                         valid.storage = storage;
                     }
 
-                    if (valid.itemId) {
+                    if (ObjectId.isValid(valid.itemId)) {
                         if (!valid.itemId || valid.itemId == '')
                             errors["itemId"] = "itemId is required";
                         if (!item) {
@@ -327,14 +330,14 @@ module.exports = class InventoryMovementManager {
                             valid.item = item;
                         }
                     } else {
-                        if (!valid.productId || valid.itemId == '')
-                            errors["itemId"] = "productId is required";
+                        if (!valid.productId || valid.productId == '')
+                            errors["productId"] = "productId is required";
                         if (!item) {
-                            errors["itemId"] = "item not found";
+                            errors["productId"] = "product not found";
                         }
                         else {
-                            valid.itemId = item._id;
-                            valid.item = item;
+                            valid.productId = item._id;
+                            valid.product = item;
                         }
                     }
 
@@ -380,10 +383,11 @@ module.exports = class InventoryMovementManager {
                         reject(new ValidationError('data does not pass validation', errors));
                     }
 
-                    if (valid.stamp) {
-                        valid.stamp(this.user.username, 'manager');
+                    if (!valid.stamp) {
+                        valid = new InventoryMovement(valid);
                     }
-
+                    
+                    valid.stamp(this.user.username, 'manager');
                     resolve(valid)
                 })
                 .catch(e => {
