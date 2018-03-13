@@ -118,7 +118,8 @@ module.exports = {
         CurrencyManager: require('./src/managers/master/currency-manager'),
         ProductManager: require('./src/managers/master/product-manager'),
         UomManager: require('./src/managers/master/uom-manager'),
-        VatManager: require('./src/managers/master/vat-manager')
+        VatManager: require('./src/managers/master/vat-manager'),
+        DivisionManager: require('./src/managers/master/division-manager')
     },
     sales: {
         SalesManager: require('./src/managers/sales/sales-manager'),
