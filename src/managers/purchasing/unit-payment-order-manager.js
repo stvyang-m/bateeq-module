@@ -1,5 +1,6 @@
 'use strict'
 var ObjectId = require("mongodb").ObjectId;
+const moduleId = "EFR-RB/UPO";
 require('mongodb-toolkit');
 var BateeqModels = require('bateeq-models');
 var assert = require('assert');
@@ -438,7 +439,7 @@ module.exports = class UnitPaymentOrderManager extends BaseManager {
     }
 
     _beforeInsert(unitPaymentOrder) {
-        unitPaymentOrder.no = generateCode();
+        unitPaymentOrder.no = generateCode(moduleId);
         return Promise.resolve(unitPaymentOrder)
     }
 
