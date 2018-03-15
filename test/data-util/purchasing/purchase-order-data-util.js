@@ -19,9 +19,13 @@ class PurchaseOrderDataUtil {
         return helper
             .getManager(PurchaseOrderManager)
             .then(manager => {
-                return Promise.all([getPr])
+                return Promise.all([getPr]) //, unit.getTestData(), category.getTestData(), vat.getTestData(), product.getTestData()])
                     .then(results => {
                         var purchaseRequest = results[0];
+                        // var unit = results[1];
+                        // var category = results[2];
+                        // var vat = results[3];
+                        // var product = results[4];
 
                         var poItems = purchaseRequest.items.map(prItem => {
                             return {
@@ -29,6 +33,16 @@ class PurchaseOrderDataUtil {
                                 product: prItem.product,
                                 defaultQuantity: prItem.quantity,
                                 defaultUom: prItem.uom
+                                    // dealQuantity: 0,
+                                    // dealUom: product.uom,
+                                    // realizationQuantity: 0,
+                                    // pricePerDealUnit: 500,
+                                    // currency: new Currency(),
+                                    // currencyRate: 1,
+                                    // conversion: 1,
+                                    // isClosed: false,
+                                    // remark: '',
+                                    // fulfillments: []
                             };
                         });
 
@@ -67,9 +81,7 @@ class PurchaseOrderDataUtil {
                             items: poItems
                         };
                         return Promise.resolve(data);
-                    }).catch(e => {
-                        return Promise.reject(e);
-                    })
+                    });
             });
     }
 
