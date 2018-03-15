@@ -2,9 +2,9 @@
 //     require("./basic");
 // });
 
-// describe("CREATE SCENARIOS", function() {
-//     require("./create");
-// });
+describe("CREATE SCENARIOS", function() {
+    require("./create");
+});
 
 // describe("UNPOST SCENARIOS", function() {
 //     require("./unpost");
