@@ -37,12 +37,6 @@ class PurchaseRequestDataUtil {
                         quantity: 10,
                         uom: product01.uom,
                         remark: ""
-                    }, {
-                        productId: product02._id,
-                        product: product02,
-                        quantity: 20,
-                        uom: product02.uom,
-                        remark: ""
                     }]
                 };
                 return Promise.resolve(data);
