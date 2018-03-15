@@ -1,5 +1,5 @@
 describe("BASIC CRUD SCENARIOS", function() {
-    this.slow(2 * 60000);
+    this.timeout(2 * 60000);
     require("./basic");
 });
 
