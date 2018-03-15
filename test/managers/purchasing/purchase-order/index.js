@@ -1,4 +1,5 @@
 describe("BASIC CRUD SCENARIOS", function() {
+    this.slow(2 * 10000);
     require("./basic");
 });
 
