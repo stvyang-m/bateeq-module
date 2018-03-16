@@ -3,7 +3,7 @@
 // });
 
 describe("CREATE SCENARIOS", function() {
-    this.slow(60000);
+    this.timeout(60000);
     require("./create");
 });
 
