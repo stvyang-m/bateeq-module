@@ -14,7 +14,6 @@ var purchaseOrderManager = null;
 var purchaseOrder;
 
 before('#00. connect db', function (done) {
-    setTimeout(done, 20000);
     helper.getDb()
         .then(db => {
             purchaseRequestManager = new PurchaseRequestManager(db, {
@@ -40,7 +39,6 @@ before('#00. connect db', function (done) {
 });
 
 it('#01. should failed when create new purchase-order with unposted purchase-request', function (done) {
-    setTimeout(done, 30000);
     purchaseOrderDataUtil.getNewData(purchaseRequest)
         .then((purchaseOrder) => {
             return purchaseOrderManager.create(purchaseOrder);
@@ -54,8 +52,11 @@ it('#01. should failed when create new purchase-order with unposted purchase-req
         });
 });
 
+it("#waiting", function (done) {
+    setTimeout(done, 20000);
+});
+
 it('#02. should success when create new purchase-order with posted purchase-request', function (done) {
-    setTimeout(done, 30000);
     purchaseRequestManager.post([purchaseRequest])
         .then(pr => {
             purchaseRequest = pr[0];
@@ -81,8 +82,11 @@ it('#02. should success when create new purchase-order with posted purchase-requ
         });
 });
 
+it("#waiting", function (done) {
+    setTimeout(done, 20000);
+});
+
 it('#03. purchase-request.isUsed should be true after create purchase-order and purchase-request.purchaseOrderIds should contains puchase-orderId', function (done) {
-    setTimeout(done, 40000);
     var prId = purchaseRequest._id;
     purchaseRequestManager.getSingleById(prId)
         .then(pr => {
@@ -99,8 +103,11 @@ it('#03. purchase-request.isUsed should be true after create purchase-order and 
         });
 });
 
+it("#waiting", function (done) {
+    setTimeout(done, 20000);
+});
+
 it('#04. purchase-order items should the same as purchase-request items', function (done) {
-    setTimeout(done, 40000);
     purchaseOrder.items.length.should.equal(purchaseRequest.items.length);
     for (var poItem of purchaseOrder.items) {
         var prItem = purchaseRequest.items.find(prItem => {
@@ -113,8 +120,11 @@ it('#04. purchase-order items should the same as purchase-request items', functi
     done();
 });
 
+it("#waiting", function (done) {
+    setTimeout(done, 20000);
+});
+
 it('#05. should failed when create new purchase-order with already used purchase-request', function (done) {
-    setTimeout(done, 40000);
     purchaseOrderDataUtil.getNewData(purchaseRequest)
         .then((purchaseOrder) => {
             return purchaseOrderManager.create(purchaseOrder);
