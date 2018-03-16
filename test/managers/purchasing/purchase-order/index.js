@@ -1,10 +1,11 @@
-describe("BASIC CRUD SCENARIOS", function() {
-    require("./basic");
-});
-
-// describe("CREATE SCENARIOS", function() {
-//     require("./create");
+// describe("BASIC CRUD SCENARIOS", function() {
+//     require("./basic");
 // });
+
+describe("CREATE SCENARIOS", function() {
+    this.slow(6000);
+    require("./create");
+});
 
 // describe("UPDATE SCENARIOS", function() {
 //     require("./update");

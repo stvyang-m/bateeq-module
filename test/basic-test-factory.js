@@ -45,7 +45,6 @@ function getBasicTest(opt) {
 
     var createdId;
     it("#02. should success when create new data", function (done) {
-        setTimeout(done, 2 * 6000);
         dataUtil.getNewData()
             .then((data) => manager.create(data))
             .then((id) => {
