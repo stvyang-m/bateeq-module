@@ -38,6 +38,10 @@ before('#00. connect db', function (done) {
         });
 });
 
+it("#waiting", function (done) {
+    setTimeout(done, 20000);
+});
+
 it('#01. should failed when create new purchase-order with unposted purchase-request', function (done) {
     purchaseOrderDataUtil.getNewData(purchaseRequest)
         .then((purchaseOrder) => {
