@@ -36,10 +36,7 @@ before('#00. connect db', function (done) {
         .catch(e => {
             done(e);
         });
-});
-
-it("#waiting", function (done) {
-    setTimeout(done, 20000);
+    setTimeout(done, 250);
 });
 
 it('#01. should failed when create new purchase-order with unposted purchase-request', function (done) {
@@ -54,10 +51,7 @@ it('#01. should failed when create new purchase-order with unposted purchase-req
             e.errors.should.have.property('purchaseRequestId');
             done();
         });
-});
-
-it("#waiting", function (done) {
-    setTimeout(done, 20000);
+    setTimeout(done, 250);
 });
 
 it('#02. should success when create new purchase-order with posted purchase-request', function (done) {
@@ -84,10 +78,7 @@ it('#02. should success when create new purchase-order with posted purchase-requ
         .catch(e => {
             done(e);
         });
-});
-
-it("#waiting", function (done) {
-    setTimeout(done, 20000);
+    setTimeout(done, 250);
 });
 
 it('#03. purchase-request.isUsed should be true after create purchase-order and purchase-request.purchaseOrderIds should contains puchase-orderId', function (done) {
@@ -105,10 +96,7 @@ it('#03. purchase-request.isUsed should be true after create purchase-order and 
         .catch(e => {
             done(e);
         });
-});
-
-it("#waiting", function (done) {
-    setTimeout(done, 20000);
+    setTimeout(done, 250);
 });
 
 it('#04. purchase-order items should the same as purchase-request items', function (done) {
@@ -122,10 +110,7 @@ it('#04. purchase-order items should the same as purchase-request items', functi
         poItem.defaultUom._id.toString().should.equal(prItem.product.uom._id.toString(), "purchase-order-item.defaultUom does not equal purchase-request-item.uom");
     }
     done();
-});
-
-it("#waiting", function (done) {
-    setTimeout(done, 20000);
+    setTimeout(done, 250);
 });
 
 it('#05. should failed when create new purchase-order with already used purchase-request', function (done) {
@@ -147,4 +132,5 @@ it('#05. should failed when create new purchase-order with already used purchase
             e.errors.should.have.property('purchaseRequestId');
             done();
         });
+    setTimeout(done, 250);
 });
