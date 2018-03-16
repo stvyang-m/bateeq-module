@@ -14,7 +14,6 @@ var purchaseOrderManager = null;
 var purchaseOrder;
 
 before('#00. connect db', function (done) {
-    this.timeout(500);
     helper.getDb()
         .then(db => {
             purchaseRequestManager = new PurchaseRequestManager(db, {
@@ -37,7 +36,6 @@ before('#00. connect db', function (done) {
         .catch(e => {
             done(e);
         });
-        setTimeout(done, 400);
 });
 
 it('#01. should failed when create new purchase-order with unposted purchase-request', function (done) {
