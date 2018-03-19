@@ -12,7 +12,7 @@ var validatePO = require("bateeq-models").validator.purchasing.purchaseOrder;
 var PurchaseOrderManager = require("../../../../src/managers/purchasing/purchase-order-manager");
 var purchaseOrderManager = null;
 var purchaseOrderId;
-var purchaseRequestId;
+var purchaseRequest;
 
 before('#00. connect db', function (done) {
     helper.getDb()
@@ -30,55 +30,15 @@ before('#00. connect db', function (done) {
         });
 });
 
-it("#01. Should Success when create new Purchase request", function (done) {
+it("#01. Should Success when create new Purchase Order", function (done) {
     purchaseRequestDataUtil.getNewData()
-        .then(pr => { 
-            purchaseRequestManager.create(pr);
-        })
-        .then(id => {
-            purchaseRequestId = id;
+        .then(prDataUtil => purchaseRequestManager.create(prDataUtil))
+        .then(id => purchaseRequestManager.getSingleByIdOrDefault(id))
+        .then(data => {
+            purchaseRequest = data;
             done();
         })
         .catch(e => {
             done(e);
         });
 });
-
-// it('#02. should failed when create new purchase-order with unposted purchase-request', function (done) {
-//     purchaseOrderDataUtil.getNewData(purchaseRequest)
-//         .then((purchaseOrder) => {
-//             return purchaseOrderManager.create(purchaseOrder);
-//         })
-//         .then(po => {
-//             done(purchaseRequest, "purchase-request cannot be used to create purchase-order due unposted status");
-//         })
-//         .catch(e => {
-//             e.errors.should.have.property('purchaseRequestId');
-//             done();
-//         });
-// });
-
-// it('#03. should success when create posted purchase-request', function (done) {
-//     purchaseRequestManager.post([purchaseRequest])
-//         .then(pr => {
-//             purchaseRequest = pr[0];
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         });
-// });
-
-// it('#04. should success when create new purchase-order with posted purchase-request', function (done) {
-//     purchaseOrderDataUtil.getNewData(purchaseRequest)
-//         .then((purchaseOrder) => {
-//             return purchaseOrderManager.create(purchaseOrder);
-//         })
-//         .then((id) => {
-//             purchaseOrderId = id;
-//             done();
-//         })
-//         .catch(e => {
-//             done(e);
-//         });
-// });
