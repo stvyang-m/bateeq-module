@@ -27,12 +27,29 @@ before('#00. connect db', function (done) {
             purchaseRequestDataUtil.getPRData()
                 .then(result => purchaseRequestManager.create(result))
                 .then(id => {
-                    purchaseRequestId = id; 
+                    purchaseRequestId = id;
                     done();
                 })
                 .catch(e => {
                     done(e);
                 });
+        })
+        .catch(e => {
+            done(e);
+        });
+});
+
+it('#01. should failed when create new purchase-order with unposted purchase-request', function (done) {
+    purchaseRequestManager.getSingleByIdOrDefault(purchaseRequestId)
+        .then(result => {
+            purchaseOrderDataUtil.getNewData(result);
+        })
+        .then(poDataUtil => {
+            purchaseOrderManager.create(poDataUtil);
+        })
+        .then(id => {
+            purchaseOrderId = id;
+            done();
         })
         .catch(e => {
             done(e);
