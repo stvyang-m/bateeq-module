@@ -11,8 +11,7 @@ var purchaseOrderDataUtil = require("../../../data-util/purchasing/purchase-orde
 var validatePO = require("bateeq-models").validator.purchasing.purchaseOrder;
 var PurchaseOrderManager = require("../../../../src/managers/purchasing/purchase-order-manager");
 var purchaseOrderManager = null;
-var purchaseOrderId;
-var purchaseRequestId;
+var purchaseRequest;
 
 before('#00. connect db', function (done) {
     helper.getDb()
@@ -24,10 +23,10 @@ before('#00. connect db', function (done) {
                 username: 'dev'
             });
 
-            purchaseRequestDataUtil.getPRData()
-                .then(result => purchaseRequestManager.create(result))
-                .then(id => {
-                    purchaseRequestId = id;
+            return purchaseRequestDataUtil.getNewTestData()
+                .then(pr => {
+                    purchaseRequest = pr;
+                    validatePR(purchaseRequest);
                     done();
                 })
                 .catch(e => {
@@ -40,18 +39,16 @@ before('#00. connect db', function (done) {
 });
 
 it('#01. should failed when create new purchase-order with unposted purchase-request', function (done) {
-    purchaseRequestManager.getSingleByIdOrDefault(purchaseRequestId)
-        .then(result => {
-            purchaseOrderDataUtil.getNewData(result);
+
+    purchaseOrderDataUtil.getNewData(purchaseRequest)
+        .then((purchaseOrder) => {
+            return purchaseOrderManager.create(purchaseOrder);
         })
-        .then(poDataUtil => {
-            purchaseOrderManager.create(poDataUtil);
-        })
-        .then(id => {
-            purchaseOrderId = id;
-            done();
+        .then(po => {
+            done(purchaseRequest, "purchase-request cannot be used to create purchase-order due unposted status");
         })
         .catch(e => {
-            done(e);
+            e.errors.should.have.property('purchaseRequestId');
+            done();
         });
 });
