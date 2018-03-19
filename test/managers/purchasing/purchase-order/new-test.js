@@ -7,9 +7,6 @@ var PurchaseRequestManager = require("../../../../src/managers/purchasing/purcha
 var purchaseRequestDataUtil = require("../../../data-util/purchasing/purchase-request-data-util");
 var purchaseOrderDataUtil = require("../../../data-util/purchasing/purchase-order-data-util");
 
-var validatePR = require("bateeq-models").validator.purchasing.purchaseRequest;
-var validatePO = require("bateeq-models").validator.purchasing.purchaseOrder;
-
 var purchaseOrderManager;
 var purchaseRequestManager;
 var purchaseRequest;
@@ -38,7 +35,6 @@ before('#00. connect db & create instance', function (done) {
 it('#01. Create Purchase Request', function (done) {
     purchaseRequestDataUtil.getNewTestData()
         .then(data => {
-            validatePR(data);
             purchaseRequest = data;
 
             done();
@@ -95,7 +91,6 @@ it('#04. should success when create new purchase-order with posted purchase-requ
 it('#05. should success when validate purchase-order with posted purchase-request', function (done) {
     purchaseOrderManager.getSingleById(purchaseOrderId)
     .then(data => {
-        validatePO(data);
         purchaseOrder = data;
         done();
     })
