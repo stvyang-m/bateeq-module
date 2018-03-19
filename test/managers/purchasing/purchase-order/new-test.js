@@ -24,15 +24,19 @@ before('#00. connect db', function (done) {
                 username: 'dev'
             });
 
-            purchaseRequestDataUtil.getNewTestData()
-                .then(result => {
-                    purchaseRequest = result;
-                    validatePR(purchaseRequest);
-                    done();
-                })
-                .catch(e => {
-                    done(e);
-                });
+            done();
+        })
+        .catch(e => {
+            done(e);
+        });
+});
+
+it("create purchase request", function (done) {
+    purchaseRequestDataUtil.getNewTestData()
+        .then(result => {
+            purchaseRequest = result;
+            validatePR(purchaseRequest);
+            done();
         })
         .catch(e => {
             done(e);
@@ -70,8 +74,8 @@ it('#02. should success when create new purchase-order with posted purchase-requ
             return purchaseOrderManager.create(purchaseOrder);
         })
         .then((id) => {
-           purchaseOrderId = id;
-           done();
+            purchaseOrderId = id;
+            done();
         })
         .catch(e => {
             done(e);
