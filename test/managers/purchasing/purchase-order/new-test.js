@@ -1,4 +1,6 @@
-require("should");
+'esversion: 6'
+
+var should = require("should");
 var helper = require("../../../helper");
 var PurchaseOrderManager = require("../../../../src/managers/purchasing/purchase-order-manager");
 var PurchaseRequestManager = require("../../../../src/managers/purchasing/purchase-request-manager");
