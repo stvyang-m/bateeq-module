@@ -30,15 +30,15 @@ before('#00. connect db', function (done) {
         });
 });
 
-it("#01. Should Success when create new Purchase Order", function (done) {
-    purchaseRequestDataUtil.getNewData()
-        .then(prDataUtil => purchaseRequestManager.create(prDataUtil))
-        .then(id => purchaseRequestManager.getSingleByIdOrDefault(id))
-        .then(data => {
-            purchaseRequest = data;
-            done();
-        })
-        .catch(e => {
-            done(e);
-        });
+
+it("#01.Should Success when Create Purchase Request", function(done) {
+    purchaseRequestDataUtil.getNewTestData()
+    .then(data => {
+        purchaseRequest = data;
+        validatePR(purchaseRequest);
+        done();
+    })
+    .catch(e => {
+        done(e);
+    });
 });
