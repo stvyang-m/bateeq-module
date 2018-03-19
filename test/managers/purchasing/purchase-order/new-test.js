@@ -12,7 +12,7 @@ var validatePO = require("bateeq-models").validator.purchasing.purchaseOrder;
 var PurchaseOrderManager = require("../../../../src/managers/purchasing/purchase-order-manager");
 var purchaseOrderManager = null;
 var purchaseOrderId;
-var purchaseRequest;
+var purchaseRequestId;
 
 before('#00. connect db', function (done) {
     helper.getDb()
@@ -23,22 +23,18 @@ before('#00. connect db', function (done) {
             purchaseOrderManager = new PurchaseOrderManager(db, {
                 username: 'dev'
             });
-            done();
+
+            purchaseRequestDataUtil.getPRData()
+                .then(result => purchaseRequestManager.create(result))
+                .then(id => {
+                    purchaseRequestId = id; 
+                    done();
+                })
+                .catch(e => {
+                    done(e);
+                });
         })
         .catch(e => {
             done(e);
         });
-});
-
-
-it("#01.Should Success when Create Purchase Request", function(done) {
-    purchaseRequestDataUtil.getNewTestData()
-    .then(data => {
-        purchaseRequest = data;
-        validatePR(purchaseRequest);
-        done();
-    })
-    .catch(e => {
-        done(e);
-    });
 });
