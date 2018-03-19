@@ -1,5 +1,4 @@
-'use strict'
-var should = require("should");
+require("should");
 var helper = require("../../../helper");
 var PurchaseOrderManager = require("../../../../src/managers/purchasing/purchase-order-manager");
 var PurchaseRequestManager = require("../../../../src/managers/purchasing/purchase-request-manager");
