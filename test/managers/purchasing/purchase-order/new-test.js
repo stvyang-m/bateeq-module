@@ -3,10 +3,8 @@ var should = require("should");
 var helper = require("../../../helper");
 var PurchaseOrderManager = require("../../../../src/managers/purchasing/purchase-order-manager");
 var PurchaseRequestManager = require("../../../../src/managers/purchasing/purchase-request-manager");
-
 var purchaseRequestDataUtil = require("../../../data-util/purchasing/purchase-request-data-util");
 var purchaseOrderDataUtil = require("../../../data-util/purchasing/purchase-order-data-util");
-
 var purchaseOrderManager;
 var purchaseRequestManager;
 var purchaseRequest;
