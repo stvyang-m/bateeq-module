@@ -24,19 +24,15 @@ before('#00. connect db', function (done) {
                 username: 'dev'
             });
 
-            done();
-        })
-        .catch(e => {
-            done(e);
-        });
-});
-
-it("create purchase request", function (done) {
-    purchaseRequestDataUtil.getNewTestData()
-        .then(result => {
-            purchaseRequest = result;
-            validatePR(purchaseRequest);
-            done();
+            return purchaseRequestDataUtil.getNewTestData()
+                .then(result => {
+                    purchaseRequest = result;
+                    validatePR(purchaseRequest);
+                    done();
+                })
+                .catch(e => {
+                    done(e);
+                });
         })
         .catch(e => {
             done(e);
