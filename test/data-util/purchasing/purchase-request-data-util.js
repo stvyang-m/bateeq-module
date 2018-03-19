@@ -69,40 +69,6 @@ class PurchaseRequestDataUtil {
                     });
             });
     }
-
-
-    getPRData() {
-        return Promise.all([unit.getTestData(), category.getTestData(), product.getTestData(), budget.getTestData()])
-            .then((results) => {
-                var unit = results[0];
-                var category = results[1];
-                var product01 = results[2];
-                var budget = results[3];
-
-                var data = {
-                    no: `UT/PR/${codeGenerator()}`,
-                    date: new Date(),
-                    expectedDeliveryDate: new Date(),
-                    budgetId: budget._id,
-                    budget: budget,
-                    unitId: unit._id,
-                    unit: unit,
-                    categoryId: category._id,
-                    category: category,
-
-                    isPosted: false,
-                    remark: "Unit Test",
-                    items: [{
-                        productId: product01._id,
-                        product: product01,
-                        quantity: 10,
-                        uom: product01.uom,
-                        remark: ""
-                    }]
-                };
-                return Promise.resolve(data);
-            });
-    }
 }
 
 module.exports = new PurchaseRequestDataUtil();
