@@ -204,9 +204,6 @@ module.exports = class MonthlyStockManager extends BaseManager {
                     let finalStocks = this._combineStocks(earliestStocks, latestStocks);
                     resolve(finalStocks);
                 })
-                .catch(e => {
-                    console.log(e);
-                })
         })
     }
     //
