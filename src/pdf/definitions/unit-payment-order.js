@@ -183,10 +183,6 @@ module.exports = function (unitPaymentOrder, offset) {
             style: 'tableHeader'
         },
         {
-            text: 'Nomor Order',
-            style: 'tableHeader'
-        },
-        {
             text: 'Nomor Bon Unit',
             style: 'tableHeader'
         }
@@ -222,9 +218,6 @@ module.exports = function (unitPaymentOrder, offset) {
                 style: ['right']
             }],
             style: ['size08']
-        }, {
-            text: item.prNo,
-            style: ['size08', 'center']
         }, {
             text: item.unitReceiptNoteNo,
             style: ['size08', 'center']
