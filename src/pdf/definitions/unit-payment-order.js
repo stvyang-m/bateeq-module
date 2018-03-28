@@ -200,7 +200,7 @@ module.exports = function (unitPaymentOrder, offset) {
             style: ['size08', 'right']
         }, {
             columns: [{
-                width: '20%',
+                width: '30%',
                 text: `${currency}`
             }, {
                 width: '*',
@@ -210,7 +210,7 @@ module.exports = function (unitPaymentOrder, offset) {
             style: ['size08']
         }, {
             columns: [{
-                width: '20%',
+                width: '30%',
                 text: `${currency}`
             }, {
                 width: '*',
