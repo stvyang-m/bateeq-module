@@ -192,33 +192,40 @@ module.exports = function (unitPaymentOrder, offset) {
         return [{
             text: (index + 1).toString() || '',
             style: ['size08', 'center']
-        }, {
+        }, 
+        {
             text: item.product,
             style: ['size08', 'left']
-        }, {
+        }, 
+        {
             text: item.quantity + ' ' + item.uom,
             style: ['size08', 'right']
-        }, {
+        }, 
+        {
             columns: [{
                 width: '30%',
                 text: `${currency}`
-            }, {
+            }, 
+            {
                 width: '*',
                 text: item.price.toLocaleString(locale, locale.currencyNotaItern2),
                 style: ['right']
             }],
             style: ['size08']
-        }, {
+        }, 
+        {
             columns: [{
                 width: '30%',
                 text: `${currency}`
-            }, {
+            }, 
+            {
                 width: '*',
                 text: parseFloat(item.price * item.quantity).toLocaleString(locale, locale.currencyNotaItern),
                 style: ['right']
             }],
             style: ['size08']
-        }, {
+        }, 
+        {
             text: item.unitReceiptNoteNo,
             style: ['size08', 'center']
         }];
@@ -234,7 +241,7 @@ module.exports = function (unitPaymentOrder, offset) {
 
     var table = [{
         table: {
-            widths: ['4%', '25%', '10%', '17%', '20%', '12%', '12%'],
+            widths: ['4%', '25%', '10%', '17%', '20%', '24%'],
             headerRows: 1,
             body: [].concat([thead], tbody)
         }
