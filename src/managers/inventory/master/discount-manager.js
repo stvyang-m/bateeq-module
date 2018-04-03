@@ -8,10 +8,50 @@ var generateCode = require('../../../utils/code-generator');
 var BaseManager = require('module-toolkit').BaseManager;
 var Discount = BateeqModels.inventory.master.Discount;
 
-module.exports = class BankManager extends BaseManager {
+module.exports = class DiscountManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
         this.collection = this.db.use(map.inventory.master.Discount);
+    }
+
+    _getQuery(paging) {
+
+        var _default = {
+            _deleted: false
+        },
+            pagingFilter = paging.filter || {},
+            keywordFilter = {},
+            query = {};
+
+        if (paging.keyword) {
+            var regex = new RegExp(paging.keyword, "i");
+            var filterNo = {
+                "no": {
+                    "$regex": regex
+                }
+            };
+
+            var filterUnitDivisionName = {
+                "unit.division.name": {
+                    "$regex": regex
+                }
+            };
+            var filterUnitName = {
+                "unit.name": {
+                    "$regex": regex
+                }
+            };
+
+            var filterCategory = {
+                "category.name": {
+                    "$regex": regex
+                }
+            };
+            keywordFilter['$or'] = [filterNo, filterUnitDivisionName, filterUnitName, filterCategory];
+        }
+
+        query["$and"] = [_default];
+        return query;
     }
 
     _createIndexes() {
@@ -32,6 +72,7 @@ module.exports = class BankManager extends BaseManager {
 
     _validate(discount) {
         var valid = discount;
+        var errors = {};
 
         return new Promise((resolve, reject) => {
 
@@ -52,9 +93,14 @@ module.exports = class BankManager extends BaseManager {
             }
 
             valid.stamp(this.user.username, "manager");
+
+
+            if (Object.getOwnPropertyNames(errors).length > 0) {
+                var ValidationError = require('module-toolkit').ValidationError;
+                reject(new ValidationError('data does not pass validation', errors));
+            }
+
             resolve(valid);
-        }).catch(e => {
-            reject(e);
         });
     }
 };
