@@ -59,8 +59,14 @@ module.exports = class StoreManager extends BaseManager {
                 }
             };
 
+            var filterStoreCategory = {
+                'storeCategory': {
+                    '$regex': regex
+                }
+            };
+
             keywordFilter = {
-                '$or': [filterCode, filterName]
+                '$or': [filterCode, filterName, filterStoreCategory]
             };
         }
         query = { '$and': [basicFilter, paging.filter, keywordFilter] };
