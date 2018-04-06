@@ -74,9 +74,9 @@ module.exports = class DiscountManager extends BaseManager {
         if (valid.storeCategory === "ALL") {
             getStores = this.storeManager.getStore();
         } else {
-            if (valid.stores) {
-                var storeId = valid.stores[0].name;
-                getStores = this.storeManager.getStore(storeId);
+            if (valid.store) {
+                var storeName = {'name' : valid.store.name};
+                getStores = this.storeManager.getSingleByQuery(storeName);
             }
         }
 
