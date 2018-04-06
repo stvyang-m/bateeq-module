@@ -7,11 +7,13 @@ var map = BateeqModels.map;
 var generateCode = require('../../../utils/code-generator');
 var BaseManager = require('module-toolkit').BaseManager;
 var Discount = BateeqModels.inventory.master.Discount;
+var StoreManager = require('../../master/store-manager');
 
 module.exports = class DiscountManager extends BaseManager {
     constructor(db, user) {
         super(db, user);
         this.collection = this.db.use(map.inventory.master.Discount);
+        this.storeManager = new StoreManager(db, user);
     }
 
     _getQuery(paging) {
@@ -25,29 +27,23 @@ module.exports = class DiscountManager extends BaseManager {
 
         if (paging.keyword) {
             var regex = new RegExp(paging.keyword, "i");
-            var filterNo = {
-                "no": {
+            var filterDiscount = {
+                "discount": {
                     "$regex": regex
                 }
             };
 
-            var filterUnitDivisionName = {
-                "unit.division.name": {
+            var filterDiscountMapping = {
+                "discountMapping": {
                     "$regex": regex
                 }
             };
-            var filterUnitName = {
-                "unit.name": {
+            var filterStoreCategory = {
+                "storeCategory": {
                     "$regex": regex
                 }
             };
-
-            var filterCategory = {
-                "category.name": {
-                    "$regex": regex
-                }
-            };
-            keywordFilter['$or'] = [filterNo, filterUnitDivisionName, filterUnitName, filterCategory];
+            keywordFilter['$or'] = [filterDiscount, filterDiscountMapping, filterStoreCategory];
         }
 
         query["$and"] = [_default];
@@ -73,34 +69,46 @@ module.exports = class DiscountManager extends BaseManager {
     _validate(discount) {
         var valid = discount;
         var errors = {};
+        var getStores;
 
-        return new Promise((resolve, reject) => {
-
-            if (!valid.name || valid.name == '') {
-                errors["name"] = "Masukkan nama";
+        if (valid.storeCategory === "ALL") {
+            getStores = this.storeManager.getStore();
+        } else {
+            if (valid.stores) {
+                var storeId = valid.stores[0].name;
+                getStores = this.storeManager.getStore(storeId);
             }
+        }
 
-            if (!valid.startDate || valid.startDate == '') {
-                errors["startDate"] = "Masukkan Mulai Berlaku Diskon";
-            }
+        return Promise.all([getStores])
+            .then(result => {
+                valid.stores = result[0];
 
-            if (!valid.endDate || valid.endDate == '') {
-                errors["endDate"] = "Masukkan Mulai Berakhir Diskon";
-            }
+                if (!valid.discount || valid.discount == 0) {
+                    errors["discount"] = "Masukkan Nilai Diskon";
+                }
 
-            if (!valid.stamp) {
-                valid = new Discount(valid);
-            }
+                if (!valid.startDate || valid.startDate == '') {
+                    errors["startDate"] = "Masukkan Mulai Berlaku Diskon";
+                }
 
-            valid.stamp(this.user.username, "manager");
+                if (!valid.endDate || valid.endDate == '') {
+                    errors["endDate"] = "Masukkan Mulai Berakhir Diskon";
+                }
+
+                if (!valid.stamp) {
+                    valid = new Discount(valid);
+                }
+
+                valid.stamp(this.user.username, "manager");
 
 
-            if (Object.getOwnPropertyNames(errors).length > 0) {
-                var ValidationError = require('module-toolkit').ValidationError;
-                reject(new ValidationError('data does not pass validation', errors));
-            }
+                if (Object.getOwnPropertyNames(errors).length > 0) {
+                    var ValidationError = require('module-toolkit').ValidationError;
+                    return Promise.reject(new ValidationError('data does not pass validation', errors));
+                }
 
-            resolve(valid);
-        });
+                return Promise.resolve(valid);
+            })
     }
 };

@@ -14,22 +14,22 @@ class MasterDiscountDataUtil {
 
         return Promise.all([getStore,getItem])
             .then(result => {
-                var store = result[0];
-                var item = result[1];
+                var stores = [];
+                var items = [];
                 var now = new Date();
                 var after = new Date();
+                stores.push(result[0]);
+                items.push(result[1]);
 
                 var data = {
                     code : `discount/${codeGenerator()}`,
-                    name: 'discount testing',
+                    discount: 10,
                     startDate : now,
                     endDate : after,
-                    discountMapping : 'Discount 1', 
-                    storeId : store._id,
-                    store : store,
-                    storeCategory : 'DEPT STORE',
-                    itemId : item._id,
-                    item : item
+                    discountMapping : 'Discount 1',
+                    stores : stores,
+                    storeCategory : 'ALL',
+                    items : items
                 };
 
                 return Promise.resolve(data);
