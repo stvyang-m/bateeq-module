@@ -43,7 +43,13 @@ module.exports = class DiscountManager extends BaseManager {
                     "$regex": regex
                 }
             };
-            keywordFilter['$or'] = [filterDiscount, filterDiscountMapping, filterStoreCategory];
+
+            var filterItem = {
+                "items.item.code" : {
+                    "$regex": regex
+                }
+            }
+            keywordFilter['$or'] = [filterDiscount, filterDiscountMapping, filterStoreCategory, filterItem];
         }
 
         query["$and"] = [_default];
