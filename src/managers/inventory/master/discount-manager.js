@@ -45,7 +45,7 @@ module.exports = class DiscountManager extends BaseManager {
             };
 
             var filterItem = {
-                "items.item.code" : {
+                "items.item.code": {
                     "$regex": regex
                 }
             }
@@ -75,14 +75,19 @@ module.exports = class DiscountManager extends BaseManager {
     _validate(discount) {
         var valid = discount;
         var errors = {};
-        var getStores;
+        var getStores = [];
 
-        if (valid.storeCategory === "ALL") {
-            getStores = this.storeManager.getStore();
-        } else {
-            if (valid.stores) {
-                var storeName = {'name' : valid.stores.name};
-                getStores = this.storeManager.getSingleByQuery(storeName);
+        if (valid.code) {
+            if (valid.storeCategory === "ALL") {
+                getStores = this.storeManager.getStore();
+            } else if (valid.stores.name === "ALL") {
+                var storeName = { 'storeCategory': valid.storeCategory };
+                getStores = this.storeManager.getStore(storeName);
+            } else {
+                if (valid.stores) {
+                    var storeName = { 'name': valid.stores.name };
+                    getStores.push(this.storeManager.getSingleByQuery(storeName));
+                }
             }
         }
 
