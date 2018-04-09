@@ -83,16 +83,16 @@ module.exports = class DiscountManager extends BaseManager {
             if (valid.storeCategory === "ALL") {
                 getStores = this.storeManager.getStore();
             } else if (valid.stores.name === "ALL") {
-                var storeName = { 'storeCategory': valid.storeCategory };
+                var storeName = { 'storeCategory': valid.storeCategory, '_deleted' : false };
                 getStores = this.storeManager.getStore(storeName);
             } else {
                 if (valid.stores) {
-                    var storeName = { 'name': valid.stores.name };
+                    var storeName = { 'name': valid.stores.name, '_deleted' : false };
                     getStores = this.storeManager.getSingleByQuery(storeName);
                 }
             }
 
-            getDiscount = this.getDiscountByFilter({ 'discount': valid.discount });
+            getDiscount = this.getDiscountByFilter({ 'discount': valid.discount, '_deleted' : false });
         }
 
         return Promise.all([getStores, getDiscount])
