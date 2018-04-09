@@ -99,7 +99,7 @@ module.exports = class DiscountManager extends BaseManager {
             .then(result => {
                 valid.stores = result[0];
 
-                if (result[1].length > 0) {
+                if (result[1].length > 0 && valid._id) {
                     errors["discount"] = "Diskon sudah ada";
                 }
 
