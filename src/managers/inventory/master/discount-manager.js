@@ -76,6 +76,7 @@ module.exports = class DiscountManager extends BaseManager {
         var valid = discount;
         var errors = {};
         var getStores = [];
+        var getDiscount = {};
 
         if (valid.discount) {
             
@@ -90,11 +91,17 @@ module.exports = class DiscountManager extends BaseManager {
                     getStores = this.storeManager.getSingleByQuery(storeName);
                 }
             }
+
+            getDiscount = this.getDiscountByFilter({ 'discount': valid.discount });
         }
 
-        return Promise.all([getStores])
+        return Promise.all([getStores, getDiscount])
             .then(result => {
                 valid.stores = result[0];
+
+                if (result[1].length > 0 && !valid._id) {
+                    errors["discount"] = "Diskon sudah ada";
+                }
 
                 if (!valid.discount || valid.discount == 0) {
                     errors["discount"] = "Masukkan Nilai Diskon";
