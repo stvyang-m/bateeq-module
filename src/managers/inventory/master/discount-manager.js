@@ -77,7 +77,8 @@ module.exports = class DiscountManager extends BaseManager {
         var errors = {};
         var getStores = [];
 
-        if (valid.code) {
+        if (valid.discount) {
+            
             if (valid.storeCategory === "ALL") {
                 getStores = this.storeManager.getStore();
             } else if (valid.stores.name === "ALL") {
@@ -86,7 +87,7 @@ module.exports = class DiscountManager extends BaseManager {
             } else {
                 if (valid.stores) {
                     var storeName = { 'name': valid.stores.name };
-                    getStores.push(this.storeManager.getSingleByQuery(storeName));
+                    getStores = this.storeManager.getSingleByQuery(storeName);
                 }
             }
         }
@@ -121,5 +122,20 @@ module.exports = class DiscountManager extends BaseManager {
 
                 return Promise.resolve(valid);
             })
+    }
+
+    getDiscountByFilter(filter) {
+        return this._createIndexes()
+            .then((createIndexResults) => {
+                return new Promise((resolve, reject) => {
+                    this.collection.where(filter).execute()
+                        .then((results) => {
+                            resolve(results.data);
+                        })
+                        .catch(e => {
+                            reject(e);
+                        });
+                });
+            });
     }
 };
