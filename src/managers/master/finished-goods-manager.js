@@ -39,7 +39,7 @@ module.exports = class FinishedGoodsManager extends ItemManager {
             };
 
             var filterRO = {
-                'article.realizationOrder': {
+                'items.item.article.realizationOrder': {
                     '$regex': regex
                 }
             };
